@@ -19,6 +19,7 @@ Building Hyperscan
     $ git clone https://github.com/01org/hyperscan.git
     $ cd hyperscan
     $ mkdir -p build
+    $ cd build
     $ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" \
     -DBUILD_SHARED_LIBS=ON ../
     $ make
