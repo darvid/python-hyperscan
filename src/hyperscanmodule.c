@@ -257,7 +257,7 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
                            "scratch", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "s#|OIOO", kwlist,
                                    &data, &length, &ocallback, &flags,
-                                   &oscratch, &octx))
+                                   &octx, &oscratch))
     return NULL;
   py_scan_callback_ctx cctx = {ocallback, octx};
   Py_BEGIN_ALLOW_THREADS
