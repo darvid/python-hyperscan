@@ -251,11 +251,13 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
   Py_ssize_t length;
   unsigned int flags = 0;
   PyObject *ocallback = Py_None,
+            *oscratch = Py_None,
                 *octx = Py_None;
   static char *kwlist[] = {"data", "match_event_handler", "flags", "context",
-                           NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s#|OIO", kwlist,
-                                   &data, &length, &ocallback, &flags, &octx))
+                           "scratch", NULL};
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s#|OIOO", kwlist,
+                                   &data, &length, &ocallback, &flags,
+                                   &oscratch, &octx))
     return NULL;
   py_scan_callback_ctx cctx = {ocallback, octx};
   Py_BEGIN_ALLOW_THREADS
@@ -264,7 +266,8 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
     data,
     length,
     flags,
-    ((Scratch*)self->scratch)->scratch,
+    oscratch == Py_None ? ((Scratch*)self->scratch)->scratch
+                        : ((Scratch*)oscratch)->scratch,
     ocallback == Py_None ? NULL : match_handler,
     ocallback == Py_None ? NULL : (void*)&cctx
   );
@@ -324,7 +327,7 @@ static PyMethodDef Database_methods[] = {
    "    Returns:\n"
    "        int: The size of the database in bytes.\n\n"},
   {"scan", (PyCFunction)Database_scan, METH_VARARGS|METH_KEYWORDS,
-   "scan(data, match_event_handler, flags=0, context=None)\n\n"
+   "scan(data, match_event_handler, flags=0, context=None, scratch=None)\n\n"
    "    Scans a block of text.\n\n"
    "    Args:\n"
    "        data (:obj:`str`): The block of text to scan.\n"
@@ -333,7 +336,8 @@ static PyMethodDef Database_methods[] = {
    "            start offset, end offset, flags, and a context object.\n"
    "        flags (:obj:`int`): Currently unused.\n"
    "        context (:obj:`object`): A context object passed as the last arg\n"
-   "            to **match_event_handler**.\n\n"},
+   "            to **match_event_handler**.\n"
+   "        scratch (:class:`~.Scratch`): A scratch object.\n\n"},
   {"stream", (PyCFunction)Database_stream, METH_VARARGS|METH_KEYWORDS,
    "stream(flags=0, match_event_handler=None, context=None)\n\n"
    "    Returns a new stream context manager.\n\n"
