@@ -1,7 +1,6 @@
 examples/hsbench-samples
 
 .vscode/
-.reqwire.lock
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

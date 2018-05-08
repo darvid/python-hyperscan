@@ -60,7 +60,7 @@ def test_stream_scan(database_stream, mocker):
 
 def test_database_serialize(database_stream):
     serialized = hyperscan.dumps(database_stream)
-    assert len(serialized) == 4096
+    assert len(serialized) == 6200
 
 
 def test_database_deserialize(database_stream):

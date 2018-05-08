@@ -1,29 +1,25 @@
 language: python
 notifications:
   email: false
+sudo: required
 matrix:
   fast_finish: true
 python:
   - "2.7"
-  - "3.2"
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
+  - "pypy"
+  - "pypy3"
 install:
-  - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
-  - tar xvjf boost_1_57_0.tar.bz2
-  - cd boost_1_57_0
-  - ./bootstrap --prefix=/usr
-  - ./b2
-  - ./b2 install
+  - pip install -U pip wheel
   - git clone https://github.com/01org/hyperscan.git
-  - cd hyperscan
-  - mkdir -p build
+  - mkdir -p hyperscan/build
+  - cd hyperscan/build
   - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON ../
   - make
   - make install
-  - python setup.py bdist
+  - python setup.py bdist_wheel
 addons:
   apt:
     sources:
@@ -31,4 +27,5 @@ addons:
     packages:
       - g++
       - autotools-dev
+      - libboost-dev
       - libicu-dev
