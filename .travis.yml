@@ -15,14 +15,14 @@ jobs:
       - tar xjf boost_1_57_0.tar.bz2
       - cd boost_1_57_0
       - ./bootstrap.sh --prefix=/usr
-      - ./b2
+      - ./b2 -j4
       - ./b2 install
       - pip install -U pip wheel
       - git clone https://github.com/01org/hyperscan.git
       - mkdir -p hyperscan/build
       - cd hyperscan/build
       - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON ../
-      - make
+      - make -j4
       - make install
       - cd $TRAVIS_BUILD_DIR
     sudo: required
