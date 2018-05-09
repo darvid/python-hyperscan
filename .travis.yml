@@ -43,7 +43,7 @@ jobs:
     before_install: *install_hyperscan
     install:
       - python setup.py bdist_wheel
-    after_success: ls -l dist/
+    script: ls -l dist/
 addons:
   apt:
     sources:
