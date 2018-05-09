@@ -1,9 +1,10 @@
 language: python
-notifications:
-  email: false
-sudo: required
-matrix:
-  fast_finish: true
+env:
+  global:
+    - PYTHONUNBUFFERED=1
+stages:
+  - name: build wheels
+  - name: test
 python:
   - "2.7"
   - "3.4"
@@ -11,15 +12,37 @@ python:
   - "3.6"
   - "pypy"
   - "pypy3"
-install:
-  - pip install -U pip wheel
-  - git clone https://github.com/01org/hyperscan.git
-  - mkdir -p hyperscan/build
-  - cd hyperscan/build
-  - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON ../
-  - make
-  - make install
-  - python setup.py bdist_wheel
+jobs:
+  fast_finish: true
+  include:
+  - stage: test
+    env: OS=linux
+    before_install: &install_hyperscan
+      - cd /tmp
+      - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
+      - tar xvjf boost_1_57_0.tar.bz2
+      - cd boost_1_57_0
+      - ./bootstrap --prefix=/usr
+      - ./b2
+      - ./b2 install
+      - pip install -U pip wheel
+      - git clone https://github.com/01org/hyperscan.git
+      - mkdir -p hyperscan/build
+      - cd hyperscan/build
+      - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON ../
+      - make
+      - make install
+      - cd $TRAVIS_BUILD_DIR
+    sudo: required
+    install:
+      - pip install -U tox-travis
+    script: tox
+  - stage: build wheels
+    env: OS=linux
+    sudo: required
+    install: skip
+    script: docker run --rm -it -v $(pwd):/io -w /io quay.io/pypa/manylinux1_x86_64 .ci/build_linux_wheels.sh
+    after_success: ls -l wheelhouse/
 addons:
   apt:
     sources:
@@ -27,5 +50,4 @@ addons:
     packages:
       - g++
       - autotools-dev
-      - libboost-dev
       - libicu-dev
