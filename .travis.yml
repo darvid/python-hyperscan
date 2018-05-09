@@ -16,13 +16,12 @@ jobs:
   fast_finish: true
   include:
   - stage: test
-    env: OS=linux
     before_install: &install_hyperscan
       - cd /tmp
       - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
-      - tar xvjf boost_1_57_0.tar.bz2
+      - tar xjf boost_1_57_0.tar.bz2
       - cd boost_1_57_0
-      - ./bootstrap --prefix=/usr
+      - ./bootstrap.sh --prefix=/usr
       - ./b2
       - ./b2 install
       - pip install -U pip wheel
@@ -38,7 +37,6 @@ jobs:
       - pip install -U tox-travis
     script: tox
   - stage: build wheels
-    env: OS=linux
     sudo: required
     before_install: *install_hyperscan
     install:
