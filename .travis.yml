@@ -3,8 +3,8 @@ env:
   global:
     - PYTHONUNBUFFERED=1
 stages:
-  - name: build wheels
   - name: test
+  - name: build wheels
 python:
   - "2.7"
   - "3.4"
@@ -40,9 +40,10 @@ jobs:
   - stage: build wheels
     env: OS=linux
     sudo: required
-    install: skip
-    script: docker run --rm -it -v $(pwd):/io -w /io quay.io/pypa/manylinux1_x86_64 .ci/build_linux_wheels.sh
-    after_success: ls -l wheelhouse/
+    before_install: *install_hyperscan
+    install:
+      - python setup.py bdist_wheel
+    after_success: ls -l dist/
 addons:
   apt:
     sources:
