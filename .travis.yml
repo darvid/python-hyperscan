@@ -1,59 +1,62 @@
 language: python
 env:
   global:
-    - PYTHONUNBUFFERED=1
+  - PYTHONUNBUFFERED=1
 stages:
-  - name: test
-  - name: build wheels
+- test
+- name: deploy
+  if: branch =~ ^release/$
+python: &python_versions
+- '2.7'
+- '3.4'
+- '3.5'
+- '3.6'
+- pypy
+- pypy3
 jobs:
   fast_finish: true
   include:
   - stage: test
     before_install: &install_hyperscan
-      - cd /tmp
-      - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
-      - tar xjf boost_1_57_0.tar.bz2
-      - cd boost_1_57_0
-      - ./bootstrap.sh --prefix=/usr
-      - ./b2 -j4
-      - sudo ./b2 install
-      - pip install -U pip wheel
-      - git clone https://github.com/01org/hyperscan.git
-      - mkdir -p hyperscan/build
-      - cd hyperscan/build
-      - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON ../
-      - make -j4
-      - sudo make install
-      - cd $TRAVIS_BUILD_DIR
+    - cd /tmp
+    - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
+    - tar xjf boost_1_57_0.tar.bz2
+    - cd boost_1_57_0
+    - "./bootstrap.sh --prefix=/usr"
+    - "./b2 -j4"
+    - sudo ./b2 install
+    - pip install -U pip wheel
+    - git clone https://github.com/01org/hyperscan.git
+    - mkdir -p hyperscan/build
+    - cd hyperscan/build
+    - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON
+      ../
+    - make -j4
+    - sudo make install
+    - cd $TRAVIS_BUILD_DIR
     sudo: required
-    python:
-      - "2.7"
-      - "3.4"
-      - "3.5"
-      - "3.6"
-      - "pypy"
-      - "pypy3"
+    python: *python_versions
     install:
-      - pip install -U tox-travis
+    - pip install -U tox-travis
     script: tox
-  - stage: build wheels
+  - stage: deploy
     sudo: required
     before_install: *install_hyperscan
-    python:
-      - "2.7"
-      - "3.4"
-      - "3.5"
-      - "3.6"
-      - "pypy"
-      - "pypy3"
-    install:
-      - python setup.py bdist_wheel
-    script: ls -l dist/
+    script: skip
+    deploy:
+      provider: pypi
+      distributions: bdist_wheel
+      user:
+        secure: pKW0wQcyydsdlCg767qYY8THYcbgkexqMc3IJzIJ7AQPS9lMiA0p+4QAIrDwCQAf8RwPGMhCUrqqo5D9gpG7xt8wFX4Ri+mx/YdcFmBjLqUNmLRXrYXJ5D0dyppticQWjsXdL72fLUYFBYlXeDAeF41z9IUhQTH8PJrWAiMMZRa5V56rjtrJZ1OPC+UQnKCESqOHahGI67tbSBkRx1GUHzVbqEpuOtEP3VYjbYqsP05o2u+FlIaeq22JZTSUXvlIg7MAvwkwxAKdsWZ4cFOKJrJr6qKj356KHQLbvt80Ez5R1luJYuuCU3kGFvE2BJ/yoXewNx5abZbV6qIjDxUWy+7DQMc2wEbsj95Cgn83OmYj/F2OOZI2REDOkLC9ud5HAkYzlJTI8REsMxjLBQckJDD58kdVPp6Fh1lo6JPzTOc0yktKci3Pq4CDrXZVzSdSP9IqOZ7ojrYM5pzpilb3EvpcYdVREEqpNv+sy963pEElK9s6Q4UB6ZSiw5OwQrWCqw/k8u+RP8tAwE3x/s/9BlwnY6xkUA+nZzllx/tvuhpSEmxp5y8V+b4yUhbp9HeeMaFiMSkcThlXyhdDYiQJobdcqUptmtywzIi4QliC9XMJ+haysCHoyzu4jz0fKlmRZzbUYPCyMbx+ZQ8Dl/ZqCUMBMEgoO41BZ9SyThdgzBo=
+      password:
+        secure: LuKzvewodHN6b+pm5QKGSDYjEMv2exlQurrokHRoTwga9g8MyZ2tYh37kyJ9xiuOeakfDL8WsmQsQxNNem2hhQ9IePUApm14x6R+gxKLug1aU6W6Je6+Uu+tJknjw8QqBiMg9N12nS/bwPTc7miEcKMcLSqCOb93g+CZ4gNceL2AXAXYlCdxk4A65GK1te1J9sdMNH2f6HmfNt8HeXru3BlLKDqhbM66ca+Gkr7J5hsmh2zIa3LRNAIafLho3Off44jgMaKktCMBozPyQevji6C/5p4iXNsl9xKuLpbe7MWZsWoflbmsDoSnJYf8D0rVDsqS0bz094FaSHSp31Ov+zFMVIN41VtHC3ZK6FsBUL+MCmpbk38IRtGk1MkBJxOR/5vCx7r8bwwK+gEyRcKUs6UeEnorWzE3UOIeUdP/5txWbqN4qlwkbdvIoRl2axed5ToKHxfT6HYDpONwaRXd67LX8cqUf0kCJwpf9jGenm3OMBiBuZUCzi+UpO9NrjRX3M1GMnSn3gXewSed3XQG63p3y2GBWW1QQIYSX26SHikGnASmYETEPmFMw3i9Mhd45xr7t/rU1DfOrONa/I8Xl+UIrPGrPbko86GjG5e4AdvCPFoyq8lpUn9ahVJ83HE/PvAnCJU/zlmynU0tiJEq+qYY2wCWKV/I6sVn5/fRZbs=
+      on:
+        tags: true
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
     packages:
-      - g++
-      - autotools-dev
-      - libicu-dev
+    - g++
+    - autotools-dev
+    - libicu-dev
