@@ -65,7 +65,9 @@ def setup():
         name='hyperscan',
         setup_requires=setup_requirements,
         url='https://github.com/darvid/python-hyperscan',
-        use_scm_version=True,
+        use_scm_version={
+            'version_scheme': 'python-simplified-semver',
+        },
         zip_safe=False,
     )
 
