@@ -15,7 +15,7 @@ jobs:
     - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
     - tar xjf boost_1_57_0.tar.bz2
     - cd boost_1_57_0
-    - "./bootstrap.sh --prefix=/usr --without-python"
+    - "./bootstrap.sh --prefix=/usr --without-libraries=python"
     - "./b2 -j4"
     - sudo ./b2 install
     - pip install -U pip wheel
