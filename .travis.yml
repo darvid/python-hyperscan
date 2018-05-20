@@ -5,7 +5,7 @@ env:
 stages:
 - test
 - name: deploy
-  if: branch =~ ^release/$
+  if: branch = master
 jobs:
   fast_finish: true
   include:
