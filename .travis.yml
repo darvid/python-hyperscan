@@ -49,9 +49,7 @@ jobs:
       password:
         secure: LuKzvewodHN6b+pm5QKGSDYjEMv2exlQurrokHRoTwga9g8MyZ2tYh37kyJ9xiuOeakfDL8WsmQsQxNNem2hhQ9IePUApm14x6R+gxKLug1aU6W6Je6+Uu+tJknjw8QqBiMg9N12nS/bwPTc7miEcKMcLSqCOb93g+CZ4gNceL2AXAXYlCdxk4A65GK1te1J9sdMNH2f6HmfNt8HeXru3BlLKDqhbM66ca+Gkr7J5hsmh2zIa3LRNAIafLho3Off44jgMaKktCMBozPyQevji6C/5p4iXNsl9xKuLpbe7MWZsWoflbmsDoSnJYf8D0rVDsqS0bz094FaSHSp31Ov+zFMVIN41VtHC3ZK6FsBUL+MCmpbk38IRtGk1MkBJxOR/5vCx7r8bwwK+gEyRcKUs6UeEnorWzE3UOIeUdP/5txWbqN4qlwkbdvIoRl2axed5ToKHxfT6HYDpONwaRXd67LX8cqUf0kCJwpf9jGenm3OMBiBuZUCzi+UpO9NrjRX3M1GMnSn3gXewSed3XQG63p3y2GBWW1QQIYSX26SHikGnASmYETEPmFMw3i9Mhd45xr7t/rU1DfOrONa/I8Xl+UIrPGrPbko86GjG5e4AdvCPFoyq8lpUn9ahVJ83HE/PvAnCJU/zlmynU0tiJEq+qYY2wCWKV/I6sVn5/fRZbs=
       on:
-        branches:
-          only:
-            - master
+        branch: master
   - stage: deploy
     sudo: required
     before_install: *install_hyperscan
@@ -65,9 +63,7 @@ jobs:
       password:
         secure: LuKzvewodHN6b+pm5QKGSDYjEMv2exlQurrokHRoTwga9g8MyZ2tYh37kyJ9xiuOeakfDL8WsmQsQxNNem2hhQ9IePUApm14x6R+gxKLug1aU6W6Je6+Uu+tJknjw8QqBiMg9N12nS/bwPTc7miEcKMcLSqCOb93g+CZ4gNceL2AXAXYlCdxk4A65GK1te1J9sdMNH2f6HmfNt8HeXru3BlLKDqhbM66ca+Gkr7J5hsmh2zIa3LRNAIafLho3Off44jgMaKktCMBozPyQevji6C/5p4iXNsl9xKuLpbe7MWZsWoflbmsDoSnJYf8D0rVDsqS0bz094FaSHSp31Ov+zFMVIN41VtHC3ZK6FsBUL+MCmpbk38IRtGk1MkBJxOR/5vCx7r8bwwK+gEyRcKUs6UeEnorWzE3UOIeUdP/5txWbqN4qlwkbdvIoRl2axed5ToKHxfT6HYDpONwaRXd67LX8cqUf0kCJwpf9jGenm3OMBiBuZUCzi+UpO9NrjRX3M1GMnSn3gXewSed3XQG63p3y2GBWW1QQIYSX26SHikGnASmYETEPmFMw3i9Mhd45xr7t/rU1DfOrONa/I8Xl+UIrPGrPbko86GjG5e4AdvCPFoyq8lpUn9ahVJ83HE/PvAnCJU/zlmynU0tiJEq+qYY2wCWKV/I6sVn5/fRZbs=
       on:
-        branches:
-          only:
-            - master
+        branch: master
 addons:
   apt:
     sources:
