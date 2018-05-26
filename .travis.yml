@@ -2,7 +2,6 @@ env:
   global:
   - MANYLINUX_DOCKER_IMAGE=darvid/manylinux-hyperscan:latest
   - PYTHONUNBUFFERED=1
-sudo: true
 stages:
 - test
 - name: deploy
@@ -22,6 +21,7 @@ jobs:
     - '3.5'
     - '3.6'
     script: tox
+    sudo: required
   - stage: deploy
     before_install: *pull_docker
     script: skip
