@@ -13,7 +13,7 @@ jobs:
   - stage: test
     before_install: &pull_docker
     - docker pull $MANYLINUX_DOCKER_IMAGE
-    - docker run --rm -v `pwd`:/io $MANYLINUX_DOCKER_IMAGE /io/travis/build_wheels.sh
+    - docker run --rm -w /io/ -v `pwd`:/io $MANYLINUX_DOCKER_IMAGE /io/travis/build_wheels.sh
     install:
     - pip install -U tox-travis
     python:
