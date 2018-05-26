@@ -9,4 +9,5 @@ for whl in /tmp/wheelhouse/*.whl; do
   auditwheel repair "$whl" -w /io/wheelhouse/
 done
 
+mkdir -p /io/dist/
 ln -s /io/wheelhouse/hyperscan*.whl /io/dist/
