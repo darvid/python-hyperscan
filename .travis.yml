@@ -1,3 +1,4 @@
+language: python
 env:
   global:
   - MANYLINUX_DOCKER_IMAGE=darvid/manylinux-hyperscan:latest
