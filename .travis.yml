@@ -1,7 +1,8 @@
-language: python
 env:
   global:
+  - MANYLINUX_DOCKER_IMAGE=darvid/manylinux-hyperscan:latest
   - PYTHONUNBUFFERED=1
+sudo: true
 stages:
 - test
 - name: deploy
@@ -10,54 +11,24 @@ jobs:
   fast_finish: true
   include:
   - stage: test
-    before_install: &install_hyperscan
-    - cd /tmp
-    - wget http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2
-    - tar xjf boost_1_57_0.tar.bz2
-    - cd boost_1_57_0
-    - "./bootstrap.sh --prefix=/usr --without-libraries=python"
-    - "./b2 -j4"
-    - sudo ./b2 install
-    - pip install -U pip wheel
-    - git clone https://github.com/01org/hyperscan.git
-    - mkdir -p hyperscan/build
-    - cd hyperscan/build
-    - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON
-      ../
-    - make -j4
-    - sudo make install
-    - cd $TRAVIS_BUILD_DIR
-    sudo: required
+    before_install: &pull_docker
+    - docker pull $MANYLINUX_DOCKER_IMAGE
+    - docker run --rm -v `pwd`:/io $MANYLINUX_DOCKER_IMAGE /io/travis/build_wheels.sh
+    install:
+    - pip install -U tox-travis
     python:
     - '2.7'
     - '3.4'
     - '3.5'
     - '3.6'
-    install:
-    - pip install -U tox-travis
     script: tox
   - stage: deploy
-    sudo: required
-    before_install: *install_hyperscan
+    before_install: *pull_docker
     script: skip
     python: '2.7'
     deploy:
       provider: pypi
-      distributions: bdist_wheel
-      user:
-        secure: pHWvUZpobwM4gi8IxHUM6fwy9na8At6NjVZ7GnJ4ua9CoDuOL8I6N70OhviZ+CBm8jUr8/GNoGA1yadaXJYfm8vl/pcWMZSGGmMQwO+yMvBY09TO11PD5IzHS47E/E1lkpySuGzlykmX9yvJ5KPC5jN+/IOc/3pk14EQfEzghtRKUJj5Uhc7iINxst9gW3644AXHu5VQbahVYoVrE9ozoclfiUTjpbHGi6GSt856TpVgMAIfOvrfdoA0/yZSUuChaOiPpXov20oo5dYeQsTVWDC4ehjPVYIJYPGfvdm56THsaXQcjZ0fEQ25JS74mPSKav0i/+uSb8b+deLpRekdspw8Cns3ypX8lPkmxdHU8Xw2AFsNBGRZto7h2Sx8R1YRkSyJ1CnhaS2p9vUyUeihJ90S122lvZMnkjVkTjoBVXdG3xHeGeThQLc3O6D6FMMOhNtcVTCgA6T+Bfsl7Hn6B/n7hhcBdqhlkZ4lV8mOLOdJE8IcdvwEza6l2e8fB/4HyP+EbE/3QquAL74OgTL0TEIpVGf8tICzBxrGE3iIGtygFrU0CouPHbyyJol+5VezYAPCgAZ62yA8DJOOehECI0QOw411P2a6blp7IxPCwUWu1pIx2MufRoInsMyXso8X+4lbNJGGBQwO83ag9+fNmmkHEjZEZ+fom/l5Tm155/g=
-      password:
-        secure: DSWuMADmqcP+6Yrb1bSy/9r0xDkQpD9bC0wd+u7RFhJ512o0BZfyfMDiqMoSbbn4LCRjY0DsGExYSzrE6hFX2MEsMghtK/jEMUehvHFqhgU/bFdkIPODnOdq7TzbOOx8+G3Vi4J3uqJbHSCs+gcfThEvpNlbsSq2F8oWC+Ww6dVZP3s4mm7F2RuJuqBJZjUD5zw1lZD8Lq8OyDkvf4VFOPF0YKl6QitgFNYUEI+5q9R+Qtktk4guuSvrjiP9Q8S2xU2r2gJ92VrpWTEIF1QHzAlIC+18DooNJTZXlCucpj55rJJA5XScvN4GwCe9h+CGOsFr/CG5sHTrAhDwARz6+2U9ceT/I6tlWwJwZnDV1me8yIRyGkIg8TNQAivXQUctm82BV5FjiqRO0JDQ9xvVr4i57aZULB1csO3lX4st7MHc67WgI+CVRJ+eYObqcZWR01CHYw/PV24YJzxLkvpp0mt1e7d94fpuON8zOf+o0lWxG9c1kD0q4Si3j7damGDxpVrDRop+QIF2pEQk9Z0BvDDbZJ0VKcGyHE7x5dWIfdSgE6X2S7WXgAaHNeN7fnvswt4qljP48Hxq7OhGkciiiHmvzAofciyOHdfZ+CycctqYjqvQQHizGOXnvGmw/p8ngiQEprYlktkUyxrc2iirZAAruNx9pR1cp9xJ/lO+Ow4=
-      on:
-        tags: true
-  - stage: deploy
-    sudo: required
-    before_install: *1
-    script: skip
-    python: '3.6'
-    deploy:
-      provider: pypi
-      distributions: bdist_wheel
+      distributions: sdist
       user:
         secure: pHWvUZpobwM4gi8IxHUM6fwy9na8At6NjVZ7GnJ4ua9CoDuOL8I6N70OhviZ+CBm8jUr8/GNoGA1yadaXJYfm8vl/pcWMZSGGmMQwO+yMvBY09TO11PD5IzHS47E/E1lkpySuGzlykmX9yvJ5KPC5jN+/IOc/3pk14EQfEzghtRKUJj5Uhc7iINxst9gW3644AXHu5VQbahVYoVrE9ozoclfiUTjpbHGi6GSt856TpVgMAIfOvrfdoA0/yZSUuChaOiPpXov20oo5dYeQsTVWDC4ehjPVYIJYPGfvdm56THsaXQcjZ0fEQ25JS74mPSKav0i/+uSb8b+deLpRekdspw8Cns3ypX8lPkmxdHU8Xw2AFsNBGRZto7h2Sx8R1YRkSyJ1CnhaS2p9vUyUeihJ90S122lvZMnkjVkTjoBVXdG3xHeGeThQLc3O6D6FMMOhNtcVTCgA6T+Bfsl7Hn6B/n7hhcBdqhlkZ4lV8mOLOdJE8IcdvwEza6l2e8fB/4HyP+EbE/3QquAL74OgTL0TEIpVGf8tICzBxrGE3iIGtygFrU0CouPHbyyJol+5VezYAPCgAZ62yA8DJOOehECI0QOw411P2a6blp7IxPCwUWu1pIx2MufRoInsMyXso8X+4lbNJGGBQwO83ag9+fNmmkHEjZEZ+fom/l5Tm155/g=
       password:

@@ -1,3 +1,5 @@
+.pytest_cache/
+*requirements.in
 *.whl
 examples/hsbench-samples
 
@@ -25,6 +27,7 @@ lib64/
 parts/
 sdist/
 var/
+wheelhouse/
 wheels/
 *.egg-info/
 .installed.cfg
