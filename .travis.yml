@@ -27,6 +27,8 @@ jobs:
     before_install: *pull_docker
     script: skip
     python: '2.7'
+    before_deploy:
+      - sudo chown -R travis:travis /home/travis/
     deploy:
       provider: pypi
       distributions: sdist
