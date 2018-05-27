@@ -36,6 +36,7 @@ jobs:
         secure: DSWuMADmqcP+6Yrb1bSy/9r0xDkQpD9bC0wd+u7RFhJ512o0BZfyfMDiqMoSbbn4LCRjY0DsGExYSzrE6hFX2MEsMghtK/jEMUehvHFqhgU/bFdkIPODnOdq7TzbOOx8+G3Vi4J3uqJbHSCs+gcfThEvpNlbsSq2F8oWC+Ww6dVZP3s4mm7F2RuJuqBJZjUD5zw1lZD8Lq8OyDkvf4VFOPF0YKl6QitgFNYUEI+5q9R+Qtktk4guuSvrjiP9Q8S2xU2r2gJ92VrpWTEIF1QHzAlIC+18DooNJTZXlCucpj55rJJA5XScvN4GwCe9h+CGOsFr/CG5sHTrAhDwARz6+2U9ceT/I6tlWwJwZnDV1me8yIRyGkIg8TNQAivXQUctm82BV5FjiqRO0JDQ9xvVr4i57aZULB1csO3lX4st7MHc67WgI+CVRJ+eYObqcZWR01CHYw/PV24YJzxLkvpp0mt1e7d94fpuON8zOf+o0lWxG9c1kD0q4Si3j7damGDxpVrDRop+QIF2pEQk9Z0BvDDbZJ0VKcGyHE7x5dWIfdSgE6X2S7WXgAaHNeN7fnvswt4qljP48Hxq7OhGkciiiHmvzAofciyOHdfZ+CycctqYjqvQQHizGOXnvGmw/p8ngiQEprYlktkUyxrc2iirZAAruNx9pR1cp9xJ/lO+Ow4=
       on:
         tags: true
+      skip_cleanup: true
 addons:
   apt:
     sources:

@@ -11,3 +11,4 @@ done
 
 mkdir -p /io/dist/
 ln -s /io/wheelhouse/hyperscan*.whl /io/dist/
+rm -rf /io/.eggs
