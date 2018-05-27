@@ -10,4 +10,4 @@ for whl in /tmp/wheelhouse/*.whl; do
 done
 
 mkdir -p /io/dist/
-ln -s /io/wheelhouse/hyperscan*.whl /io/dist/
+cp /io/wheelhouse/hyperscan*.whl /io/dist/

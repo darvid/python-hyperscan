@@ -15,6 +15,7 @@ jobs:
     - docker pull $MANYLINUX_DOCKER_IMAGE
     - docker run --rm -w /io/ -v `pwd`:/io $MANYLINUX_DOCKER_IMAGE /io/travis/build_wheels.sh
     - sudo chown -R travis:travis /home/travis/
+    - ls -la dist/
     install:
     - pip install -U tox-travis
     python:
