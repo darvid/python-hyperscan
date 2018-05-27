@@ -11,4 +11,3 @@ done
 
 mkdir -p /io/dist/
 ln -s /io/wheelhouse/hyperscan*.whl /io/dist/
-chown -R $UID:$UID /io
