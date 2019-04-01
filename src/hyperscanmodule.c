@@ -100,10 +100,12 @@ static int match_handler(unsigned int id, unsigned long long from,
   py_scan_callback_ctx *cctx = context;
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
-  PyObject_CallFunction(cctx->callback, "IIIIO", id, from, to, flags,
-                        cctx->ctx);
+  PyObject *rv = PyObject_CallFunction(cctx->callback, "IIIIO", id,
+                                       from, to, flags, cctx->ctx);
+  int halt = PyObject_Not(rv);
   PyGILState_Release(gstate);
-  return 0;
+  Py_XDECREF(rv);
+  return halt;
 }
 
 static void Database_dealloc(Database* self) {
@@ -525,7 +527,10 @@ static PyObject* Stream_scan(Stream *self, PyObject *args, PyObject *kwds) {
     ocallback == Py_None ? NULL : match_handler,
     ocallback == Py_None ? NULL : (void*)&cctx
   );
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
   HANDLE_HYPERSCAN_ERR(err, NULL);
+  PyGILState_Release(gstate);
   Py_END_ALLOW_THREADS;
   Py_RETURN_NONE;
 }

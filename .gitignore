@@ -1,5 +1,4 @@
 .pytest_cache/
-*requirements.in
 *.whl
 examples/hsbench-samples
 
