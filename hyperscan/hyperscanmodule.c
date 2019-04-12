@@ -63,37 +63,6 @@ typedef struct {
   hs_scratch_t *scratch;
 } Scratch;
 
-static const char* get_package_version(void) {
-  char *version;
-  PyObject *pkg_resources, *odist, *oversion;
-  pkg_resources = PyImport_ImportModuleNoBlock("pkg_resources");
-  odist = PyObject_CallMethod(pkg_resources, "get_distribution",
-                              "s", "hyperscan");
-
-  if (PyErr_Occurred()) {
-    Py_DECREF(odist);
-    return DEFAULT_VERSION;
-  }
-
-  oversion = PyObject_GetAttrString(odist, "version");
-#if PY_MAJOR_VERSION >= 3
-  if (PyUnicode_Check(oversion)) {
-    PyObject *bytes = PyUnicode_AsUTF8String(oversion);
-    version = PyBytes_AsString(bytes);
-  } else {
-    return DEFAULT_VERSION;
-  }
-#else
-  version = PyBytes_AsString(oversion);
-#endif
-
-  Py_DECREF(pkg_resources);
-  Py_DECREF(odist);
-  Py_DECREF(oversion);
-
-  return version;
-}
-
 static int match_handler(unsigned int id, unsigned long long from,
                          unsigned long long to, unsigned int flags,
                          void *context) {
@@ -102,7 +71,7 @@ static int match_handler(unsigned int id, unsigned long long from,
   gstate = PyGILState_Ensure();
   PyObject *rv = PyObject_CallFunction(cctx->callback, "IIIIO", id,
                                        from, to, flags, cctx->ctx);
-  int halt = PyObject_Not(rv);
+  int halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
   PyGILState_Release(gstate);
   Py_XDECREF(rv);
   return halt;
@@ -799,10 +768,10 @@ static PyMethodDef Hyperscan_methods[] = {
   {NULL}
 };
 
-MOD_INIT(hyperscan) {
+MOD_INIT(_hyperscan) {
   PyObject *m;
 
-  MOD_DEF(m, "hyperscan", "Hyperscan bindings for CPython.", Hyperscan_methods);
+  MOD_DEF(m, "_hyperscan", "Hyperscan bindings for CPython.", Hyperscan_methods);
 
   if (!m)
     return MOD_ERROR_VAL;
@@ -863,7 +832,7 @@ MOD_INIT(hyperscan) {
   Py_INCREF(&StreamType);
   PyModule_AddObject(m, "Stream", (PyObject*)&StreamType);
 
-  PyModule_AddStringConstant(m, "__version__", get_package_version());
+  PyModule_AddStringConstant(m, "__version__", hs_version());
 
   return MOD_SUCCESS_VAL(m);
 }

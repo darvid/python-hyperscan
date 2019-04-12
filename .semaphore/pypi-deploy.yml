@@ -1,0 +1,21 @@
+version: v1.0
+name: Deploy to PyPI
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Deploy
+    task:
+      prologue:
+        commands:
+          - pip install twine
+      jobs:
+        - name: Wheels
+          commands:
+            - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
+            - twine upload --config-file /root/.pypirc wheelhouse/*.sh
+        - name: Source distribution
+          commands:
+            - cache restore dist-$SEMAPHORE_GIT_BRANCH
+            - twine upload --config-file /root/.pypirc dist/*

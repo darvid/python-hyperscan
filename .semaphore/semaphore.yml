@@ -1,0 +1,48 @@
+version: v1.0
+name: python-hyperscan
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Build wheels
+    task:
+      env_vars:
+        - name: MANYLINUX_DOCKER_IMAGE
+          value: darvid/manylinux-hyperscan:latest
+      prologue:
+        commands:
+          - checkout
+      jobs:
+        - name: Build wheels
+          commands:
+            - cache restore dist-$SEMAPHORE_GIT_BRANCH,dist-master
+            - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
+            - >-
+              docker run
+              --rm
+              -w /io/
+              -v `pwd`:/io
+              -v $HOME/.pypirc:/root/.pypirc
+              $MANYLINUX_DOCKER_IMAGE
+              /io/.semaphore/build_wheels.sh
+            - ls -la dist/
+            - cache store dist-$SEMAPHORE_GIT_BRANCH
+            - cache store wheelhouse-$SEMAPHORE_GIT_BRANCH wheelhouse
+  - name: Run tests
+    task:
+      prologue:
+        commands:
+          - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
+      jobs:
+        - name: Unit tests
+          commands:
+            - .semaphore/run_tests.sh
+promotions:
+  - name: Upload to PyPI
+    pipeline_file: pypi-deploy.yml
+    auto_promote_on:
+      - result: passed
+        branch:
+            - '^master$'
+            - '^v\d+'
