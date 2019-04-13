@@ -4,6 +4,13 @@ set -e -x
 mkdir -p /tmp/wheelhouse
 
 for py in /opt/python/*/bin; do
+  if [[ "$py" == *"cp27"* ]]; then
+    # Poetry uses just the version number, not PEP 425 tags for venv
+    # names, and manylinux includes two builds of Python 2.7, so we need
+    # to delete the Poetry virtualenv to avoid skipping a build due to
+    # Poetry using the wrong virtualenv.
+    rm -rf $HOME/.cache/pypoetry/virtualenvs/hyperscan-py2.7
+  fi
   "${py}/pip" install -UI poetry setuptools
   "${py}/pip" wheel \
     -r /io/tests/requirements.txt \

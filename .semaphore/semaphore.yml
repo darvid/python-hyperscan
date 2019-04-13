@@ -26,7 +26,7 @@ blocks:
               -v $HOME/.pypirc:/root/.pypirc
               $MANYLINUX_DOCKER_IMAGE
               /io/.semaphore/build_wheels.sh
-            - ls -la dist/
+            - ls -la dist/ wheelhouse/
             - cache store dist-$SEMAPHORE_GIT_BRANCH
             - cache store wheelhouse-$SEMAPHORE_GIT_BRANCH wheelhouse
   - name: Run tests
