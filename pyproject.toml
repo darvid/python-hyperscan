@@ -5,8 +5,12 @@ version = "0.1.0"
 description = "Python bindings for Hyperscan."
 authors = ["David Gidwani <david.gidwani@gmail.com>"]
 license = "MIT"
-readme = "README.rst"
-include = ["README.rst", "CHANGELOG.md"]
+readme = "README.md"
+homepage = "https://github.com/darvid/python-hyperscan"
+repository = "https://github.com/darvid/python-hyperscan"
+documentation = "https://python-hyperscan.rtfm.io"
+keywords = ["regex", "hypercan"]
+include = ["README.md", "CHANGELOG.md"]
 packages = [
   { include = "hyperscan" },
 ]
