@@ -17,6 +17,10 @@ for py in /opt/python/*/bin; do
     -r /io/docs/requirements.txt \
     -w /io/wheelhouse/
   "${py}/poetry" -vvv build
+  if [[ "$py" == *"cp27mu" ]];
+    orig_whl="$(ls dist/*cp27*.whl)"
+    mv "$orig_whl" "$(echo "$orig_whl" | sed s/cp27m/cp27mu/)"
+  fi
   mv /io/dist/*.whl /tmp/wheelhouse/
 done
 
