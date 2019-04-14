@@ -16,7 +16,7 @@ blocks:
         - name: Wheels
           commands:
             - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
-            - twine upload --config-file $HOME/.pypirc wheelhouse/*.sh
+            - twine upload --config-file $HOME/.pypirc wheelhouse/hyperscan*.whl
         - name: Source distribution
           commands:
             - cache restore dist-$SEMAPHORE_GIT_BRANCH
