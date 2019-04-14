@@ -4,7 +4,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/hyperscan.svg)
 ![PyPI - Status](https://img.shields.io/pypi/status/hyperscan.svg)
 ![PyPI - License](https://img.shields.io/pypi/l/hyperscan.svg)
-[![Read the Docs](https://img.shields.io/readthedocs/python-hyperscan.svg)](https://python-hyperscan.rtfm.io)
+[![Read the Docs](https://img.shields.io/readthedocs/python-hyperscan.svg)](https://python-hyperscan.readthedocs.io/en/latest/)
 
 A CPython extension for [Hyperscan](https://www.hyperscan.io/), Intel's
 open source, high-performance multiple regex matching library. Currently
