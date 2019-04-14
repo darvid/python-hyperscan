@@ -5,4 +5,5 @@ mkdocs:
 formats: all
 python:
   version: 3.7
-requirements_file: docs/requirements.txt
+  install:
+    - requirements: docs/requirements.txt
