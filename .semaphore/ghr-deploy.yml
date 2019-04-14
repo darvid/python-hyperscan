@@ -12,6 +12,7 @@ blocks:
           - sem-version go 1.11
           - export "PATH=$(go env GOPATH)/bin:${PATH}"
           - go get -u github.com/tcnksm/ghr
+          - checkout
       jobs:
         - name: ghr
           commands:
