@@ -45,10 +45,10 @@ promotions:
     auto_promote_on:
       - result: passed
         branch:
-            - '^v\d+'
+          - '^v\d+'
   - name: Create GitHub Release
     pipeline_file: ghr-deploy.yml
     auto_promote_on:
       - result: passed
         branch:
-            - '^v\d+'
+          - '^v\d+'
