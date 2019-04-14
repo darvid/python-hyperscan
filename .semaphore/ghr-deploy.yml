@@ -1,0 +1,27 @@
+version: v1.0
+name: Deploy to GitHub Releases
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Deploy
+    task:
+      prologue:
+        commands:
+          - sem-version go 1.11
+          - export "PATH=$(go env GOPATH)/bin:${PATH}"
+          - go get -u github.com/tcnksm/ghr
+      jobs:
+        - name: ghr
+          commands:
+            - cache restore dist-$SEMAPHORE_GIT_BRANCH,dist-master
+            - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
+            - TAG=$(git describe --tags --exact-match)
+            - [[ -z "$TAG" ]] && exit 1
+            - TAG_PATTERN="$(echo "$TAG" | sed 's/^v//; s/\./\\./g')"
+            - DESCRIPTION="$(sed -nE '/^## \['$TAG_PATTERN'\]/,/^##[^#]/p;' CHANGELOG.md | head -n-1)"
+            - mkdir artifacts
+            - mv dist/hyperscan*.tar.gz artifacts/
+            - mv wheelhouse/hyperscan*.whl artifacts/
+            - ghr -b "$DESCRIPTION" $TAG artifacts
