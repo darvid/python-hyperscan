@@ -16,8 +16,8 @@ blocks:
         - name: Wheels
           commands:
             - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
-            - twine upload --config-file /root/.pypirc wheelhouse/*.sh
+            - twine upload --config-file $HOME/.pypirc wheelhouse/*.sh
         - name: Source distribution
           commands:
             - cache restore dist-$SEMAPHORE_GIT_BRANCH
-            - twine upload --config-file /root/.pypirc dist/*
+            - twine upload --config-file $HOME/.pypirc dist/*
