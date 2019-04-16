@@ -35,7 +35,7 @@ following caveats or exceptions:
 ## Resources
 
 * [PyPI Project](https://pypi.org/project/hyperscan/)
-* [Documentation](https://python-hyperscan.rtfm.io)
+* [Documentation](https://python-hyperscan.readthedocs.io)
 * [Hyperscan C API Documentation](http://intel.github.io/hyperscan/dev-reference/)
 
 
