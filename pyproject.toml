@@ -1,7 +1,7 @@
 [tool.poetry]
 build = "build.py"
 name = "hyperscan"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python bindings for Hyperscan."
 authors = ["David Gidwani <david.gidwani@gmail.com>"]
 license = "MIT"
