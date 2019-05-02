@@ -40,9 +40,6 @@ blocks:
         - name: Unit tests
           commands:
             - .semaphore/run_tests.sh
-      epilogue:
-        commands:
-          - cache clear
 promotions:
   - name: Upload to PyPI
     pipeline_file: pypi-deploy.yml
