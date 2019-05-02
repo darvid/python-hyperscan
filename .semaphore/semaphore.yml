@@ -18,6 +18,7 @@ blocks:
           commands:
             - cache restore dist-$SEMAPHORE_GIT_BRANCH,dist-master
             - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
+            - rm -rf dist/hyperscan-*.whl
             - >-
               docker run
               --rm
@@ -39,6 +40,9 @@ blocks:
         - name: Unit tests
           commands:
             - .semaphore/run_tests.sh
+      epilogue:
+        commands:
+          - cache clear
 promotions:
   - name: Upload to PyPI
     pipeline_file: pypi-deploy.yml
