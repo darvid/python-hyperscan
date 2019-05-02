@@ -461,6 +461,7 @@ static PyObject* Stream_exit(Stream *self) {
 static PyObject* Stream_scan(Stream *self, PyObject *args, PyObject *kwds) {
   char *data;
   Py_ssize_t length;
+  hs_error_t err;
   unsigned int flags;
   PyObject *ocallback = Py_None, *octx = Py_None, *oscratch = Py_None;
   hs_scratch_t *scratch = NULL;
@@ -490,7 +491,7 @@ static PyObject* Stream_scan(Stream *self, PyObject *args, PyObject *kwds) {
   py_scan_callback_ctx cctx = {ocallback, octx};
 
   Py_BEGIN_ALLOW_THREADS;
-  hs_error_t err = hs_scan_stream(
+  err = hs_scan_stream(
     self->identifier,
     data,
     length,
@@ -499,8 +500,8 @@ static PyObject* Stream_scan(Stream *self, PyObject *args, PyObject *kwds) {
     ocallback == Py_None ? NULL : match_handler,
     ocallback == Py_None ? NULL : (void*)&cctx
   );
-  HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_END_ALLOW_THREADS;
+  HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_RETURN_NONE;
 }
 

@@ -56,7 +56,6 @@ def test_stream_scan(database_stream, mocker):
         stream.scan(b'foo')
         stream.scan(b'bar')
         stream.scan(b'foo', context=1234)
-    print(callback.call_args_list)
     callback.assert_has_calls(
         [
             mocker.call(0, 0, 2, 0, None),

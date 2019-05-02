@@ -1,3 +1,16 @@
+[tool.black]
+line-length = 79
+py36 = true
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.(git|hg|mypy_cache|tox|venv)
+  | _?build
+  | dist
+)/
+'''
+skip-string-normalization = true
+
 [tool.poetry]
 build = "build.py"
 name = "hyperscan"
