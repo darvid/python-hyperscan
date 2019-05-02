@@ -222,6 +222,7 @@ static PyObject* Database_size(Database *self, PyObject *args) {
 static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
   char *data;
   Py_ssize_t length;
+  hs_error_t err;
   unsigned int flags = 0;
   PyObject *ocallback = Py_None,
             *oscratch = Py_None,
@@ -234,7 +235,7 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
     return NULL;
   py_scan_callback_ctx cctx = {ocallback, octx};
   Py_BEGIN_ALLOW_THREADS
-  hs_error_t err = hs_scan(
+  err = hs_scan(
     self->db,
     data,
     length,
@@ -244,8 +245,8 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
     ocallback == Py_None ? NULL : match_handler,
     ocallback == Py_None ? NULL : (void*)&cctx
   );
-  HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_END_ALLOW_THREADS
+  HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_RETURN_NONE;
 }
 
@@ -498,10 +499,7 @@ static PyObject* Stream_scan(Stream *self, PyObject *args, PyObject *kwds) {
     ocallback == Py_None ? NULL : match_handler,
     ocallback == Py_None ? NULL : (void*)&cctx
   );
-  PyGILState_STATE gstate;
-  gstate = PyGILState_Ensure();
   HANDLE_HYPERSCAN_ERR(err, NULL);
-  PyGILState_Release(gstate);
   Py_END_ALLOW_THREADS;
   Py_RETURN_NONE;
 }
