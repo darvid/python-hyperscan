@@ -9,7 +9,9 @@
 #define HANDLE_HYPERSCAN_ERR(err, rv) if (err != HS_SUCCESS) { \
     char serr[80]; \
     sprintf(serr, "error code %i", err); \
+    PyGILState_STATE gstate = PyGILState_Ensure(); \
     PyErr_SetString(HyperscanError, serr); \
+    PyGILState_Release(gstate); \
     return rv; \
   }
 
