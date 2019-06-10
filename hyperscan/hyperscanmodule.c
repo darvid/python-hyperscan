@@ -181,8 +181,10 @@ static PyObject* Database_compile(Database *self, PyObject *args,
   hs_error_t err;
   hs_compile_error_t *compile_err;
 
+  Py_BEGIN_ALLOW_THREADS
   err = hs_compile_ext_multi(expressions, flags, ids, NULL, elements,
                              self->mode, NULL, &self->db, &compile_err);
+  Py_END_ALLOW_THREADS
 
   if (err != HS_SUCCESS) {
     PyErr_SetString(HyperscanError, compile_err->message);
