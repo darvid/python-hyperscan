@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.2] - 2019-06-10
+
+### Added
+
+- Release the GIL when compiling patterns ([#13])
+
 ## [0.1.1] - 2019-05-01
 
 ### Fixed
@@ -29,6 +35,7 @@ Initial release
 
 
 [#10]: https://github.com/darvid/python-hyperscan/issues/10
+[#13]: https://github.com/darvid/python-hyperscan/issues/10
 [MkDocs]: https://www.mkdocs.org/
 [Poetry]: https://poetry.eustace.io/
 [Semaphore]: https://semaphoreci.com/
