@@ -10,6 +10,8 @@ for py in /opt/python/*/bin; do
     # to delete the Poetry virtualenv to avoid skipping a build due to
     # Poetry using the wrong virtualenv.
     rm -rf $HOME/.cache/pypoetry/virtualenvs/hyperscan-py2.7
+  elif [[ "$py" == *"cp34"* ]]; then
+    continue
   fi
   "${py}/pip" install -UI poetry setuptools
   "${py}/pip" wheel \
