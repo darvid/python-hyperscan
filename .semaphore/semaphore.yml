@@ -16,9 +16,8 @@ blocks:
       jobs:
         - name: Build wheels
           commands:
-            - cache restore dist-$SEMAPHORE_GIT_BRANCH,dist-master
-            - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
-            - rm -rf dist/hyperscan-*.whl
+            - cache delete dist-$SEMAPHORE_GIT_BRANCH,dist-master
+            - cache delete wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
             - >-
               docker run
               --rm
