@@ -41,6 +41,7 @@ static PyTypeObject StreamType;
 typedef struct {
   PyObject *callback;
   PyObject *ctx;
+  int success;
 } py_scan_callback_ctx;
 
 typedef struct {
@@ -73,7 +74,13 @@ static int match_handler(unsigned int id, unsigned long long from,
   gstate = PyGILState_Ensure();
   PyObject *rv = PyObject_CallFunction(cctx->callback, "IIIIO", id,
                                        from, to, flags, cctx->ctx);
-  int halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
+  int halt = 1;
+  if (rv == NULL) {
+    cctx->success = 0;
+  } else {
+    halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
+    cctx->success = 1;
+  }
   PyGILState_Release(gstate);
   Py_XDECREF(rv);
   return halt;
@@ -235,7 +242,7 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
                                    &data, &length, &ocallback, &flags,
                                    &octx, &oscratch))
     return NULL;
-  py_scan_callback_ctx cctx = {ocallback, octx};
+  py_scan_callback_ctx cctx = {ocallback, octx, 1};
   Py_BEGIN_ALLOW_THREADS
   err = hs_scan(
     self->db,
@@ -248,6 +255,9 @@ static PyObject* Database_scan(Database *self, PyObject *args, PyObject *kwds) {
     ocallback == Py_None ? NULL : (void*)&cctx
   );
   Py_END_ALLOW_THREADS
+  if (!cctx.success) {
+    return NULL;
+  }
   HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_RETURN_NONE;
 }
