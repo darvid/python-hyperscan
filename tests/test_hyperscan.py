@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 
 import hyperscan
@@ -95,3 +93,9 @@ def test_database_deserialize(database_stream):
     serialized = hyperscan.dumps(database_stream)
     db = hyperscan.loads(bytearray(serialized))
     assert id(db) != id(database_stream)
+
+def test_database_exception_in_callback(database_block, mocker):
+    callback = mocker.Mock(side_effect=RuntimeError('oops'))
+
+    with pytest.raises(RuntimeError, match=r'^oops$'):
+        database_block.scan(b'foobar', match_event_handler=callback)
