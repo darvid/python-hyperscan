@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.3] - 2019-07-04
+
+### Fixed
+
+- Handle exceptions in callback. ([#15])
+
 ## [0.1.2] - 2019-06-10
 
 ### Added
@@ -33,14 +39,16 @@
 
 Initial release
 
-
 [#10]: https://github.com/darvid/python-hyperscan/issues/10
-[#13]: https://github.com/darvid/python-hyperscan/issues/10
+[#13]: https://github.com/darvid/python-hyperscan/issues/13
+[#15]: https://github.com/darvid/python-hyperscan/issues/15
 [MkDocs]: https://www.mkdocs.org/
 [Poetry]: https://poetry.eustace.io/
 [Semaphore]: https://semaphoreci.com/
 [Sphinx]: http://www.sphinx-doc.org/en/master/
 [Travis CI]: https://travis-ci.org/
+[0.1.3]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.3
+[0.1.2]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.2
 [0.1.1]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.1
 [0.1.0]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.0
 [0.0.2]: https://github.com/darvid/python-hyperscan/releases/tag/v0.0.2
