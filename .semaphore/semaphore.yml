@@ -9,7 +9,7 @@ blocks:
     task:
       env_vars:
         - name: MANYLINUX_DOCKER_IMAGE
-          value: darvid/manylinux-hyperscan:latest
+          value: docker.pkg.github.com/darvid/manylinux-hyperscan/manylinux-hyperscan:v5.2.1
       prologue:
         commands:
           - checkout

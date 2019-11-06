@@ -94,8 +94,23 @@ def test_database_deserialize(database_stream):
     db = hyperscan.loads(bytearray(serialized))
     assert id(db) != id(database_stream)
 
+
 def test_database_exception_in_callback(database_block, mocker):
     callback = mocker.Mock(side_effect=RuntimeError('oops'))
 
     with pytest.raises(RuntimeError, match=r'^oops$'):
         database_block.scan(b'foobar', match_event_handler=callback)
+
+
+def test_literal_expressions(mocker):
+    db = hyperscan.Database()
+    expressions, ids, _ = zip(*patterns)
+    expressions = [e + b'\0' for e in expressions]
+    db.compile(expressions=expressions, ids=ids, literal=True)
+    callback = mocker.Mock(return_value=None)
+    expected = []
+    for i, expression in enumerate(expressions):
+        expression = expression[:-1]
+        db.scan(expression, match_event_handler=callback, context=expression)
+        expected.append(mocker.call(ids[i], 0, len(expression), 0, expression))
+    assert callback.mock_calls == expected
