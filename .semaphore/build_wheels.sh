@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e -x
 
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
 mkdir -p /tmp/wheelhouse
 
 for py in /opt/python/*/bin; do

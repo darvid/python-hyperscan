@@ -10,8 +10,6 @@ blocks:
       env_vars:
         - name: MANYLINUX_DOCKER_IMAGE
           value: darvid/manylinux-hyperscan:latest
-        - name: LC_ALL
-          value: en_US.UTF-8
       prologue:
         commands:
           - checkout
