@@ -47,7 +47,7 @@ def build(setup_kwargs):
                 Extension(
                     'hyperscan._hyperscan',
                     ['hyperscan/hyperscanmodule.c'],
-                    **pkgconfig(['libhs']),
+                    **pkgconfig(['libhs'])
                 )
             ],
             'cmdclass': {'build_ext': build_ext},
