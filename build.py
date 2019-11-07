@@ -17,7 +17,7 @@ def pkgconfig(libs, optional=''):
         'include_dirs': ('--cflags-only-I', 2),
         'library_dirs': ('--libs-only-L', 2),
         'libraries': ('--libs-only-l', 2),
-        'extra_compile_args': ('--cflags-only-other -O0', 0),
+        'extra_compile_args': ('--cflags-only-other', 0),
         'extra_link_args': ('--libs-only-other', 0),
     }
     ext_kwargs = {}
