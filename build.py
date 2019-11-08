@@ -20,7 +20,9 @@ def pkgconfig(libs, optional=''):
         'extra_compile_args': (['--cflags-only-other'], 0),
         'extra_link_args': (['--libs-only-other'], 0),
     }
-    ext_kwargs = {}
+    ext_kwargs = {
+        'extra_compile_args': ['-std=c99'],
+    }
     for lib in libs:
         for distutils_kwarg, (pkg_options, trim_offset) in flag_map.items():
             try:
@@ -46,7 +48,6 @@ def build(setup_kwargs):
                 Extension(
                     'hyperscan._hyperscan',
                     ['hyperscan/hyperscanmodule.c'],
-                    extra_compile_args=['-std=c99'],
                     **pkgconfig(['libhs'])
                 )
             ],
