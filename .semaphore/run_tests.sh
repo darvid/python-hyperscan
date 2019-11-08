@@ -2,14 +2,14 @@
 set -e -x
 
 for whl in wheelhouse/hyperscan-*.whl; do
-  python_version=$(expr "$whl" : '.*cp\(.*mu\?\)-')
-  if [[ $python_version == "35m" ]]; then
+  python_version=$(sed -re 's/.*\-cp([0-9]+)\-(cp|m).*/\1/' <<< "$whl")
+  if [[ $python_version -eq 35 ]]; then
     image='python:3.5'
-  elif [[ $python_version == "36m" ]]; then
+  elif [[ $python_version -eq 36 ]]; then
     image='python:3.6'
-  elif [[ $python_version == "37m" ]]; then
+  elif [[ $python_version -eq 37 ]]; then
     image='python:3.7'
-  elif [[ $python_version == "38m" ]]; then
+  elif [[ $python_version -eq 38 ]]; then
     image='python:3.8'
   else
     continue
