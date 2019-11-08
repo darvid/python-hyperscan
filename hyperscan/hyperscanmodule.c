@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <bytesobject.h>
 #include <structmember.h>
@@ -122,14 +123,14 @@ static PyObject* Database_compile(Database *self, PyObject *args,
            *oflags       = Py_None,
            *oflag        = Py_None,
            *oids         = Py_None,
-           *ostrict      = Py_False;
+           *oliteral     = Py_False;
   int elements = -1;
 
   static char *kwlist[] = {"expressions", "ids", "elements", "flags",
-                           "strict", NULL};
+                           "literal", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|OIOO", kwlist,
                                    &oexpressions, &oids, &elements,
-                                   &oflags, &ostrict))
+                                   &oflags, &oliteral))
     return NULL;
 
   if (elements == -1) {
@@ -150,8 +151,7 @@ static PyObject* Database_compile(Database *self, PyObject *args,
 
   PyErr_Clear();
 
-  int i;
-  for (i = 0; i < elements; i++) {
+  for (int i = 0; i < elements; i++) {
     oexpr = PySequence_ITEM(oexpressions, i);
     expressions[i] = PyBytes_AsString(oexpr);
     if (PyErr_Occurred())
@@ -189,8 +189,17 @@ static PyObject* Database_compile(Database *self, PyObject *args,
   hs_compile_error_t *compile_err;
 
   Py_BEGIN_ALLOW_THREADS
-  err = hs_compile_ext_multi(expressions, flags, ids, NULL, elements,
-                             self->mode, NULL, &self->db, &compile_err);
+  if (PyObject_IsTrue(oliteral)) {
+    size_t lens[elements];
+    for (int i = 0; i < elements; i++) {
+      lens[i] = PySequence_Length(PySequence_ITEM(oexpressions, i)) - 1;
+    }
+    err = hs_compile_lit_multi(expressions, flags, ids, lens, elements,
+                               self->mode, NULL, &self->db, &compile_err);
+  } else {
+    err = hs_compile_ext_multi(expressions, flags, ids, NULL, elements,
+                               self->mode, NULL, &self->db, &compile_err);
+  }
   Py_END_ALLOW_THREADS
 
   if (err != HS_SUCCESS) {
@@ -289,7 +298,7 @@ static PyMemberDef Database_members[] = {
 
 static PyMethodDef Database_methods[] = {
   {"compile", (PyCFunction)Database_compile, METH_VARARGS|METH_KEYWORDS,
-   "compile(expressions, ids=None, elements=None, flags=0)\n\n"
+   "compile(expressions, ids=None, elements=None, flags=0, literal=False)\n\n"
    "    Compiles regular expressions.\n\n"
    "    Args:\n"
    "        expressions (sequence of :obj:`str`): A sequence of regular\n"
@@ -300,7 +309,9 @@ static PyMethodDef Database_methods[] = {
    "            sequence.\n"
    "        flags (sequence of :obj:`int` or :obj:`int`, optional): Sequence\n"
    "            of flags associated with each expression, or a single value\n"
-   "            which is applied to all expressions.\n\n"},
+   "            which is applied to all expressions.\n"
+   "        literal (bool, optional): If True, uses the pure literal\n"
+   "            expression compiler introduced in Hyperscan 5.2.0.\n\n"},
   {"info", (PyCFunction)Database_info, METH_VARARGS,
    "info()\n\n"
    "    Returns database information.\n\n"

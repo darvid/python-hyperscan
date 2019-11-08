@@ -4,10 +4,6 @@
 Intel's [Hyperscan][1], the open source, high-performance multiple regex
 matching library.
 
-Python versions 2.7 and 3.4+ are supported. While Hyperscan may support
-platforms other than Linux, ``python-hyperscan``
-**currently only provides [manylinux][2]-compatible binary wheels.**
-
 ## Quickstart
 
 ### Building Hyperscan
@@ -44,8 +40,7 @@ To build and install from source, using [Poetry][5]:
 $ pip install poetry
 $ git clone https://github.com/darvid/python-hyperscan.git
 $ cd python-hyperscan
-$ poetry -vvv build
-$ pip install dist/hyperscan*.whl
+$ poetry install
 ```
 
 
