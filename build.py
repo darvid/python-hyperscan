@@ -17,7 +17,7 @@ def pkgconfig(libs, optional=''):
         'include_dirs': (['--cflags-only-I'], 2),
         'library_dirs': (['--libs-only-L'], 2),
         'libraries': (['--libs-only-l'], 2),
-        'extra_compile_args': (['--cflags-only-other', '-std=c99'], 0),
+        'extra_compile_args': (['--cflags-only-other'], 0),
         'extra_link_args': (['--libs-only-other'], 0),
     }
     ext_kwargs = {}
@@ -36,7 +36,6 @@ def pkgconfig(libs, optional=''):
             ext_kwargs.setdefault(distutils_kwarg, []).extend(
                 [opt[trim_offset:] for opt in options]
             )
-    print(ext_kwargs)
     return ext_kwargs
 
 
@@ -47,6 +46,7 @@ def build(setup_kwargs):
                 Extension(
                     'hyperscan._hyperscan',
                     ['hyperscan/hyperscanmodule.c'],
+                    extra_compile_args=['-std=c99'],
                     **pkgconfig(['libhs'])
                 )
             ],
