@@ -836,7 +836,10 @@ MOD_INIT(_hyperscan) {
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_IVB);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SLM);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SNB);
-
+  ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SKL);
+  ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SKX);
+  ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_GLM);
+  
   HyperscanError = PyErr_NewException("hyperscan.error", NULL, NULL);
   Py_INCREF(HyperscanError);
   PyModule_AddObject(m, "error", HyperscanError);
