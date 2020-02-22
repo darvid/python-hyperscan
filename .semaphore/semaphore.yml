@@ -34,7 +34,6 @@ blocks:
       prologue:
         commands:
           - checkout
-          - cache restore wheelhouse-$SEMAPHORE_GIT_BRANCH,wheelhouse-master
       jobs:
         - name: Unit tests
           commands:
