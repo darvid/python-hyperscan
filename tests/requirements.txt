@@ -3,3 +3,5 @@ pytest-mock
 requests>=2.20.0
 urllib3>=1.23
 tox
+# https://gitlab.com/python-devs/importlib_metadata/issues/107
+zipp<2
