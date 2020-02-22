@@ -7,7 +7,6 @@ for py in /opt/python/*/bin; do
   "${py}/pip" install -UI poetry setuptools
   "${py}/pip" wheel \
     -r /io/tests/requirements.txt \
-    -r /io/docs/requirements.txt \
     -w /io/wheelhouse/
   "${py}/poetry" build -vvv
   mv /io/dist/*.whl /tmp/wheelhouse/
