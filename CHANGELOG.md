@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 ## [0.1.5] - 2020-02-21
 
 ### Fixed
@@ -13,6 +14,8 @@
   as well.
 - Added serialization/deserialization examples to the usage guide.
 
+=======
+>>>>>>> 6c3f49d47f8f5f766a74d08e0ec2fce9915c49e1
 ## [0.1.4] - 2019-11-07
 
 ### Added
