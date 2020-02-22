@@ -9,7 +9,7 @@ for py in /opt/python/*/bin; do
     -r /io/tests/requirements.txt \
     -r /io/docs/requirements.txt \
     -w /io/wheelhouse/
-  "${py}/poetry" -vvv build
+  "${py}/poetry" build -vvv
   mv /io/dist/*.whl /tmp/wheelhouse/
 done
 
