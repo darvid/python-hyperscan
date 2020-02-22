@@ -85,13 +85,13 @@ def test_database_info(database_block):
 
 
 def test_database_serialize(database_stream):
-    serialized = hyperscan.dumps(database_stream)
+    serialized = hyperscan.dumpb(database_stream)
     assert len(serialized) >= 6000
 
 
 def test_database_deserialize(database_stream):
-    serialized = hyperscan.dumps(database_stream)
-    db = hyperscan.loads(bytearray(serialized))
+    serialized = hyperscan.dumpb(database_stream)
+    db = hyperscan.loadb(serialized)
     assert id(db) != id(database_stream)
 
 

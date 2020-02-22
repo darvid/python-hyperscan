@@ -125,6 +125,20 @@ with db.stream(match_event_handler=on_match, context=2345) as stream:
     stream.scan(b'qux', match_event_handler=on_qux_match)
 ```
 
+## Serialization
+
+Refer to the [Hyperscan documentation][8] for more information on
+serialization, its use cases, and caveats. Usage is simple:
+
+```python
+# Serializing (dumping to bytes)
+serialized = hyperscan.dumpb(db)
+with open('hs.db', 'wb') as f:
+    f.write(serialized)
+
+# Deserializing (loading from bytes):
+db = hyperscan.loadb(serialized)
+```
 
 [1]: http://intel.github.io/hyperscan/dev-reference/chimera.html
 [2]: http://intel.github.io/hyperscan/dev-reference/runtime.html#stream-compression
@@ -133,3 +147,4 @@ with db.stream(match_event_handler=on_match, context=2345) as stream:
 [5]: https://github.com/darvid/python-hyperscan/issues
 [6]: http://intel.github.io/hyperscan/dev-reference/api_files.html#c.match_event_handler
 [7]: http://intel.github.io/hyperscan/dev-reference/runtime.html#scratch-space
+[8]: https://intel.github.io/hyperscan/dev-reference/serialization.html
