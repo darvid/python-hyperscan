@@ -14,7 +14,7 @@ skip-string-normalization = true
 [tool.poetry]
 build = "build.py"
 name = "hyperscan"
-version = "0.1.4"
+version = "0.1.5"
 description = "Python bindings for Hyperscan."
 authors = ["David Gidwani <david.gidwani@gmail.com>"]
 license = "MIT"
@@ -34,7 +34,6 @@ classifiers = [
   "Topic :: Utilities",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.4",
   "Programming Language :: Python :: 3.5",
   "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
@@ -50,7 +49,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "*"
+python = "^3.5"
 
 [tool.poetry.dev-dependencies]
 

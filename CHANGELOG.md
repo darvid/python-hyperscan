@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.5] - 2020-02-21
+
+### Fixed
+
+- Fixed reference leak in ``Database.compile`` ([#18])
+
+### Changed
+
+- Renamed ``dumps``/``loads`` to the more appropriate
+  ``loadb``/``dumpb``. Both use ``bytes`` rather than ``bytearray`` now,
+  as well.
+- Added serialization/deserialization examples to the usage guide.
+
 ## [0.1.4] - 2019-11-07
 
 ### Added
