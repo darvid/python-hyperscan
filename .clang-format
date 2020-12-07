@@ -1,0 +1,11 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+BreakBeforeBraces: Linux
+IndentWidth: 2
+ColumnLimit: 0
+UseTab: Never
+IndentCaseLabels: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+ContinuationIndentWidth: 2
