@@ -11,6 +11,14 @@ exclude = '''
 '''
 skip-string-normalization = true
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.5"
+version_files = [
+    "src/hyperscan/__init__.py:__version__",
+    "pyproject.toml:version"
+]
+
 [tool.poetry]
 build = "build.py"
 name = "hyperscan"
@@ -52,6 +60,7 @@ classifiers = [
 python = "^3.5"
 
 [tool.poetry.dev-dependencies]
+commitizen = "^2.10.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
