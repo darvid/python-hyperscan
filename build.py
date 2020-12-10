@@ -1,14 +1,13 @@
 import os
 import subprocess
 import sys
-
+from distutils.command.build_ext import build_ext
 from distutils.core import Extension
 from distutils.errors import (
     CCompilerError,
     DistutilsExecError,
     DistutilsPlatformError,
 )
-from distutils.command.build_ext import build_ext
 
 
 # http://code.activestate.com/recipes/502261-python-distutils-pkg-config/
@@ -20,9 +19,7 @@ def pkgconfig(libs, optional=''):
         'extra_compile_args': (['--cflags-only-other'], 0),
         'extra_link_args': (['--libs-only-other'], 0),
     }
-    ext_kwargs = {
-        'extra_compile_args': ['-std=c99'],
-    }
+    ext_kwargs = {'extra_compile_args': ['-std=c99']}
     for lib in libs:
         for distutils_kwarg, (pkg_options, trim_offset) in flag_map.items():
             try:
@@ -47,8 +44,8 @@ def build(setup_kwargs):
             'ext_modules': [
                 Extension(
                     'hyperscan._hyperscan',
-                    ['hyperscan/hyperscanmodule.c'],
-                    **pkgconfig(['libhs'])
+                    ['src/hyperscan/hyperscanmodule.c'],
+                    **pkgconfig(['libhs']),
                 )
             ],
             'cmdclass': {'build_ext': build_ext},
