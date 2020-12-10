@@ -33,7 +33,7 @@ documentation = "https://python-hyperscan.rtfm.io"
 keywords = ["regex", "hypercan"]
 include = ["README.md", "CHANGELOG.md"]
 packages = [
-  { include = "hyperscan" },
+  { include = "hyperscan", from = "src" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -42,7 +42,6 @@ classifiers = [
   "Topic :: Utilities",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.5",
   "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
@@ -57,7 +56,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.5"
+python = ">=3.6.1,<4.0"
 
 [tool.poetry.dev-dependencies]
 commitizen = "^2.10.0"
