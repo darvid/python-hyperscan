@@ -1,11 +1,18 @@
 ---
+# some options require clang-format-9
 Language: Cpp
 BasedOnStyle: Google
-BreakBeforeBraces: Linux
-IndentWidth: 2
-ColumnLimit: 0
-UseTab: Never
-IndentCaseLabels: false
-AllowShortIfStatementsOnASingleLine: false
+AllowAllArgumentsOnNextLine: true
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: true
 AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Linux
+ColumnLimit: 80
 ContinuationIndentWidth: 2
+IndentCaseLabels: false
+IndentWidth: 2
+UseTab: Never
