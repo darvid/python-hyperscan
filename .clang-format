@@ -2,10 +2,12 @@
 # some options require clang-format-9
 Language: Cpp
 BasedOnStyle: Google
-AllowAllArgumentsOnNextLine: true
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: true
+AlignOperands: true
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 BinPackArguments: false
@@ -13,6 +15,8 @@ BinPackParameters: false
 BreakBeforeBraces: Linux
 ColumnLimit: 80
 ContinuationIndentWidth: 2
-IndentCaseLabels: false
+DerivePointerAlignment: false
+IndentCaseLabels: true
 IndentWidth: 2
+PointerAlignment: Right
 UseTab: Never

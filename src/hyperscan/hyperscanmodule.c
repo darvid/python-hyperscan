@@ -128,12 +128,12 @@ static int Database_init(Database *self, PyObject *args, PyObject *kwds)
 static PyObject *Database_compile(
   Database *self, PyObject *args, PyObject *kwds)
 {
-  PyObject *oexpressions = Py_None;
+  PyObject *oexpressions;
   PyObject *oflags = Py_None;
   PyObject *oflag = Py_None;
   PyObject *oids = Py_None;
   PyObject *oliteral = Py_False;
-  int       elements = -1;
+  uint64_t  elements = 0;
 
   static char *kwlist[] = {
     "expressions",
@@ -155,63 +155,94 @@ static PyObject *Database_compile(
         &oliteral))
     return NULL;
 
-  if (elements == -1) {
-    elements = PySequence_Size(oexpressions);
-    if (elements == -1) {
+  if (elements == 0) {
+    Py_ssize_t expressions_size = PySequence_Size(oexpressions);
+    if (expressions_size == -1) {
       PyErr_SetString(PyExc_TypeError, "expressions must be a sequence");
       return NULL;
+    } else {
+      elements = (uint64_t)expressions_size;
     }
   }
 
-  PyObject *   oexpr = NULL, *oid = NULL;
-  const char * expressions[elements];
-  unsigned int ids[elements], flags[elements],
-    globalflag = (oflags == Py_None ? 0 : PyLong_AsUnsignedLong(oflags));
+  const char **expressions;
+
+  uint32_t  globalflag;
+  uint32_t *flags;
+  uint32_t *ids;
+
+  size_t *lens;
+
+  expressions = PyMem_RawMalloc(elements * sizeof(char *));
+  if (expressions == NULL)
+    goto memory_error;
+  flags = PyMem_RawMalloc(elements * sizeof(uint32_t));
+  if (flags == NULL)
+    goto memory_error;
+  ids = PyMem_RawMalloc(elements * sizeof(uint64_t));
+  if (ids == NULL)
+    goto memory_error;
+  globalflag = (oflags == Py_None ? 0 : PyLong_AsUnsignedLong(oflags));
 
   PyErr_Clear();
 
-  for (int i = 0; i < elements; i++) {
+  PyObject *oexpr = NULL;
+  PyObject *oid = NULL;
+
+  for (uint64_t i = 0; i < elements; i++) {
     oexpr = PySequence_ITEM(oexpressions, i);
-    expressions[i] = PyBytes_AsString(oexpr);
+    const char *expression = PyBytes_AsString(oexpr);
+    uint32_t    expr_flags, expr_id;
+
     if (PyErr_Occurred())
       break;
 
     if (PyObject_IsTrue(oids)) {
       oid = PySequence_ITEM(oids, i);
-      ids[i] = PyLong_AsUnsignedLong(oid);
+      expr_id = PyLong_AsUnsignedLong(oid);
       if (PyErr_Occurred())
         break;
     } else {
-      ids[i] = i;
+      expr_id = i;
     }
 
     if (PySequence_Check(oflags)) {
       oflag = PySequence_ITEM(oflags, i);
       if (PyErr_Occurred())
         break;
-      flags[i] = PyLong_AsUnsignedLong(oflag);
+      expr_flags = PyLong_AsUnsignedLong(oflag);
       if (PyErr_Occurred())
         break;
     } else {
-      flags[i] = globalflag;
+      expr_flags = globalflag;
     }
+
+    expressions[i] = expression;
+    ids[i] = expr_id;
+    flags[i] = expr_flags;
+
     Py_XDECREF(oexpr);
   }
 
-  Py_XDECREF(oflag);
-  Py_XDECREF(oid);
+  if (oflag != Py_None)
+    Py_XDECREF(oflag);
+  if (oid != Py_None)
+    Py_XDECREF(oid);
 
-  if (PyErr_Occurred())
-    return NULL;
+  if (PyErr_Occurred()) {
+    goto python_error;
+  }
 
   hs_error_t          err;
   hs_compile_error_t *compile_err;
 
   Py_BEGIN_ALLOW_THREADS;
   if (PyObject_IsTrue(oliteral)) {
-    size_t lens[elements];
-    for (int i = 0; i < elements; i++) {
-      lens[i] = PySequence_Length(PySequence_ITEM(oexpressions, i)) - 1;
+    lens = PyMem_RawMalloc(elements * sizeof(size_t));
+    if (lens == NULL)
+      goto memory_error;
+    for (uint64_t i = 0; i < elements; i++) {
+      lens[i] = strlen(expressions[i]);
     }
     err = hs_compile_lit_multi(
       expressions,
@@ -251,6 +282,15 @@ static PyObject *Database_compile(
     HANDLE_HYPERSCAN_ERR(err, NULL);
   }
   Py_RETURN_NONE;
+
+memory_error:
+  return PyErr_NoMemory();
+
+python_error:
+  PyMem_RawFree(expressions);
+  PyMem_RawFree(flags);
+  PyMem_RawFree(ids);
+  return NULL;
 }
 
 static PyObject *Database_info(Database *self, PyObject *args)
