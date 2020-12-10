@@ -2,6 +2,7 @@
 #include <Python.h>
 #include <bytesobject.h>
 #include <hs/hs.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <structmember.h>
 
@@ -39,7 +40,7 @@
 
 const char *DEFAULT_VERSION = "unknown";
 
-static PyObject *   HyperscanError;
+static PyObject *HyperscanError;
 static PyTypeObject DatabaseType;
 static PyTypeObject ScratchType;
 static PyTypeObject StreamType;
@@ -47,37 +48,37 @@ static PyTypeObject StreamType;
 typedef struct {
   PyObject *callback;
   PyObject *ctx;
-  int       success;
+  int success;
 } py_scan_callback_ctx;
 
 typedef struct {
   PyObject_HEAD PyObject *scratch;
-  hs_database_t *         db;
-  unsigned int            mode;
+  hs_database_t *db;
+  unsigned int mode;
 } Database;
 
 typedef struct {
   PyObject_HEAD hs_stream_t *identifier;
-  PyObject *                 database;
-  PyObject *                 scratch;
-  unsigned int               flags;
-  py_scan_callback_ctx *     cctx;
+  PyObject *database;
+  PyObject *scratch;
+  unsigned int flags;
+  py_scan_callback_ctx *cctx;
 } Stream;
 
 typedef struct {
   PyObject_HEAD PyObject *database;
-  hs_scratch_t *          scratch;
+  hs_scratch_t *scratch;
 } Scratch;
 
 static int match_handler(
-  unsigned int       id,
+  unsigned int id,
   unsigned long long from,
   unsigned long long to,
-  unsigned int       flags,
-  void *             context)
+  unsigned int flags,
+  void *context)
 {
   py_scan_callback_ctx *cctx = context;
-  PyGILState_STATE      gstate;
+  PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
   PyObject *rv = PyObject_CallFunction(
     cctx->callback, "IIIIO", id, from, to, flags, cctx->ctx);
@@ -133,7 +134,7 @@ static PyObject *Database_compile(
   PyObject *oflag = Py_None;
   PyObject *oids = Py_None;
   PyObject *oliteral = Py_False;
-  uint64_t  elements = 0;
+  uint64_t elements = 0;
 
   static char *kwlist[] = {
     "expressions",
@@ -167,7 +168,7 @@ static PyObject *Database_compile(
 
   const char **expressions;
 
-  uint32_t  globalflag;
+  uint32_t globalflag;
   uint32_t *flags;
   uint32_t *ids;
 
@@ -192,7 +193,7 @@ static PyObject *Database_compile(
   for (uint64_t i = 0; i < elements; i++) {
     oexpr = PySequence_ITEM(oexpressions, i);
     const char *expression = PyBytes_AsString(oexpr);
-    uint32_t    expr_flags, expr_id;
+    uint32_t expr_flags, expr_id;
 
     if (PyErr_Occurred())
       break;
@@ -233,7 +234,7 @@ static PyObject *Database_compile(
     goto python_error;
   }
 
-  hs_error_t          err;
+  hs_error_t err;
   hs_compile_error_t *compile_err;
 
   Py_BEGIN_ALLOW_THREADS;
@@ -295,7 +296,7 @@ python_error:
 
 static PyObject *Database_info(Database *self, PyObject *args)
 {
-  char *     info;
+  char *info;
   hs_error_t err = hs_database_info(self->db, &info);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   PyObject *oinfo = PyBytes_FromString(info);
@@ -306,7 +307,7 @@ static PyObject *Database_info(Database *self, PyObject *args)
 
 static PyObject *Database_size(Database *self, PyObject *args)
 {
-  size_t     database_size;
+  size_t database_size;
   hs_error_t err = hs_database_size(self->db, &database_size);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   PyObject *odatabase_size = PyLong_FromSize_t(database_size);
@@ -316,11 +317,15 @@ static PyObject *Database_size(Database *self, PyObject *args)
 
 static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
 {
-  char *       data;
-  Py_ssize_t   length;
-  hs_error_t   err;
-  unsigned int flags = 0;
-  PyObject *   ocallback = Py_None, *oscratch = Py_None, *octx = Py_None;
+  hs_error_t err;
+  uint32_t flags = 0;
+  bool vectored = false;
+
+  PyObject *odata;
+  PyObject *ocallback = Py_None;
+  PyObject *oscratch = Py_None;
+  PyObject *octx = Py_None;
+
   static char *kwlist[] = {
     "data",
     "match_event_handler",
@@ -332,27 +337,92 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
   if (!PyArg_ParseTupleAndKeywords(
         args,
         kwds,
-        "s#|OIOO",
+        "O|OIOO",
         kwlist,
-        &data,
-        &length,
+        &odata,
         &ocallback,
         &flags,
         &octx,
         &oscratch))
     return NULL;
   py_scan_callback_ctx cctx = {ocallback, octx, 1};
-  Py_BEGIN_ALLOW_THREADS;
-  err = hs_scan(
-    self->db,
-    data,
-    length,
-    flags,
-    oscratch == Py_None ? ((Scratch *)self->scratch)->scratch
-                        : ((Scratch *)oscratch)->scratch,
-    ocallback == Py_None ? NULL : match_handler,
-    ocallback == Py_None ? NULL : (void *)&cctx);
-  Py_END_ALLOW_THREADS;
+
+  if (self->mode == HS_MODE_VECTORED) {
+    char **data;
+    PyObject *fast_seq;
+    Py_ssize_t num_buffers;
+    Py_ssize_t *lengths;
+
+    fast_seq = PySequence_Fast(odata, "expected a sequence of buffers");
+    num_buffers = PySequence_Fast_GET_SIZE(fast_seq);
+    data = PyMem_RawMalloc(num_buffers * sizeof(char *));
+    lengths = PyMem_RawMalloc(num_buffers * sizeof(Py_ssize_t));
+
+    for (uint32_t i = 0; i < num_buffers; i++) {
+      PyObject *o = PySequence_Fast_GET_ITEM(fast_seq, i);
+      if (!PyObject_CheckBuffer(o)) {
+        PyErr_SetString(
+          PyExc_TypeError, "obj doesn't support buffer interface");
+        break;
+      }
+
+      Py_buffer view;
+      if (PyObject_GetBuffer(o, &view, PyBUF_SIMPLE) != -1) {
+        data[i] = (char *)view.buf;
+        lengths[i] = view.len;
+      } else {
+        PyErr_SetString(PyExc_BufferError, "failed to get buffer");
+        break;
+      }
+      PyBuffer_Release(&view);
+    }
+
+    if (PyErr_Occurred()) {
+      PyMem_RawFree(data);
+      PyMem_RawFree(lengths);
+      Py_XDECREF(fast_seq);
+      return NULL;
+    }
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = hs_scan_vector(
+      self->db,
+      (const char *const *)data,
+      (const uint32_t *)lengths,
+      num_buffers,
+      flags,
+      oscratch == Py_None ? ((Scratch *)self->scratch)->scratch
+                          : ((Scratch *)oscratch)->scratch,
+      ocallback == Py_None ? NULL : match_handler,
+      ocallback == Py_None ? NULL : (void *)&cctx);
+    Py_END_ALLOW_THREADS;
+
+    PyMem_RawFree(data);
+    PyMem_RawFree(lengths);
+    Py_XDECREF(fast_seq);
+  } else {
+    if (!PyBytes_CheckExact(odata)) {
+      PyErr_SetString(PyExc_TypeError, "a bytes-like object is required");
+      return NULL;
+    }
+
+    char *data = PyBytes_AsString(odata);
+    if (data == NULL)
+      return NULL;
+    Py_ssize_t length = PyBytes_Size(odata);
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = hs_scan(
+      self->db,
+      data,
+      length,
+      flags,
+      oscratch == Py_None ? ((Scratch *)self->scratch)->scratch
+                          : ((Scratch *)oscratch)->scratch,
+      ocallback == Py_None ? NULL : match_handler,
+      ocallback == Py_None ? NULL : (void *)&cctx);
+    Py_END_ALLOW_THREADS;
+  }
   if (!cctx.success) {
     return NULL;
   }
@@ -363,7 +433,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
 static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
 {
   unsigned int flags = 0;
-  PyObject *   ocallback = Py_None, *octx = Py_None;
+  PyObject *ocallback = Py_None, *octx = Py_None;
   static char *kwlist[] = {
     "flags",
     "match_event_handler",
@@ -431,7 +501,10 @@ static PyMethodDef Database_methods[] = {
    "scan(data, match_event_handler, flags=0, context=None, scratch=None)\n\n"
    "    Scans a block of text.\n\n"
    "    Args:\n"
-   "        data (:obj:`str`): The block of text to scan.\n"
+   "        data (:obj:`str`): The block of text to scan, if the database\n"
+   "            was opened with streaming or block mode, or a list of\n"
+   "            buffers (i.e. :obj:`bytearray`) if the database was\n"
+   "            opened with vectored mode.\n"
    "        match_event_handler (callable): The match callback, which is\n"
    "            invoked for each match result, and passed the expression "
    "id,\n"
@@ -560,9 +633,9 @@ static int Stream_init(Stream *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
 {
-  hs_scratch_t *       scratch = NULL;
+  hs_scratch_t *scratch = NULL;
   py_scan_callback_ctx cctx;
-  PyObject *   oscratch = Py_None, *ocallback = Py_None, *octx = Py_None;
+  PyObject *oscratch = Py_None, *ocallback = Py_None, *octx = Py_None;
   static char *kwlist[] = {"scratch", "match_event_handler", "context", NULL};
   if (!PyArg_ParseTupleAndKeywords(
         args,
@@ -591,8 +664,8 @@ static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
 
 static long Stream_len(PyObject *self)
 {
-  size_t     stream_size;
-  Stream *   stream = (Stream *)self;
+  size_t stream_size;
+  Stream *stream = (Stream *)self;
   hs_error_t err =
     hs_stream_size(((Database *)stream->database)->db, &stream_size);
   HANDLE_HYPERSCAN_ERR(err, 0);
@@ -617,11 +690,11 @@ static PyObject *Stream_exit(Stream *self)
 
 static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
 {
-  char *        data;
-  Py_ssize_t    length;
-  hs_error_t    err;
-  unsigned int  flags;
-  PyObject *    ocallback = Py_None, *octx = Py_None, *oscratch = Py_None;
+  char *data;
+  Py_ssize_t length;
+  hs_error_t err;
+  unsigned int flags;
+  PyObject *ocallback = Py_None, *octx = Py_None, *oscratch = Py_None;
   hs_scratch_t *scratch = NULL;
 
   static char *kwlist[] = {
@@ -793,7 +866,7 @@ static PyObject *Scratch_set_database(
     return NULL;
   }
   hs_database_t *db = ((Database *)self->database)->db;
-  hs_error_t     err = hs_alloc_scratch(db, &self->scratch);
+  hs_error_t err = hs_alloc_scratch(db, &self->scratch);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_RETURN_NONE;
 }
@@ -811,10 +884,10 @@ static int Scratch_init(Scratch *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Scratch_clone(Scratch *self)
 {
-  PyObject *     dest = PyObject_CallFunction((PyObject *)&ScratchType, NULL);
-  hs_scratch_t * s1 = self->scratch;
+  PyObject *dest = PyObject_CallFunction((PyObject *)&ScratchType, NULL);
+  hs_scratch_t *s1 = self->scratch;
   hs_scratch_t **s2 = &(((Scratch *)dest)->scratch);
-  hs_error_t     err = hs_clone_scratch(s1, s2);
+  hs_error_t err = hs_clone_scratch(s1, s2);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   return dest;
 }
@@ -886,9 +959,9 @@ static PyTypeObject ScratchType = {
 
 static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  Database *   database;
-  char *       buf;
-  size_t       length;
+  Database *database;
+  char *buf;
+  size_t length;
   static char *kwlist[] = {"database", NULL};
   if (!PyArg_ParseTupleAndKeywords(
         args, kwds, "O!", kwlist, &DatabaseType, &database))
@@ -906,8 +979,8 @@ static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
 
 static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  char *       buf;
-  PyObject *   obuf, *ocreatescratch = Py_True;
+  char *buf;
+  PyObject *obuf, *ocreatescratch = Py_True;
   static char *kwlist[] = {"buf", "create_scratch", NULL};
   if (!PyArg_ParseTupleAndKeywords(
         args, kwds, "O|O", kwlist, &obuf, &ocreatescratch))

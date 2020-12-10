@@ -32,6 +32,16 @@ def database_stream():
     return db
 
 
+@pytest.fixture(scope='module')
+def database_vector():
+    db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
+    expressions, ids, flags = zip(*patterns)
+    db.compile(
+        expressions=expressions, ids=ids, elements=len(patterns), flags=flags
+    )
+    return db
+
+
 def test_block_scan(database_block, mocker):
     callback = mocker.Mock(return_value=None)
 
@@ -62,6 +72,25 @@ def test_stream_scan(database_stream, mocker):
             mocker.call(2, 3, 6, 0, None),
             mocker.call(0, 0, 8, 0, 1234),
             mocker.call(0, 0, 9, 0, 1234),
+        ],
+        any_order=True,
+    )
+
+
+def test_vectored_scan(database_vector, mocker):
+    callback = mocker.Mock(return_value=None)
+
+    buffers = [
+        bytearray(b'xxxfooxxx'),
+        bytearray(b'xxfoxbarx'),
+        bytearray(b'barxxxxxx'),
+    ]
+    database_vector.scan(buffers, match_event_handler=callback)
+    callback.assert_has_calls(
+        [
+            mocker.call(0, 0, 5, 0, None),
+            mocker.call(0, 0, 6, 0, None),
+            mocker.call(2, 9, 12, 0, None),
         ],
         any_order=True,
     )

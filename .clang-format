@@ -3,11 +3,6 @@
 Language: Cpp
 BasedOnStyle: Google
 AlignAfterOpenBracket: AlwaysBreak
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: true
-AlignOperands: true
-AlignTrailingComments: true
-AllowAllArgumentsOnNextLine: true
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 BinPackArguments: false
