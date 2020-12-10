@@ -34,9 +34,9 @@ def process_expression(expr):
         if id_ < 0:
             raise TypeError('expression ids must be unsigned')
     rppos = expr.rfind('/')
-    expression = expr[lppos + 1:rppos].encode('utf8')
+    expression = expr[lppos + 1 : rppos].encode('utf8')
     flags = 0
-    for fc in expr[rppos + 1:]:
+    for fc in expr[rppos + 1 :]:
         flags |= flagchars[fc]
     return id_, expression, flags
 
@@ -52,11 +52,7 @@ def build_database(expr_path, mode=hyperscan.HS_MODE_STREAM):
             expressions.append(expression)
             flags.append(flags_)
     database = hyperscan.Database(mode=mode)
-    database.compile(
-        expressions=expressions,
-        ids=ids,
-        flags=flags,
-    )
+    database.compile(expressions=expressions, ids=ids, flags=flags)
     return len(expressions), database
 
 
@@ -80,9 +76,13 @@ def bench(database, corpus_path, pcre_path, mode=hyperscan.HS_MODE_STREAM):
         for blob in iter_corpus(corpus_path):
             database.scan(blob)
 
+
 def main(args):
-    mode = (hyperscan.HS_MODE_BLOCK if args.block_mode
-            else hyperscan.HS_MODE_STREAM)
+    mode = (
+        hyperscan.HS_MODE_BLOCK
+        if args.block_mode
+        else hyperscan.HS_MODE_STREAM
+    )
     expr_count, database = build_database(args.expressions, mode=mode)
     print('Signatures:\t\t{}'.format(args.expressions))
     print('Hyperscan info:\t\t{}'.format(database.info().decode('utf8')))
@@ -92,22 +92,32 @@ def main(args):
 
     print(
         "{} loops, best of 3: {}s".format(
-        args.trials,
-        timeit.timeit(
-            lambda: bench(database, args.corpus, args.expressions, mode),
-            number=args.trials)))
+            args.trials,
+            timeit.timeit(
+                lambda: bench(database, args.corpus, args.expressions, mode),
+                number=args.trials,
+            ),
+        )
+    )
     print()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Benchmark hyperscan-python')
     parser.add_argument('-n', '--trials', default=5, help='Number of trials.')
-    parser.add_argument('-e', '--expressions', metavar='FILE',
-                        help='Path to expressions.')
-    parser.add_argument('-c', '--corpus',
-                        metavar='FILE', help='Path to corpus.')
-    parser.add_argument('-N', '--block-mode', dest='block_mode',
-                        action='store_true', help='Benchmark in block mode.')
+    parser.add_argument(
+        '-e', '--expressions', metavar='FILE', help='Path to expressions.'
+    )
+    parser.add_argument(
+        '-c', '--corpus', metavar='FILE', help='Path to corpus.'
+    )
+    parser.add_argument(
+        '-N',
+        '--block-mode',
+        dest='block_mode',
+        action='store_true',
+        help='Benchmark in block mode.',
+    )
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
