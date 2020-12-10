@@ -67,6 +67,7 @@ python-semantic-release = "^7.6.0"
 version_variable = [
   "src/hyperscan/__init__.py:__version__",
 ]
+build_command = "pip install poetry && poetry build"
 
 [build-system]
 requires = ["poetry>=0.12"]
