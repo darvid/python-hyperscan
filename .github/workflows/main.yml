@@ -17,6 +17,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build:
     runs-on: ${{ matrix.platform }}
+    needs: lint
     container:
       image: darvid/manylinux-hyperscan:5.3.0
     strategy:

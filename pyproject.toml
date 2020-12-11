@@ -76,7 +76,7 @@ version_variable = [
 # Since there is currently no way to tell python-semantic-release to use
 # an existing dist, we just pip install the artifact which should be copied
 # over from the build job as an additional, albeit redundant sanity check.
-build_command = "pip install -I --no-index --find-links=./dist hyperscan"
+build_command = "pip install -I --no-index -f=./dist -f=/github/workspace/dist hyperscan"
 remove_dist = false
 
 [build-system]
