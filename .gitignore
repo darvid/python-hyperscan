@@ -1,3 +1,4 @@
+setup.py
 .pytest_cache/
 *.whl
 examples/hsbench-samples
