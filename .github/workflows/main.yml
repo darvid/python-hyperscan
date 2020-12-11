@@ -58,6 +58,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: dist
+          path: dist
+      - name: Display dist
+        run: ls -R
+        working-directory: dist
       - name: Python Semantic Release
         uses: relekang/python-semantic-release@v7.6.0
         with:
