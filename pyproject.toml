@@ -80,5 +80,5 @@ build_command = "pip install -I --no-index -f=./dist -f=/github/workspace/dist h
 remove_dist = false
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["setuptools", "poetry>=0.12"]
 build-backend = "poetry.masonry.api"
