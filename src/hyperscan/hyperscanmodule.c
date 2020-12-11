@@ -54,14 +54,14 @@ typedef struct {
 typedef struct {
   PyObject_HEAD PyObject *scratch;
   hs_database_t *db;
-  unsigned int mode;
+  uint32_t mode;
 } Database;
 
 typedef struct {
   PyObject_HEAD hs_stream_t *identifier;
   PyObject *database;
   PyObject *scratch;
-  unsigned int flags;
+  uint32_t flags;
   py_scan_callback_ctx *cctx;
 } Stream;
 
@@ -72,8 +72,8 @@ typedef struct {
 
 static int match_handler(
   unsigned int id,
-  unsigned long long from,
-  unsigned long long to,
+  long long unsigned int from,
+  long long unsigned int to,
   unsigned int flags,
   void *context)
 {
@@ -133,7 +133,8 @@ static PyObject *Database_compile(
   PyObject *oflags = Py_None;
   PyObject *oflag = Py_None;
   PyObject *oids = Py_None;
-  PyObject *oliteral = Py_False;
+  PyObject *oext = Py_None;
+  uint32_t literal = 0;
   uint64_t elements = 0;
 
   static char *kwlist[] = {
@@ -142,18 +143,20 @@ static PyObject *Database_compile(
     "elements",
     "flags",
     "literal",
+    "ext",
     NULL,
   };
   if (!PyArg_ParseTupleAndKeywords(
         args,
         kwds,
-        "O|OIOO",
+        "O|OKOpO",
         kwlist,
         &oexpressions,
         &oids,
         &elements,
         &oflags,
-        &oliteral))
+        &literal,
+        &oext))
     return NULL;
 
   if (elements == 0) {
@@ -166,34 +169,40 @@ static PyObject *Database_compile(
     }
   }
 
+  PyObject *oexpr = NULL;
+  PyObject *oid = NULL;
   const char **expressions;
-
-  uint32_t globalflag;
   uint32_t *flags;
   uint32_t *ids;
-
   size_t *lens;
+  uint32_t globalflag;
 
   expressions = PyMem_RawMalloc(elements * sizeof(char *));
   if (expressions == NULL)
     goto memory_error;
+
   flags = PyMem_RawMalloc(elements * sizeof(uint32_t));
   if (flags == NULL)
     goto memory_error;
-  ids = PyMem_RawMalloc(elements * sizeof(uint64_t));
+
+  ids = PyMem_RawMalloc(elements * sizeof(uint32_t));
   if (ids == NULL)
     goto memory_error;
+
   globalflag = (oflags == Py_None ? 0 : PyLong_AsUnsignedLong(oflags));
 
   PyErr_Clear();
 
-  PyObject *oexpr = NULL;
-  PyObject *oid = NULL;
+  hs_error_t err;
+  hs_compile_error_t *compile_err;
 
   for (uint64_t i = 0; i < elements; i++) {
+    const char *expression;
+    uint32_t expr_flags;
+    uint32_t expr_id;
+
     oexpr = PySequence_ITEM(oexpressions, i);
-    const char *expression = PyBytes_AsString(oexpr);
-    uint32_t expr_flags, expr_id;
+    expression = PyBytes_AsString(oexpr);
 
     if (PyErr_Occurred())
       break;
@@ -234,11 +243,9 @@ static PyObject *Database_compile(
     goto python_error;
   }
 
-  hs_error_t err;
-  hs_compile_error_t *compile_err;
-
   Py_BEGIN_ALLOW_THREADS;
-  if (PyObject_IsTrue(oliteral)) {
+  struct hs_expr_ext **ext = NULL;
+  if (literal) {
     lens = PyMem_RawMalloc(elements * sizeof(size_t));
     if (lens == NULL)
       goto memory_error;
@@ -255,19 +262,51 @@ static PyObject *Database_compile(
       NULL,
       &self->db,
       &compile_err);
+    PyMem_RawFree(lens);
   } else {
+    if (oext != Py_None) {
+      ext = PyMem_RawMalloc(elements * sizeof(struct hs_expr_ext *));
+      for (uint64_t i = 0; i < elements; i++) {
+        ext[i] = PyMem_RawMalloc(sizeof(struct hs_expr_ext));
+        PyObject *oext_item = PySequence_GetItem(oext, i);
+        if (oext_item == NULL) {
+          PyErr_Format(
+            PyExc_RuntimeError, "failed to get ext item at index: %d", i);
+          goto python_error;
+        }
+        if (!PyArg_ParseTuple(
+              oext_item,
+              "KKKKII",
+              &(ext[i]->flags),
+              &(ext[i]->min_offset),
+              &(ext[i]->max_offset),
+              &(ext[i]->min_length),
+              &(ext[i]->edit_distance),
+              &(ext[i]->hamming_distance))) {
+          PyErr_SetString(PyExc_TypeError, "invalid ext info");
+          Py_XDECREF(oext_item);
+          goto python_error;
+        }
+        Py_XDECREF(oext_item);
+      }
+    }
     err = hs_compile_ext_multi(
       expressions,
       flags,
       ids,
-      NULL,
+      (const struct hs_expr_ext *const *)ext,
       elements,
       self->mode,
       NULL,
       &self->db,
       &compile_err);
+    PyMem_RawFree(ext);
   }
   Py_END_ALLOW_THREADS;
+
+  PyMem_RawFree(expressions);
+  PyMem_RawFree(flags);
+  PyMem_RawFree(ids);
 
   if (err != HS_SUCCESS) {
     PyErr_SetString(HyperscanError, compile_err->message);
@@ -282,6 +321,7 @@ static PyObject *Database_compile(
     err = hs_alloc_scratch(self->db, &((Scratch *)self->scratch)->scratch);
     HANDLE_HYPERSCAN_ERR(err, NULL);
   }
+
   Py_RETURN_NONE;
 
 memory_error:
@@ -319,7 +359,6 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
 {
   hs_error_t err;
   uint32_t flags = 0;
-  bool vectored = false;
 
   PyObject *odata;
   PyObject *ocallback = Py_None;
@@ -432,8 +471,9 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
 {
-  unsigned int flags = 0;
-  PyObject *ocallback = Py_None, *octx = Py_None;
+  uint32_t flags = 0;
+  PyObject *ocallback = Py_None;
+  PyObject *octx = Py_None;
   static char *kwlist[] = {
     "flags",
     "match_event_handler",
@@ -469,17 +509,21 @@ static PyMethodDef Database_methods[] = {
    "    Args:\n"
    "        expressions (sequence of :obj:`str`): A sequence of regular\n"
    "            expressions.\n"
-   "        ids (sequence of :obj:`int`, optional): A sequence of "
-   "expression\n"
-   "            identifiers.\n"
+   "        ids (sequence of :obj:`int`, optional): A sequence of\n"
+   "            expression identifiers.\n"
    "        elements (:obj:`int`, optional): Length of the expressions\n"
    "            sequence.\n"
-   "        flags (sequence of :obj:`int` or :obj:`int`, optional): "
-   "Sequence\n"
-   "            of flags associated with each expression, or a single value\n"
-   "            which is applied to all expressions.\n"
+   "        flags (sequence of :obj:`int` or :obj:`int`, optional):\n"
+   "            Sequence of flags associated with each expression, or a\n"
+   "            single value which is applied to all expressions.\n"
    "        literal (bool, optional): If True, uses the pure literal\n"
-   "            expression compiler introduced in Hyperscan 5.2.0.\n\n"},
+   "            expression compiler introduced in Hyperscan 5.2.0.\n\n"
+   "        ext (list, optional): A list of tuples used to define extended\n"
+   "            behavior for each pattern. Tuples must contain **flags**,\n"
+   "            **min_offset**, **max_offset**, **min_length**,\n"
+   "            **edit_distance**, and **hamming_distance**. See hyperscan\n"
+   "            documentation for more information. **Note:** this\n"
+   "            parameter if **literal** is True.\n\n"},
   {"info",
    (PyCFunction)Database_info,
    METH_VARARGS,
@@ -506,13 +550,11 @@ static PyMethodDef Database_methods[] = {
    "            buffers (i.e. :obj:`bytearray`) if the database was\n"
    "            opened with vectored mode.\n"
    "        match_event_handler (callable): The match callback, which is\n"
-   "            invoked for each match result, and passed the expression "
-   "id,\n"
-   "            start offset, end offset, flags, and a context object.\n"
+   "            invoked for each match result, and passed the expression\n"
+   "            id, start offset, end offset, flags, and a context object.\n"
    "        flags (:obj:`int`): Currently unused.\n"
-   "        context (:obj:`object`): A context object passed as the last "
-   "arg\n"
-   "            to **match_event_handler**.\n"
+   "        context (:obj:`object`): A context object passed as the last\n"
+   "            arg to **match_event_handler**.\n"
    "        scratch (:class:`~.Scratch`): A scratch object.\n\n"},
   {"stream",
    (PyCFunction)Database_stream,
@@ -527,9 +569,8 @@ static PyMethodDef Database_methods[] = {
    "            context object. Note that this callback will override\n"
    "            the match event handler defined in the\n"
    "            :class:`~.Database` instance.\n"
-   "        context (:obj:`object`): A context object passed as the last "
-   "arg\n"
-   "            to **match_event_handler**.\n\n"},
+   "        context (:obj:`object`): A context object passed as the last\n"
+   "            arg to **match_event_handler**.\n\n"},
   {NULL}};
 
 static PyTypeObject DatabaseType = {
@@ -693,7 +734,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
   char *data;
   Py_ssize_t length;
   hs_error_t err;
-  unsigned int flags;
+  uint32_t flags;
   PyObject *ocallback = Py_None, *octx = Py_None, *oscratch = Py_None;
   hs_scratch_t *scratch = NULL;
 
@@ -1044,6 +1085,11 @@ MOD_INIT(_hyperscan)
   ADD_INT_CONSTANT(m, HS_DB_MODE_ERROR);
   ADD_INT_CONSTANT(m, HS_DB_PLATFORM_ERROR);
   ADD_INT_CONSTANT(m, HS_DB_VERSION_ERROR);
+  ADD_INT_CONSTANT(m, HS_EXT_FLAG_EDIT_DISTANCE);
+  ADD_INT_CONSTANT(m, HS_EXT_FLAG_HAMMING_DISTANCE);
+  ADD_INT_CONSTANT(m, HS_EXT_FLAG_MAX_OFFSET);
+  ADD_INT_CONSTANT(m, HS_EXT_FLAG_MIN_LENGTH);
+  ADD_INT_CONSTANT(m, HS_EXT_FLAG_MIN_OFFSET);
   ADD_INT_CONSTANT(m, HS_FLAG_ALLOWEMPTY);
   ADD_INT_CONSTANT(m, HS_FLAG_CASELESS);
   ADD_INT_CONSTANT(m, HS_FLAG_DOTALL);

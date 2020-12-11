@@ -2,7 +2,6 @@ import pytest
 
 import hyperscan
 
-
 patterns = (
     (br'fo+', 0, 0),
     (br'^foobar', 1, hyperscan.HS_FLAG_CASELESS),
@@ -96,6 +95,114 @@ def test_vectored_scan(database_vector, mocker):
     )
 
 
+def test_ext_multi_min_offset(mocker):
+    callback = mocker.Mock(return_value=None)
+    db = hyperscan.Database()
+    db.compile(
+        expressions=[b'foobar'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_MIN_OFFSET, min_offset=12
+            )
+        ],
+    )
+    db.scan(b'foobarfoobar', match_event_handler=callback)
+    callback.assert_has_calls([mocker.call(0, 6, 12, 0, None)])
+
+
+def test_ext_multi_max_offset(mocker):
+    callback = mocker.Mock(return_value=None)
+    db = hyperscan.Database()
+    db.compile(
+        expressions=[b'foobar'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_MAX_OFFSET, max_offset=6
+            )
+        ],
+    )
+    db.scan(b'foobarfoobar', match_event_handler=callback)
+    callback.assert_has_calls([mocker.call(0, 0, 6, 0, None)])
+
+
+def test_ext_multi_min_length(mocker):
+    callback = mocker.Mock(return_value=None)
+    db = hyperscan.Database()
+    db.compile(
+        expressions=[b'fo+'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_MIN_LENGTH, min_length=3
+            )
+        ],
+    )
+    db.scan(b'fo', match_event_handler=callback)
+    callback.assert_has_calls([])
+    db.scan(b'foo', match_event_handler=callback)
+    callback.assert_has_calls([mocker.call(0, 0, 3, 0, None)])
+
+
+def test_ext_multi_edit_distance(mocker):
+    callback = mocker.Mock(return_value=None)
+    db = hyperscan.Database()
+    db.compile(
+        expressions=[b'foobar'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_EDIT_DISTANCE, edit_distance=1
+            )
+        ],
+    )
+    db.scan(b'fxxxar', match_event_handler=callback)
+    callback.assert_has_calls([])
+
+    db.compile(
+        expressions=[b'foobar'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_EDIT_DISTANCE, edit_distance=3
+            )
+        ],
+    )
+    db.scan(b'fxxxar', match_event_handler=callback)
+    callback.assert_has_calls([mocker.call(0, 0, 6, 0, None)])
+
+
+def test_ext_multi_hamming_distance(mocker):
+    callback = mocker.Mock(return_value=None)
+    db = hyperscan.Database()
+    db.compile(
+        expressions=[b'foobar'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_HAMMING_DISTANCE,
+                hamming_distance=1,
+            )
+        ],
+    )
+    db.scan(b'fxxxar', match_event_handler=callback)
+    callback.assert_has_calls([])
+
+    db.compile(
+        expressions=[b'foobar'],
+        flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+        ext=[
+            hyperscan.ExpressionExt(
+                flags=hyperscan.HS_EXT_FLAG_HAMMING_DISTANCE,
+                hamming_distance=3,
+            )
+        ],
+    )
+    db.scan(b'fxxxar', match_event_handler=callback)
+    callback.assert_has_calls([mocker.call(0, 0, 6, 0, None)])
+
+
 @pytest.mark.parametrize('return_value', [1, True, 42])
 def test_stream_scan_halt(database_stream, mocker, return_value):
     callback = mocker.Mock(return_value=return_value)
@@ -134,12 +241,10 @@ def test_database_exception_in_callback(database_block, mocker):
 def test_literal_expressions(mocker):
     db = hyperscan.Database()
     expressions, ids, _ = zip(*patterns)
-    expressions = [e + b'\0' for e in expressions]
-    db.compile(expressions=expressions, ids=ids, literal=True)
+    db.compile(expressions=list(expressions), ids=ids, literal=True)
     callback = mocker.Mock(return_value=None)
     expected = []
     for i, expression in enumerate(expressions):
-        expression = expression[:-1]
         db.scan(expression, match_event_handler=callback, context=expression)
         expected.append(mocker.call(ids[i], 0, len(expression), 0, expression))
     assert callback.mock_calls == expected
