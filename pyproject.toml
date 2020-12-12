@@ -66,17 +66,12 @@ tox = "^3.20.1"
 commitizen = "^2.10.0"
 pre-commit = "^2.9.2"
 python-semantic-release = "^7.6.0"
+black = "^20.8b1"
 
 [tool.semantic_release]
 version_variable = [
   "pyproject.toml:version",
 ]
-# XXX: python-semantic-release runs in a GH Action, where we cannot install
-# build deps easily, and attempting to build a wheel from source would fail.
-# Since there is currently no way to tell python-semantic-release to use
-# an existing dist, we just pip install the artifact which should be copied
-# over from the build job as an additional, albeit redundant sanity check.
-build_command = "pip install -I --no-index -f ./dist -f /github/workspace/dist hyperscan"
 remove_dist = false
 
 [build-system]

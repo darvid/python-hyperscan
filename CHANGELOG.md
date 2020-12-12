@@ -1,5 +1,7 @@
 # Changelog
 
+<!--next-version-placeholder-->
+
 ## [0.1.5] - 2020-02-21
 
 ### Fixed
