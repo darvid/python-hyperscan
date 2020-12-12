@@ -1,5 +1,6 @@
 # Hyperscan for Python
 
+![python-hyperscan workflow](https://github.com/darvid/python-hyperscan/workflows/python-hyperscan%20workflow/badge.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hyperscan.svg)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/hyperscan.svg)
 ![PyPI - Status](https://img.shields.io/pypi/status/hyperscan.svg)
