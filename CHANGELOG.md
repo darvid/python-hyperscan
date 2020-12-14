@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## [0.2.0] - 2020-12-12
+
+### Feature
+* Add HS_FLAG_COMBINATION and HS_FLAG_QUIET (#21) ([`9804a55`](https://github.com/darvid/python-hyperscan/commit/9804a5563ee8cfa3e766ceb50481031f73a59009))
+* Support extended behavior for patterns (#11) ([`5bfc947`](https://github.com/darvid/python-hyperscan/commit/5bfc94765752b3a6fcc424fd58bedb2ca36ee0cc))
+* Support hs_scan_vector (#24) ([`6869b06`](https://github.com/darvid/python-hyperscan/commit/6869b0687a4efb5a8f4028c68b64a876f7d950fb))
+
+### Fix
+* Dynamically allocate memory for arrays used by Database.compile (fixes #25) ([`3fe93fc`](https://github.com/darvid/python-hyperscan/commit/3fe93fc81578dd627991473e3f89dc822523578c))
+
 ## [0.1.5] - 2020-02-21
 
 ### Fixed
@@ -74,6 +84,8 @@ Initial release
 [Semaphore]: https://semaphoreci.com/
 [Sphinx]: http://www.sphinx-doc.org/en/master/
 [Travis CI]: https://travis-ci.org/
+[0.2.0]: https://github.com/darvid/python-hyperscan/releases/tag/v0.2.0
+[0.1.5]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.5
 [0.1.4]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.4
 [0.1.3]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.3
 [0.1.2]: https://github.com/darvid/python-hyperscan/releases/tag/v0.1.2
