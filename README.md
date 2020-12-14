@@ -29,9 +29,7 @@ following caveats or exceptions:
   ``hs_populate_platform``, and ``hs_serialized_database_info`` not
   exposed yet.
 
-``python-hyperscan`` has been built and tested against Hyperscan
-``v4.7.0`` and upwards, including the latest as of April 2019,
-``v5.1.1``.
+``python-hyperscan`` requires Hyperscan v5.2 or newer.
 
 ## Resources
 
