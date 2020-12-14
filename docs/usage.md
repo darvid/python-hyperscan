@@ -18,9 +18,7 @@ following caveats or exceptions:
     how the Hyperscan compiler C API works, including supported pattern
     constructs and matching modes.
 
-``python-hyperscan`` has been built and tested against Hyperscan
-``v4.7.0`` and upwards, including the latest as of April 2019,
-``v5.1.1``.
+``python-hyperscan`` requires Hyperscan ``5.2.0`` and above.
 
 Please [create an issue][5] to request prioritization of certain C API
 features, report inconsistencies between the C API and this Python
@@ -125,9 +123,43 @@ with db.stream(match_event_handler=on_match, context=2345) as stream:
     stream.scan(b'qux', match_event_handler=on_qux_match)
 ```
 
+### Vectored Mode
+
+```python
+db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
+buffers = [
+    bytearray(b'xxxfooxxx'),
+    bytearray(b'xxfoxbarx'),
+    bytearray(b'barxxxxxx'),
+]
+db.scan(buffers, match_event_handler=on_match)
+```
+
+### Extended Parameters
+
+Refer to the [Hyperscan documentation][8] for a list of parameter names
+and behaviours. ``python-hyperscan`` provides a helper named tuple,
+``ExpressionExt``, which is used to construct an ``hs_expr_ext_t``
+structure. Only the appropriate field name for the given flag(s) need
+to be provided, all other parameters default to ``0``.
+
+```python
+db.compile(
+    expressions=[b'foobar'],
+    flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
+    ext=[
+        hyperscan.ExpressionExt(
+            flags=hyperscan.HS_EXT_FLAG_MIN_OFFSET, min_offset=12
+        )
+    ],
+)
+# Matches the second `foobar`
+db.scan(b'foobarfoobar', match_event_handler=callback)
+```
+
 ## Serialization
 
-Refer to the [Hyperscan documentation][8] for more information on
+Refer to the [Hyperscan documentation][9] for more information on
 serialization, its use cases, and caveats. Usage is simple:
 
 ```python
@@ -147,4 +179,5 @@ db = hyperscan.loadb(serialized)
 [5]: https://github.com/darvid/python-hyperscan/issues
 [6]: http://intel.github.io/hyperscan/dev-reference/api_files.html#c.match_event_handler
 [7]: http://intel.github.io/hyperscan/dev-reference/runtime.html#scratch-space
-[8]: https://intel.github.io/hyperscan/dev-reference/serialization.html
+[8]: https://intel.github.io/hyperscan/dev-reference/compilation.html#extparam
+[9]: https://intel.github.io/hyperscan/dev-reference/serialization.html
