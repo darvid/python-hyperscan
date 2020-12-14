@@ -70,11 +70,7 @@ jobs:
       - name: Generate release changelog
         run: |
           pip install "python-semantic-release==7.6.0"
-          git config --global user.name "github-actions"
-          git config --global user.email "action@github.com"
-          semantic-release version -v DEBUG -D commit_author="github-actions <action@github.com>"
           semantic-release changelog -v DEBUG > RELEASE_CHANGELOG
-          git push --follow-tags
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Archive release changelog
@@ -85,6 +81,10 @@ jobs:
             RELEASE_CHANGELOG
       - name: Remove release changelog
         run: rm -f RELEASE_CHANGELOG
+      - name: Python semantic release
+        uses: relekang/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
   release:
     runs-on: ubuntu-latest
     needs: prepare_release

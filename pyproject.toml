@@ -73,6 +73,8 @@ version_variable = [
   "pyproject.toml:version",
 ]
 remove_dist = false
+upload_to_release = false
+upload_to_pypi = false
 
 [build-system]
 requires = ["setuptools", "poetry>=0.12"]
