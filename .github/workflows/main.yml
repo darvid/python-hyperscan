@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     needs: lint
     container:
-      image: darvid/manylinux-hyperscan:5.3.0
+      image: darvid/manylinux-hyperscan:5.4.0
     strategy:
       matrix:
         # Only Linux is supported at the moment
