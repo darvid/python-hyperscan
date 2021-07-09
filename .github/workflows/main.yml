@@ -30,7 +30,6 @@ jobs:
           - cp37-cp37m
           - cp38-cp38
           - cp39-cp39
-          - cp310-cp310
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
     steps:
