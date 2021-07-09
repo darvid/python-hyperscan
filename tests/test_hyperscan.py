@@ -3,18 +3,44 @@ import pytest
 import hyperscan
 
 patterns = (
-    (br'fo+', 0, 0),
-    (br'^foobar', 1, hyperscan.HS_FLAG_CASELESS),
-    (br'BAR', 2, hyperscan.HS_FLAG_CASELESS | hyperscan.HS_FLAG_SOM_LEFTMOST),
+    (br'fo+', 0, 0, 0),
+    (
+        br'^foobar',
+        1,
+        hyperscan.HS_FLAG_CASELESS,
+        hyperscan.CH_FLAG_CASELESS,
+    ),
+    (
+        br'BAR',
+        2,
+        hyperscan.HS_FLAG_CASELESS | hyperscan.HS_FLAG_SOM_LEFTMOST,
+        hyperscan.CH_FLAG_CASELESS,
+    ),
 )
+
+
+@pytest.fixture(scope='module')
+def database_chimera():
+    db = hyperscan.Database(chimera=True, mode=hyperscan.CH_MODE_GROUPS)
+    expressions, ids, _, flags = zip(*patterns)
+    db.compile(
+        expressions=expressions,
+        ids=ids,
+        elements=len(patterns),
+        flags=flags,
+    )
+    return db
 
 
 @pytest.fixture(scope='module')
 def database_block():
     db = hyperscan.Database()
-    expressions, ids, flags = zip(*patterns)
+    expressions, ids, flags, _ = zip(*patterns)
     db.compile(
-        expressions=expressions, ids=ids, elements=len(patterns), flags=flags
+        expressions=expressions,
+        ids=ids,
+        elements=len(patterns),
+        flags=flags,
     )
     return db
 
@@ -24,9 +50,12 @@ def database_stream():
     db = hyperscan.Database(
         mode=(hyperscan.HS_MODE_STREAM | hyperscan.HS_MODE_SOM_HORIZON_LARGE)
     )
-    expressions, ids, flags = zip(*patterns)
+    expressions, ids, flags, _ = zip(*patterns)
     db.compile(
-        expressions=expressions, ids=ids, elements=len(patterns), flags=flags
+        expressions=expressions,
+        ids=ids,
+        elements=len(patterns),
+        flags=flags,
     )
     return db
 
@@ -34,11 +63,28 @@ def database_stream():
 @pytest.fixture(scope='module')
 def database_vector():
     db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
-    expressions, ids, flags = zip(*patterns)
+    expressions, ids, flags, _ = zip(*patterns)
     db.compile(
-        expressions=expressions, ids=ids, elements=len(patterns), flags=flags
+        expressions=expressions,
+        ids=ids,
+        elements=len(patterns),
+        flags=flags,
     )
     return db
+
+
+def test_chimera_scan(database_chimera, mocker):
+    callback = mocker.Mock(return_value=None)
+
+    database_chimera.scan(b'foobar', match_event_handler=callback)
+    callback.assert_has_calls(
+        [
+            mocker.call(0, 0, 3, 0, [(1, 0, 3)], None),
+            mocker.call(1, 0, 6, 0, [(1, 0, 6)], None),
+            mocker.call(2, 3, 6, 0, [(1, 3, 6)], None),
+        ],
+        any_order=True,
+    )
 
 
 def test_block_scan(database_block, mocker):
@@ -240,7 +286,7 @@ def test_database_exception_in_callback(database_block, mocker):
 
 def test_literal_expressions(mocker):
     db = hyperscan.Database()
-    expressions, ids, _ = zip(*patterns)
+    expressions, ids, _, __ = zip(*patterns)
     db.compile(expressions=list(expressions), ids=ids, literal=True)
     callback = mocker.Mock(return_value=None)
     expected = []

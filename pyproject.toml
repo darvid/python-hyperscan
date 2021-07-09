@@ -14,9 +14,7 @@ skip-string-normalization = true
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.2.0"
-version_files = [
-    "pyproject.toml:version"
-]
+version_files = ["pyproject.toml:version"]
 
 [tool.poetry]
 build = "build.py"
@@ -31,9 +29,7 @@ repository = "https://github.com/darvid/python-hyperscan"
 documentation = "https://python-hyperscan.rtfd.io"
 keywords = ["regex", "hypercan"]
 include = ["README.md", "CHANGELOG.md"]
-packages = [
-  { include = "hyperscan", from = "src" },
-]
+packages = [{ include="hyperscan", from="src" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Topic :: Software Development :: Libraries",
@@ -51,11 +47,11 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Unix",
   "Operating System :: MacOS",
-  "Operating System :: Microsoft :: Windows"
+  "Operating System :: Microsoft :: Windows",
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6.1,<4.0"
+python = ">=3.7,<4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
@@ -67,11 +63,10 @@ commitizen = "^2.10.0"
 pre-commit = "^2.9.2"
 python-semantic-release = "^7.6.0"
 black = "^20.8b1"
+clang-format = "^9.0.0"
 
 [tool.semantic_release]
-version_variable = [
-  "pyproject.toml:version",
-]
+version_variable = ["pyproject.toml:version"]
 remove_dist = false
 upload_to_release = false
 upload_to_pypi = false

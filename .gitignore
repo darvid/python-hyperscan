@@ -1,9 +1,9 @@
-setup.py
 .pytest_cache/
+.vscode/
 *.whl
 examples/hsbench-samples
-
-.vscode/
+poetry.lock
+setup.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

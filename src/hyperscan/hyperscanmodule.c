@@ -1,13 +1,23 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <bytesobject.h>
-#include <hs/hs.h>
+#include <ch.h>
+#include <hs.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <structmember.h>
 
 #define ADD_INT_CONSTANT(module, name) \
   PyModule_AddIntConstant(module, #name, name);
+#define HANDLE_CHIMERA_ERR(err, rv)                \
+  if (err != CH_SUCCESS) {                         \
+    char serr[80];                                 \
+    sprintf(serr, "error code %i", err);           \
+    PyGILState_STATE gstate = PyGILState_Ensure(); \
+    PyErr_SetString(HyperscanError, serr);         \
+    PyGILState_Release(gstate);                    \
+    return rv;                                     \
+  }
 #define HANDLE_HYPERSCAN_ERR(err, rv)              \
   if (err != HS_SUCCESS) {                         \
     char serr[80];                                 \
@@ -53,8 +63,10 @@ typedef struct {
 
 typedef struct {
   PyObject_HEAD PyObject *scratch;
-  hs_database_t *db;
+  hs_database_t *hs_db;
+  ch_database_t *ch_db;
   uint32_t mode;
+  uint32_t chimera;
 } Database;
 
 typedef struct {
@@ -67,10 +79,11 @@ typedef struct {
 
 typedef struct {
   PyObject_HEAD PyObject *database;
-  hs_scratch_t *scratch;
+  hs_scratch_t *hs_scratch;
+  ch_scratch_t *ch_scratch;
 } Scratch;
 
-static int match_handler(
+static int hs_match_handler(
   unsigned int id,
   long long unsigned int from,
   long long unsigned int to,
@@ -94,12 +107,61 @@ static int match_handler(
   return halt;
 }
 
+static int ch_match_handler(
+  unsigned int id,
+  long long unsigned int from,
+  long long unsigned int to,
+  unsigned int flags,
+  unsigned int size,
+  const ch_capture_t *captured,
+  void *context)
+{
+  py_scan_callback_ctx *cctx = context;
+  PyGILState_STATE gstate;
+
+  gstate = PyGILState_Ensure();
+  PyObject *ocapture = NULL;
+  PyObject *ocaptured = PyList_New((Py_ssize_t)size);
+  for (unsigned int i = 0; i < size; i++) {
+    ocapture = Py_BuildValue(
+      "(I, K, K)", captured[i].flags, captured[i].from, captured[i].to);
+    PyList_SetItem(ocaptured, i, ocapture);
+  }
+  PyObject *rv = PyObject_CallFunction(
+    cctx->callback,
+    "IIIIOO",
+    id,
+    from,
+    to,
+    flags,
+    (PyObject *)ocaptured,
+    cctx->ctx);
+  int halt = 1;
+  if (rv == NULL) {
+    cctx->success = 0;
+  } else {
+    halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
+    cctx->success = 1;
+  }
+  PyGILState_Release(gstate);
+  Py_XDECREF(rv);
+  return halt;
+}
+
 static void Database_dealloc(Database *self)
 {
-  hs_free_database(self->db);
-  hs_scratch_t *scratch = ((Scratch *)self->scratch)->scratch;
-  if (scratch != NULL)
-    hs_free_scratch(scratch);
+  if (self->chimera) {
+    ch_free_database(self->ch_db);
+    ch_scratch_t *scratch = ((Scratch *)self->scratch)->ch_scratch;
+    if (scratch != NULL)
+      ch_free_scratch(scratch);
+  } else {
+    hs_free_database(self->hs_db);
+    hs_scratch_t *scratch = ((Scratch *)self->scratch)->hs_scratch;
+    if (scratch != NULL)
+      hs_free_scratch(scratch);
+  }
+
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -111,6 +173,7 @@ static PyObject *Database_new(
   self = (Database *)type->tp_alloc(type, 0);
   if (self != NULL) {
     self->mode = HS_MODE_BLOCK;
+    self->chimera = 0;
   }
 
   return (PyObject *)self;
@@ -118,10 +181,16 @@ static PyObject *Database_new(
 
 static int Database_init(Database *self, PyObject *args, PyObject *kwds)
 {
-  static char *kwlist[] = {"scratch", "mode", NULL};
+  static char *kwlist[] = {"scratch", "mode", "chimera", NULL};
   self->scratch = Py_None;
   if (!PyArg_ParseTupleAndKeywords(
-        args, kwds, "|Oi", kwlist, &self->scratch, &self->mode))
+        args,
+        kwds,
+        "|OIp",
+        kwlist,
+        &self->scratch,
+        &self->mode,
+        &self->chimera))
     return -1;
   return 0;
 }
@@ -193,9 +262,6 @@ static PyObject *Database_compile(
 
   PyErr_Clear();
 
-  hs_error_t err;
-  hs_compile_error_t *compile_err;
-
   for (uint64_t i = 0; i < elements; i++) {
     const char *expression;
     uint32_t expr_flags;
@@ -243,16 +309,26 @@ static PyObject *Database_compile(
     goto python_error;
   }
 
-  Py_BEGIN_ALLOW_THREADS;
   struct hs_expr_ext **ext = NULL;
+  hs_compile_error_t *hs_compile_err;
+  ch_compile_error_t *ch_compile_err;
+
   if (literal) {
+    if (self->chimera) {
+      PyErr_Format(
+        PyExc_RuntimeError,
+        "chimera does not support pure literal expressions");
+      goto python_error;
+    }
     lens = PyMem_RawMalloc(elements * sizeof(size_t));
     if (lens == NULL)
       goto memory_error;
     for (uint64_t i = 0; i < elements; i++) {
       lens[i] = strlen(expressions[i]);
     }
-    err = hs_compile_lit_multi(
+    hs_error_t hs_err;
+    Py_BEGIN_ALLOW_THREADS;
+    hs_err = hs_compile_lit_multi(
       expressions,
       flags,
       ids,
@@ -260,66 +336,108 @@ static PyObject *Database_compile(
       elements,
       self->mode,
       NULL,
-      &self->db,
-      &compile_err);
+      &self->hs_db,
+      &hs_compile_err);
     PyMem_RawFree(lens);
+    Py_END_ALLOW_THREADS;
+    PyMem_RawFree(expressions);
+    PyMem_RawFree(flags);
+    PyMem_RawFree(ids);
+
+    if (hs_err != HS_SUCCESS) {
+      PyErr_SetString(HyperscanError, hs_compile_err->message);
+      hs_free_compile_error(hs_compile_err);
+      return NULL;
+    }
   } else {
-    if (oext != Py_None) {
-      ext = PyMem_RawMalloc(elements * sizeof(struct hs_expr_ext *));
-      for (uint64_t i = 0; i < elements; i++) {
-        ext[i] = PyMem_RawMalloc(sizeof(struct hs_expr_ext));
-        PyObject *oext_item = PySequence_GetItem(oext, i);
-        if (oext_item == NULL) {
-          PyErr_Format(
-            PyExc_RuntimeError, "failed to get ext item at index: %d", i);
-          goto python_error;
-        }
-        if (!PyArg_ParseTuple(
-              oext_item,
-              "KKKKII",
-              &(ext[i]->flags),
-              &(ext[i]->min_offset),
-              &(ext[i]->max_offset),
-              &(ext[i]->min_length),
-              &(ext[i]->edit_distance),
-              &(ext[i]->hamming_distance))) {
-          PyErr_SetString(PyExc_TypeError, "invalid ext info");
+    if (self->chimera) {
+      ch_error_t ch_err;
+      Py_BEGIN_ALLOW_THREADS;
+      ch_err = ch_compile_ext_multi(
+        expressions,
+        flags,
+        ids,
+        elements,
+        self->mode,
+        0,
+        0,
+        NULL,
+        &self->ch_db,
+        &ch_compile_err);
+      Py_END_ALLOW_THREADS;
+      PyMem_RawFree(expressions);
+      PyMem_RawFree(flags);
+      PyMem_RawFree(ids);
+      if (ch_err != CH_SUCCESS) {
+        PyErr_SetString(HyperscanError, ch_compile_err->message);
+        ch_free_compile_error(ch_compile_err);
+        return NULL;
+      }
+    } else {
+      if (oext != Py_None) {
+        ext = PyMem_RawMalloc(elements * sizeof(struct hs_expr_ext *));
+        for (uint64_t i = 0; i < elements; i++) {
+          ext[i] = PyMem_RawMalloc(sizeof(struct hs_expr_ext));
+          PyObject *oext_item = PySequence_GetItem(oext, i);
+          if (oext_item == NULL) {
+            PyErr_Format(
+              PyExc_RuntimeError, "failed to get ext item at index: %d", i);
+            goto python_error;
+          }
+          if (!PyArg_ParseTuple(
+                oext_item,
+                "KKKKII",
+                &(ext[i]->flags),
+                &(ext[i]->min_offset),
+                &(ext[i]->max_offset),
+                &(ext[i]->min_length),
+                &(ext[i]->edit_distance),
+                &(ext[i]->hamming_distance))) {
+            PyErr_SetString(PyExc_TypeError, "invalid ext info");
+            Py_XDECREF(oext_item);
+            goto python_error;
+          }
           Py_XDECREF(oext_item);
-          goto python_error;
         }
-        Py_XDECREF(oext_item);
+      }
+      hs_error_t hs_err;
+      Py_BEGIN_ALLOW_THREADS;
+      hs_err = hs_compile_ext_multi(
+        expressions,
+        flags,
+        ids,
+        (const struct hs_expr_ext *const *)ext,
+        elements,
+        self->mode,
+        NULL,
+        &self->hs_db,
+        &hs_compile_err);
+      Py_END_ALLOW_THREADS;
+
+      PyMem_RawFree(expressions);
+      PyMem_RawFree(flags);
+      PyMem_RawFree(ids);
+      if (hs_err != HS_SUCCESS) {
+        PyErr_SetString(HyperscanError, hs_compile_err->message);
+        hs_free_compile_error(hs_compile_err);
+        return NULL;
       }
     }
-    err = hs_compile_ext_multi(
-      expressions,
-      flags,
-      ids,
-      (const struct hs_expr_ext *const *)ext,
-      elements,
-      self->mode,
-      NULL,
-      &self->db,
-      &compile_err);
     PyMem_RawFree(ext);
   }
-  Py_END_ALLOW_THREADS;
 
-  PyMem_RawFree(expressions);
-  PyMem_RawFree(flags);
-  PyMem_RawFree(ids);
-
-  if (err != HS_SUCCESS) {
-    PyErr_SetString(HyperscanError, compile_err->message);
-    hs_free_compile_error(compile_err);
-    return NULL;
-  }
-
-  if (self->scratch == Py_None)
+  if (self->scratch == Py_None) {
     self->scratch =
       PyObject_CallFunction((PyObject *)&ScratchType, "O", (PyObject *)self, 0);
-  else {
-    err = hs_alloc_scratch(self->db, &((Scratch *)self->scratch)->scratch);
-    HANDLE_HYPERSCAN_ERR(err, NULL);
+  } else {
+    Scratch *scratch = ((Scratch *)self->scratch);
+    if (self->chimera) {
+      ch_error_t ch_err = ch_alloc_scratch(self->ch_db, &scratch->ch_scratch);
+      HANDLE_CHIMERA_ERR(ch_err, NULL);
+    } else {
+      hs_error_t hs_err = hs_alloc_scratch(self->hs_db, &scratch->hs_scratch);
+      HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+    }
   }
 
   Py_RETURN_NONE;
@@ -337,8 +455,14 @@ python_error:
 static PyObject *Database_info(Database *self, PyObject *args)
 {
   char *info;
-  hs_error_t err = hs_database_info(self->db, &info);
-  HANDLE_HYPERSCAN_ERR(err, NULL);
+  if (self->chimera) {
+    ch_error_t ch_err = ch_database_info(self->ch_db, &info);
+    HANDLE_CHIMERA_ERR(ch_err, NULL);
+  } else {
+    hs_error_t hs_err = hs_database_info(self->hs_db, &info);
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+  }
+
   PyObject *oinfo = PyBytes_FromString(info);
   Py_INCREF(oinfo);
   free(info);
@@ -348,8 +472,14 @@ static PyObject *Database_info(Database *self, PyObject *args)
 static PyObject *Database_size(Database *self, PyObject *args)
 {
   size_t database_size;
-  hs_error_t err = hs_database_size(self->db, &database_size);
-  HANDLE_HYPERSCAN_ERR(err, NULL);
+  if (self->chimera) {
+    ch_error_t ch_err = ch_database_size(self->ch_db, &database_size);
+    HANDLE_CHIMERA_ERR(ch_err, NULL);
+  } else {
+    hs_error_t hs_err = hs_database_size(self->hs_db, &database_size);
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+  }
+
   PyObject *odatabase_size = PyLong_FromSize_t(database_size);
   Py_INCREF(odatabase_size);
   return odatabase_size;
@@ -357,7 +487,6 @@ static PyObject *Database_size(Database *self, PyObject *args)
 
 static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
 {
-  hs_error_t err;
   uint32_t flags = 0;
 
   PyObject *odata;
@@ -423,22 +552,29 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
+    if (self->chimera) {
+      PyErr_SetString(
+        PyExc_RuntimeError, "chimera does not support vectored scanning");
+      return NULL;
+    }
+
+    hs_error_t hs_err;
     Py_BEGIN_ALLOW_THREADS;
-    err = hs_scan_vector(
-      self->db,
+    hs_err = hs_scan_vector(
+      self->hs_db,
       (const char *const *)data,
       (const uint32_t *)lengths,
       num_buffers,
       flags,
-      oscratch == Py_None ? ((Scratch *)self->scratch)->scratch
-                          : ((Scratch *)oscratch)->scratch,
-      ocallback == Py_None ? NULL : match_handler,
+      oscratch == Py_None ? ((Scratch *)self->scratch)->hs_scratch
+                          : ((Scratch *)oscratch)->hs_scratch,
+      ocallback == Py_None ? NULL : hs_match_handler,
       ocallback == Py_None ? NULL : (void *)&cctx);
     Py_END_ALLOW_THREADS;
-
     PyMem_RawFree(data);
     PyMem_RawFree(lengths);
     Py_XDECREF(fast_seq);
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   } else {
     if (!PyBytes_CheckExact(odata)) {
       PyErr_SetString(PyExc_TypeError, "a bytes-like object is required");
@@ -450,22 +586,46 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
       return NULL;
     Py_ssize_t length = PyBytes_Size(odata);
 
-    Py_BEGIN_ALLOW_THREADS;
-    err = hs_scan(
-      self->db,
-      data,
-      length,
-      flags,
-      oscratch == Py_None ? ((Scratch *)self->scratch)->scratch
-                          : ((Scratch *)oscratch)->scratch,
-      ocallback == Py_None ? NULL : match_handler,
-      ocallback == Py_None ? NULL : (void *)&cctx);
-    Py_END_ALLOW_THREADS;
+    if (self->chimera) {
+      ch_error_t ch_err;
+      Py_BEGIN_ALLOW_THREADS;
+      ch_err = ch_scan(
+        self->ch_db,
+        data,
+        length,
+        flags,
+        oscratch == Py_None ? ((Scratch *)self->scratch)->ch_scratch
+                            : ((Scratch *)oscratch)->ch_scratch,
+        ocallback == Py_None ? NULL : ch_match_handler,
+        NULL,
+        ocallback == Py_None ? NULL : (void *)&cctx);
+      Py_END_ALLOW_THREADS;
+      if (PyErr_Occurred()) {
+        return NULL;
+      }
+      HANDLE_CHIMERA_ERR(ch_err, NULL);
+    } else {
+      hs_error_t hs_err;
+      Py_BEGIN_ALLOW_THREADS;
+      hs_err = hs_scan(
+        self->hs_db,
+        data,
+        length,
+        flags,
+        oscratch == Py_None ? ((Scratch *)self->scratch)->hs_scratch
+                            : ((Scratch *)oscratch)->hs_scratch,
+        ocallback == Py_None ? NULL : hs_match_handler,
+        ocallback == Py_None ? NULL : (void *)&cctx);
+      Py_END_ALLOW_THREADS;
+      if (PyErr_Occurred()) {
+        return NULL;
+      }
+      HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+    }
   }
   if (!cctx.success) {
     return NULL;
   }
-  HANDLE_HYPERSCAN_ERR(err, NULL);
   Py_RETURN_NONE;
 }
 
@@ -599,7 +759,8 @@ static PyTypeObject DatabaseType = {
   "        scratch (:class:`~.Scratch`, optional): Thread-specific\n"
   "            scratch space.\n"
   "        mode (:obj:`int`, optional): One of :const:`HS_MODE_BLOCK`,\n"
-  "            :const:`HS_MODE_STREAM`, or :const:`HS_MODE_VECTORED`."
+  "            :const:`HS_MODE_STREAM`, or :const:`HS_MODE_VECTORED`.\n"
+  "        chimera (bool): Enable Chimera support."
   "\n\n",                  /* tp_doc */
   0,                       /* tp_traverse */
   0,                       /* tp_clear */
@@ -674,7 +835,6 @@ static int Stream_init(Stream *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
 {
-  hs_scratch_t *scratch = NULL;
   py_scan_callback_ctx cctx;
   PyObject *oscratch = Py_None, *ocallback = Py_None, *octx = Py_None;
   static char *kwlist[] = {"scratch", "match_event_handler", "context", NULL};
@@ -688,18 +848,22 @@ static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
         &ocallback,
         &octx))
     return NULL;
+  Database *db = (Database *)self->database;
+  Scratch *scratch;
   if (PyObject_Not(oscratch))
     oscratch = ((Database *)self->database)->scratch;
   cctx.callback = PyObject_IsTrue(ocallback) ? ocallback : self->cctx->callback;
   cctx.ctx = PyObject_IsTrue(octx) ? octx : self->cctx->ctx;
   if (PyObject_IsTrue(oscratch) && cctx.callback != NULL)
-    scratch = ((Scratch *)oscratch)->scratch;
+    scratch = (Scratch *)oscratch;
   else
-    scratch = ((Scratch *)((Database *)self->database)->scratch)->scratch;
+    scratch = (Scratch *)db->scratch;
 
-  hs_error_t err =
-    hs_close_stream(self->identifier, scratch, match_handler, (void *)&cctx);
-  HANDLE_HYPERSCAN_ERR(err, NULL);
+  hs_scratch_t *hs_scratch = scratch->hs_scratch;
+  hs_error_t hs_err = hs_close_stream(
+    self->identifier, hs_scratch, hs_match_handler, (void *)&cctx);
+  HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+
   Py_RETURN_NONE;
 }
 
@@ -707,16 +871,25 @@ static long Stream_len(PyObject *self)
 {
   size_t stream_size;
   Stream *stream = (Stream *)self;
-  hs_error_t err =
-    hs_stream_size(((Database *)stream->database)->db, &stream_size);
+  Database *db = (Database *)stream->database;
+  if (db->chimera) {
+    PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
+    return 0;
+  }
+  hs_error_t err = hs_stream_size(db->hs_db, &stream_size);
   HANDLE_HYPERSCAN_ERR(err, 0);
   return stream_size;
 }
 
 static PyObject *Stream_enter(Stream *self)
 {
-  hs_error_t err =
-    hs_open_stream(((Database *)self->database)->db, 0, &self->identifier);
+  Stream *stream = (Stream *)self;
+  Database *db = (Database *)stream->database;
+  if (db->chimera) {
+    PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
+    return NULL;
+  }
+  hs_error_t err = hs_open_stream(db->hs_db, 0, &self->identifier);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   return (PyObject *)self;
 }
@@ -733,10 +906,8 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
 {
   char *data;
   Py_ssize_t length;
-  hs_error_t err;
   uint32_t flags;
   PyObject *ocallback = Py_None, *octx = Py_None, *oscratch = Py_None;
-  hs_scratch_t *scratch = NULL;
 
   static char *kwlist[] = {
     "data", "flags", "scratch", "match_event_handler", "context", NULL};
@@ -758,31 +929,40 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
   if (PyObject_Not(octx))
     octx = self->cctx->ctx;
 
+  Database *db = (Database *)self->database;
+  Scratch *scratch;
+
   if (PyObject_Not(oscratch))
-    scratch = (hs_scratch_t *)((Scratch *)((Database *)self->database)->scratch)
-                ->scratch;
+    scratch = (Scratch *)db->scratch;
   else {
     if (!PyObject_IsInstance(oscratch, (PyObject *)&ScratchType)) {
       PyErr_SetString(
         PyExc_TypeError, "scratch must be a hyperscan.Scratch instance");
       return NULL;
     }
-    scratch = ((Scratch *)oscratch)->scratch;
+    scratch = (Scratch *)oscratch;
   }
 
   py_scan_callback_ctx cctx = {ocallback, octx};
 
-  Py_BEGIN_ALLOW_THREADS;
-  err = hs_scan_stream(
-    self->identifier,
-    data,
-    length,
-    flags,
-    scratch,
-    ocallback == Py_None ? NULL : match_handler,
-    ocallback == Py_None ? NULL : (void *)&cctx);
-  Py_END_ALLOW_THREADS;
-  HANDLE_HYPERSCAN_ERR(err, NULL);
+  if (db->chimera) {
+    PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
+    return NULL;
+  } else {
+    hs_error_t hs_err;
+    Py_BEGIN_ALLOW_THREADS;
+    hs_err = hs_scan_stream(
+      self->identifier,
+      data,
+      length,
+      flags,
+      scratch->hs_scratch,
+      ocallback == Py_None ? NULL : hs_match_handler,
+      ocallback == Py_None ? NULL : (void *)&cctx);
+    Py_END_ALLOW_THREADS;
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+  }
+
   Py_RETURN_NONE;
 }
 
@@ -891,8 +1071,10 @@ static PyTypeObject StreamType = {
 
 static void Scratch_dealloc(Scratch *self)
 {
-  if (self->scratch != NULL)
-    hs_free_scratch(self->scratch);
+  if (self->hs_scratch != NULL)
+    hs_free_scratch(self->hs_scratch);
+  if (self->ch_scratch != NULL)
+    ch_free_scratch(self->ch_scratch);
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -902,13 +1084,20 @@ static PyObject *Scratch_set_database(
   static char *kwlist[] = {"database", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &self->database))
     return NULL;
-  if (self->scratch != NULL) {
+  if (self->hs_scratch != NULL || self->ch_scratch != NULL) {
     PyErr_SetString(HyperscanError, "scratch objects cannot be re-allocated");
     return NULL;
   }
-  hs_database_t *db = ((Database *)self->database)->db;
-  hs_error_t err = hs_alloc_scratch(db, &self->scratch);
-  HANDLE_HYPERSCAN_ERR(err, NULL);
+  Database *db = (Database *)self->database;
+  if (db->chimera) {
+    ch_database_t *ch_db = db->ch_db;
+    ch_error_t ch_err = ch_alloc_scratch(ch_db, &self->ch_scratch);
+    HANDLE_CHIMERA_ERR(ch_err, NULL);
+  } else {
+    hs_database_t *hs_db = db->hs_db;
+    hs_error_t hs_err = hs_alloc_scratch(hs_db, &self->hs_scratch);
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+  }
   Py_RETURN_NONE;
 }
 
@@ -925,12 +1114,29 @@ static int Scratch_init(Scratch *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Scratch_clone(Scratch *self)
 {
-  PyObject *dest = PyObject_CallFunction((PyObject *)&ScratchType, NULL);
-  hs_scratch_t *s1 = self->scratch;
-  hs_scratch_t **s2 = &(((Scratch *)dest)->scratch);
-  hs_error_t err = hs_clone_scratch(s1, s2);
-  HANDLE_HYPERSCAN_ERR(err, NULL);
-  return dest;
+  PyObject *odest = PyObject_CallFunction((PyObject *)&ScratchType, NULL);
+  Scratch *dest = (Scratch *)odest;
+  bool chimera;
+  if (self->database == Py_None) {
+    // XXX: Assume chimera mode is false if no db
+    chimera = false;
+  } else {
+    chimera = ((Database *)self->database)->chimera;
+  }
+
+  if (chimera) {
+    ch_scratch_t *ch_src = self->ch_scratch;
+    ch_scratch_t *ch_dest = dest->ch_scratch;
+    ch_error_t ch_err = ch_clone_scratch(ch_src, &ch_dest);
+    HANDLE_CHIMERA_ERR(ch_err, NULL);
+  } else {
+    hs_scratch_t *hs_src = self->hs_scratch;
+    hs_scratch_t *hs_dest = dest->hs_scratch;
+    hs_error_t hs_err = hs_clone_scratch(hs_src, &hs_dest);
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+  }
+
+  return odest;
 }
 
 static PyMemberDef Scratch_members[] = {
@@ -1000,14 +1206,19 @@ static PyTypeObject ScratchType = {
 
 static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  Database *database;
+  Database *db;
   char *buf;
   size_t length;
   static char *kwlist[] = {"database", NULL};
   if (!PyArg_ParseTupleAndKeywords(
-        args, kwds, "O!", kwlist, &DatabaseType, &database))
+        args, kwds, "O!", kwlist, &DatabaseType, &db))
     return NULL;
-  hs_error_t err = hs_serialize_database(database->db, &buf, &length);
+  if (db->chimera) {
+    PyErr_SetString(
+      PyExc_RuntimeError, "chimera does not support serialization");
+    return NULL;
+  }
+  hs_error_t err = hs_serialize_database(db->hs_db, &buf, &length);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   PyObject *bytes = PyBytes_FromStringAndSize(buf, length);
   if (!bytes) {
@@ -1030,20 +1241,19 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
     return NULL;
   }
-  PyObject *odatabase;
-  odatabase = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
-  Py_INCREF(odatabase);
+  PyObject *odb;
+  odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
+  Database *db = (Database *)odb;
+  Py_INCREF(odb);
   Py_ssize_t length = PyBytes_Size(obuf);
   buf = PyBytes_AsString(obuf);
-  hs_error_t err =
-    hs_deserialize_database(buf, length, &(((Database *)odatabase)->db));
+  hs_error_t err = hs_deserialize_database(buf, length, &db->hs_db);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   if (PyObject_IsTrue(ocreatescratch))
-    ((Database *)odatabase)->scratch =
-      PyObject_CallFunction((PyObject *)&ScratchType, "O", odatabase, 0);
+    db->scratch = PyObject_CallFunction((PyObject *)&ScratchType, "O", odb, 0);
   if (PyErr_Occurred())
     return NULL;
-  return odatabase;
+  return odb;
 }
 
 static PyMethodDef Hyperscan_methods[] = {
@@ -1123,6 +1333,26 @@ MOD_INIT(_hyperscan)
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SKX);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SLM);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SNB);
+  ADD_INT_CONSTANT(m, CH_MODE_NOGROUPS);
+  ADD_INT_CONSTANT(m, CH_MODE_GROUPS);
+  ADD_INT_CONSTANT(m, CH_FLAG_CASELESS);
+  ADD_INT_CONSTANT(m, CH_FLAG_DOTALL);
+  ADD_INT_CONSTANT(m, CH_FLAG_MULTILINE);
+  ADD_INT_CONSTANT(m, CH_FLAG_SINGLEMATCH);
+  ADD_INT_CONSTANT(m, CH_FLAG_UTF8);
+  ADD_INT_CONSTANT(m, CH_FLAG_UCP);
+  ADD_INT_CONSTANT(m, CH_SUCCESS);
+  ADD_INT_CONSTANT(m, CH_INVALID);
+  ADD_INT_CONSTANT(m, CH_NOMEM);
+  ADD_INT_CONSTANT(m, CH_SCAN_TERMINATED);
+  ADD_INT_CONSTANT(m, CH_COMPILER_ERROR);
+  ADD_INT_CONSTANT(m, CH_DB_VERSION_ERROR);
+  ADD_INT_CONSTANT(m, CH_DB_PLATFORM_ERROR);
+  ADD_INT_CONSTANT(m, CH_DB_MODE_ERROR);
+  ADD_INT_CONSTANT(m, CH_BAD_ALIGN);
+  ADD_INT_CONSTANT(m, CH_BAD_ALLOC);
+  ADD_INT_CONSTANT(m, CH_SCRATCH_IN_USE);
+  ADD_INT_CONSTANT(m, CH_FAIL_INTERNAL);
 
   HyperscanError = PyErr_NewException("hyperscan.error", NULL, NULL);
   Py_INCREF(HyperscanError);
