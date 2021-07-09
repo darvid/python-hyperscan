@@ -4,7 +4,7 @@ import subprocess
 from distutils.command.build_ext import build_ext
 from distutils.core import Extension
 
-pcre_path = os.getenv("PCRE_PATH", "/opt/pcre")
+pcre_path = os.getenv("PCRE_PATH", "/opt/pcre/.libs")
 
 
 # http://code.activestate.com/recipes/502261-python-distutils-pkg-config/
