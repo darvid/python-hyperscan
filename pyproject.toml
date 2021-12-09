@@ -19,7 +19,7 @@ version_files = [
 ]
 
 [tool.poetry]
-build = "build.py"
+build = "hyperscanCextBuild.py"
 name = "hyperscan"
 version = "0.2.0"
 description = "Python bindings for Hyperscan."
