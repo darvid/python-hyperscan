@@ -1125,14 +1125,10 @@ static PyObject *Scratch_clone(Scratch *self)
   }
 
   if (chimera) {
-    ch_scratch_t *ch_src = self->ch_scratch;
-    ch_scratch_t *ch_dest = dest->ch_scratch;
-    ch_error_t ch_err = ch_clone_scratch(ch_src, &ch_dest);
+    ch_error_t ch_err = ch_clone_scratch(self->ch_scratch, &dest->ch_scratch);
     HANDLE_CHIMERA_ERR(ch_err, NULL);
   } else {
-    hs_scratch_t *hs_src = self->hs_scratch;
-    hs_scratch_t *hs_dest = dest->hs_scratch;
-    hs_error_t hs_err = hs_clone_scratch(hs_src, &hs_dest);
+    hs_error_t hs_err = hs_clone_scratch(self->hs_scratch, &dest->hs_scratch);
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 

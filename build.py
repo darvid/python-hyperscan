@@ -43,6 +43,7 @@ def pkgconfig(libs, optional=""):
             ext_kwargs.setdefault(distutils_kwarg, default_value).extend(
                 [opt[trim_offset:] for opt in options]
             )
+    ext_kwargs['libraries'].append('stdc++')
     return ext_kwargs
 
 
