@@ -345,7 +345,8 @@ static PyObject *Database_compile(
     PyMem_RawFree(ids);
 
     if (hs_err != HS_SUCCESS) {
-      PyErr_SetString(HyperscanError, hs_compile_err->message);
+      PyErr_Format(
+          HyperscanError, "%s (id:%d)", hs_compile_err->message, hs_compile_err->expression);
       hs_free_compile_error(hs_compile_err);
       return NULL;
     }
@@ -369,7 +370,8 @@ static PyObject *Database_compile(
       PyMem_RawFree(flags);
       PyMem_RawFree(ids);
       if (ch_err != CH_SUCCESS) {
-        PyErr_SetString(HyperscanError, ch_compile_err->message);
+        PyErr_Format(
+            HyperscanError, "%s (id:%d)", ch_compile_err->message, hs_compile_err->expression);
         ch_free_compile_error(ch_compile_err);
         return NULL;
       }
