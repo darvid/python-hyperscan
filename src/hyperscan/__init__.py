@@ -1,10 +1,8 @@
 import typing
 
-import pkg_resources
-
 from hyperscan._hyperscan import *
 
-__version__ = pkg_resources.get_distribution('hyperscan').version
+__version__ = "0.2.0"
 
 
 class ExpressionExt(typing.NamedTuple):

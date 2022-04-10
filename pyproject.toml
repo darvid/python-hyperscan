@@ -14,7 +14,10 @@ skip-string-normalization = true
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.2.0"
-version_files = ["pyproject.toml:version"]
+version_files = [
+  "pyproject.toml:version",
+  "src/hyperscan/__init__.py:__version__"
+]
 
 [tool.poetry]
 build = "build.py"
@@ -66,7 +69,10 @@ black = "^20.8b1"
 clang-format = "^9.0.0"
 
 [tool.semantic_release]
-version_variable = ["pyproject.toml:version"]
+version_variable = [
+  "pyproject.toml:version",
+  "src/hyperscan/__init__.py:__version__"
+]
 remove_dist = false
 upload_to_release = false
 upload_to_pypi = false
