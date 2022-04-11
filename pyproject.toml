@@ -72,13 +72,14 @@ clang-format = "^9.0.0"
 commitizen-emoji = "^0.1.5"
 
 [tool.semantic_release]
+commit_parser = "semantic_release.history.emoji_parser"
+remove_dist = false
+upload_to_release = false
+upload_to_pypi = false
 version_variable = [
   "pyproject.toml:version",
   "src/hyperscan/__init__.py:__version__",
 ]
-remove_dist = false
-upload_to_release = false
-upload_to_pypi = false
 
 [build-system]
 requires = ["setuptools", "poetry>=0.12"]
