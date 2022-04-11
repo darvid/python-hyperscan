@@ -12,11 +12,11 @@ exclude = '''
 skip-string-normalization = true
 
 [tool.commitizen]
-name = "cz_conventional_commits"
+name = "cz_commitizen_emoji"
 version = "0.2.0"
 version_files = [
   "pyproject.toml:version",
-  "src/hyperscan/__init__.py:__version__"
+  "src/hyperscan/__init__.py:__version__",
 ]
 
 [tool.poetry]
@@ -32,7 +32,7 @@ repository = "https://github.com/darvid/python-hyperscan"
 documentation = "https://python-hyperscan.rtfm.io"
 keywords = ["regex", "hypercan"]
 include = ["README.md", "CHANGELOG.md"]
-packages = [{ include="hyperscan", from="src" }]
+packages = [{ include = "hyperscan", from = "src" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Topic :: Software Development :: Libraries",
@@ -43,6 +43,8 @@ classifiers = [
   "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: Implementation :: CPython",
   "Environment :: Console",
   "Intended Audience :: Developers",
@@ -67,11 +69,12 @@ pre-commit = "^2.9.2"
 python-semantic-release = "^7.6.0"
 black = "^20.8b1"
 clang-format = "^9.0.0"
+commitizen-emoji = "^0.1.5"
 
 [tool.semantic_release]
 version_variable = [
   "pyproject.toml:version",
-  "src/hyperscan/__init__.py:__version__"
+  "src/hyperscan/__init__.py:__version__",
 ]
 remove_dist = false
 upload_to_release = false
