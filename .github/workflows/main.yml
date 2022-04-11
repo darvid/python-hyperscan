@@ -126,15 +126,14 @@ jobs:
       - name: Create release
         id: create_release
         if: ${{ steps.git_tag.outputs.current_tag == steps.package_version.outputs.release_version }}
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.package_version.outputs.release_version }}
-          release_name: Release ${{ steps.package_version.outputs.release_version }}
           body_path: RELEASE_CHANGELOG
           draft: false
+          name: Release ${{ steps.package_version.outputs.release_version }}
           prerelease: false
+          tag_name: ${{ steps.package_version.outputs.release_version }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete RELEASE_CHANGELOG
         run: rm -f RELEASE_CHANGELOG
       - name: Upload release assets
