@@ -13,7 +13,7 @@ skip-string-normalization = true
 
 [tool.commitizen]
 name = "cz_commitizen_emoji"
-version = "0.2.0"
+version = "0.3.0"
 version_files = [
   "pyproject.toml:version",
   "src/hyperscan/__init__.py:__version__",
@@ -22,7 +22,7 @@ version_files = [
 [tool.poetry]
 build = "build.py"
 name = "hyperscan"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python bindings for Hyperscan."
 authors = ["David Gidwani <david.gidwani@gmail.com>"]
 license = "MIT"

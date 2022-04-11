@@ -2,6 +2,27 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2022-04-11)
+### :sparkles:
+* :sparkles:  initial Chimera support (and upgrade to Hyperscan v5.4.0) ([`0527aac`](https://github.com/darvid/python-hyperscan/commit/0527aac060f29413a727e7fbb8db2c456bd25aab))
+
+### Other
+* 🚧 build: change commit_parser for semantic_release to emoji_parser  ([`518782e`](https://github.com/darvid/python-hyperscan/commit/518782eb7f3ab24eaffeb76631451904309e161c))
+* 🛸 ci: add python 3.10 to CI  ([`06e25bc`](https://github.com/darvid/python-hyperscan/commit/06e25bcc96151428c45fe66f4a0b03d8662c9bf1))
+* 📜 docs: update docs to include Chimera requirements  ([`5ad70dc`](https://github.com/darvid/python-hyperscan/commit/5ad70dc4f69ba75a289f83ec007b334eac8f4ec3))
+* 🚧 build: dependency upgrades  ([`db2d264`](https://github.com/darvid/python-hyperscan/commit/db2d2645ab38a5d74a0cb9edb4466d79ac3a0462))
+* 🚧 build: changes to build.py to support static linking hyperscan  ([`e08c883`](https://github.com/darvid/python-hyperscan/commit/e08c883b244b69c6c0c5206cc2bae70df08eb3c8))
+* 🚧 build: update package classifiers to include Python 3.10  ([`63aacd0`](https://github.com/darvid/python-hyperscan/commit/63aacd03e5c87f963b899020cd0f37ef8e5b6ee8))
+* 🐛 fix: drop single-sourcing package version (#38)  ([`357cce1`](https://github.com/darvid/python-hyperscan/commit/357cce1d1a7476043d925834d8e6d1ac86c10a39))
+* Style: clang-format  ([`7d50f8a`](https://github.com/darvid/python-hyperscan/commit/7d50f8a1368b286ea025d877ab23119cd4c65830))
+* 💚 correct clone and build issues ([#37](https://github.com/darvid/python-hyperscan/issues/37)) ([`a8d926f`](https://github.com/darvid/python-hyperscan/commit/a8d926f58b3bb82dac8e49a5f08580c856c0a5cb))
+* :green_heart:  fixed PCRE_PATH  ([`a175f28`](https://github.com/darvid/python-hyperscan/commit/a175f289393aaf858751a4f02842d8b9f9dd9ef4))
+* :green_heart:  bump manylinux container image version  ([`8962139`](https://github.com/darvid/python-hyperscan/commit/89621390a2fd852cdf31dfc32d5bda205164e43b))
+* :green_heart:  reverted upgraded Python requirement in pyproject.toml  ([`ae1e89d`](https://github.com/darvid/python-hyperscan/commit/ae1e89dbd594792e7822b343cd7190cac971513c))
+* :green_heart:  removed cp310, thought CI was using manylinux, d'oh  ([`7680840`](https://github.com/darvid/python-hyperscan/commit/768084059a897f8faf08360c94f04672b57a8739))
+* Fix project homepage ([#34](https://github.com/darvid/python-hyperscan/issues/34)) ([`1d95aea`](https://github.com/darvid/python-hyperscan/commit/1d95aeab4d467e99abf7172de83df710e9b8a868))
+* Docs: update README with correct libhs version requirement  ([`a6ccc92`](https://github.com/darvid/python-hyperscan/commit/a6ccc921b17096103314bd4ff4561f4e6c8fa549))
+
 ## [0.2.0] - 2020-12-12
 
 ### Feature
