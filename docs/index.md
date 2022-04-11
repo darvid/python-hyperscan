@@ -9,22 +9,33 @@ matching library.
 ### Building Hyperscan
 
 See the [official documentation][3] for detailed installation
-instructions. The following should work for most use cases:
+instructions and dependencies.
+
+The following should work for most use cases, once the prerequisite
+dependencies have been installed:
 
 ```shell
 $ git clone https://github.com/intel/hyperscan.git
 $ mkdir -p hyperscan/build
-$ cd hyperscan/build
-$ git checkout v5.1.1
-$ cmake \
-    -G "Unix Makefiles" \
-    -DCMAKE_INSTALL_PREFIX:PATH=/usr \
-    -DBUILD_SHARED_LIBS=ON ../
+$ cd hyperscan
+$ # PCRE1 (8.xx series) is required for Chimera support
+$ wget -qO- https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.tar.gz/download | tar xvz
+$ git checkout v5.4.0
+$ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+    -DBUILD_STATIC_AND_SHARED=ON \
+    -DFAT_RUNTIME=ON \
+    -DPCRE_SOURCE=../pcre-8.45 \
+    ../
 $ # Compile with all available cores:
 $ # make -j $(( $(nproc) + 1 ))
 $ make
 $ sudo make install
 ```
+
+**Note:** if you are building v5.4.0 and encounter undefined reference
+errors when linking, see [intel/hyperscan#292][6] (and more specifically,
+[this comment][7]) for the fix. Per the maintainers, this will be fixed
+in the next Hyperscan release.
 
 ### Installing python-hyperscan
 
@@ -49,3 +60,5 @@ $ poetry install
 [3]: http://intel.github.io/hyperscan/dev-reference/getting_started.html#very-quick-start
 [4]: https://pypi.org/project/pip/
 [5]: https://poetry.eustace.io/
+[6]: https://github.com/intel/hyperscan/issues/292
+[7]: https://github.com/intel/hyperscan/issues/292#issuecomment-762635447
