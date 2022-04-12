@@ -25,7 +25,7 @@ def pkgconfig(libs, optional="", static=False):
             ],
         ),
     }
-    ext_kwargs = {"extra_compile_args": ["-fPIC"]}
+    ext_kwargs = {"extra_compile_args": []}
     library_options = set(
         subprocess.check_output(
             ["pkg-config", optional, "--libs-only-l", *libs]
@@ -57,7 +57,7 @@ def pkgconfig(libs, optional="", static=False):
             ext_kwargs.setdefault(distutils_kwarg, default_value).extend(
                 [opt[trim_offset:] for opt in options]
             )
-    ext_kwargs['libraries'].append('stdc++')
+    ext_kwargs["libraries"] = list(set(ext_kwargs["libraries"]))
     return ext_kwargs
 
 
