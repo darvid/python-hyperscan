@@ -14,7 +14,7 @@ only supports manylinux-compatible Linux distributions.
 ## Installation
 
 ```shell
-$ pip install hyperscan
+pip install hyperscan
 ```
 
 ## API Support
@@ -22,24 +22,37 @@ $ pip install hyperscan
 ``python-hyperscan`` currently exposes *most* of the C API, with the
 following caveats or exceptions:
 
-* No [Chimera][1] support yet.
 * No [stream compression][2] support.
 * No [custom allocator][3] support.
 * ``hs_expression_info``, ``hs_expression_ext_info``,
   ``hs_populate_platform``, and ``hs_serialized_database_info`` not
   exposed yet.
 
-``python-hyperscan`` requires Hyperscan v5.2 or newer.
+✨ As of v0.3.0, ``python-hyperscan`` statically links against Hyperscan,
+so having the library installed on your system is not required. Prior
+versions of ``python-hyperscan`` require Hyperscan v5.2 or newer. ✨
+
+Building from source requires Hyperscan compiled and installed with the
+following CMake flags set:
+
+* ``FAT_RUNTIME=OFF``
+* ``BUILD_STATIC_AND_SHARED=ON`` *only if* ``BUILD_SHARED_LIBS`` is also
+  on, in the event there are other applications colocated with
+  ``python-hyperscan`` that need the shared libraries. Otherwise ignore
+  this flag, as by default Hyperscan will build static libraries.
+* ``CMAKE_C_FLAGS`` and ``CMAKE_CXX_FLAGS`` set to ``-fPIC``
+
+See the [documentation][6] for more detailed build instructions.
 
 ## Resources
 
 * [PyPI Project](https://pypi.org/project/hyperscan/)
-* [Documentation](https://python-hyperscan.readthedocs.io)
+* [Documentation][6]
 * [Hyperscan C API Documentation](http://intel.github.io/hyperscan/dev-reference/)
-
 
 [1]: http://intel.github.io/hyperscan/dev-reference/chimera.html
 [2]: http://intel.github.io/hyperscan/dev-reference/runtime.html#stream-compression
 [3]: http://intel.github.io/hyperscan/dev-reference/runtime.html#custom-allocators
 [4]: http://intel.github.io/hyperscan/dev-reference/compilation.html
 [5]: https://github.com/darvid/python-hyperscan/issues
+[6]: https://python-hyperscan.readthedocs.io
