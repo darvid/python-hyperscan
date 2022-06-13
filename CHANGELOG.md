@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.1 (2022-06-13)
+### Other
+* 🛸 ci: add cz emoji to semantic-release configuration  ([`6ea4e7d`](https://github.com/darvid/python-hyperscan/commit/6ea4e7dbce8379a932d95555a15e08f2aa78ecda))
+* 🚧 build: remove -fPIC, dedupe libraries  ([`eaab1da`](https://github.com/darvid/python-hyperscan/commit/eaab1da538600264a6cb0113e61eef607475832f))
+
 ## v0.3.0 (2022-04-11)
 ### :sparkles:
 * :sparkles:  initial Chimera support (and upgrade to Hyperscan v5.4.0) ([`0527aac`](https://github.com/darvid/python-hyperscan/commit/0527aac060f29413a727e7fbb8db2c456bd25aab))
