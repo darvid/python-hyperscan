@@ -56,11 +56,8 @@ def pkgconfig(libs, optional="", static=False):
                 .decode()
                 .split()
             )
-            options = set([opt[trim_offset:] for opt in options])
-            if static and distutils_kwarg == "libraries":
-                options -= library_options
             ext_kwargs.setdefault(distutils_kwarg, default_value).extend(
-                options
+                set([opt[trim_offset:] for opt in options])
             )
     ext_kwargs["libraries"] = list(set(ext_kwargs["libraries"]))
     return ext_kwargs
@@ -68,7 +65,8 @@ def pkgconfig(libs, optional="", static=False):
 
 def build(setup_kwargs):
     pkg_config_options = pkgconfig(["libhs", "libch"], static=True)
-    pkg_config_options["libraries"].remove("pcre")
+    for lib in ("pcre", "hs", "chimera"):
+        pkg_config_options["libraries"].remove(lib)
     setup_kwargs.update(
         {
             "ext_modules": [
