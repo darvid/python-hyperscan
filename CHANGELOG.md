@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.2 (2022-06-13)
+
+
 ## v0.3.1 (2022-06-13)
 ### Other
 * 🛸 ci: add cz emoji to semantic-release configuration  ([`6ea4e7d`](https://github.com/darvid/python-hyperscan/commit/6ea4e7dbce8379a932d95555a15e08f2aa78ecda))
