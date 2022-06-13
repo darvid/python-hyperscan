@@ -13,7 +13,11 @@ def pkgconfig(libs, optional="", static=False):
         "include_dirs": (["--cflags-only-I"], 2, []),
         "library_dirs": (["--libs-only-L"], 2, []),
         "libraries": (["--libs-only-l"], 2, []),
-        "extra_compile_args": (["--cflags-only-other"], 0, ["-O0"]),
+        "extra_compile_args": (
+            ["--cflags-only-other"],
+            0,
+            ["-O0", "-DPCRE_STATIC"],
+        ),
         "extra_link_args": (
             ["--libs-only-other"],
             0,
@@ -52,16 +56,20 @@ def pkgconfig(libs, optional="", static=False):
                 .decode()
                 .split()
             )
+            options = set([opt[trim_offset:] for opt in options])
             if static and distutils_kwarg == "libraries":
                 options -= library_options
             ext_kwargs.setdefault(distutils_kwarg, default_value).extend(
-                [opt[trim_offset:] for opt in options]
+                options
             )
     ext_kwargs["libraries"] = list(set(ext_kwargs["libraries"]))
     return ext_kwargs
 
 
 def build(setup_kwargs):
+    pkg_config_options = pkgconfig(["libhs", "libch"], static=True)
+    pkg_config_options["libraries"].remove("pcre")
+    print(pkg_config_options)
     setup_kwargs.update(
         {
             "ext_modules": [
@@ -72,7 +80,7 @@ def build(setup_kwargs):
                         os.path.join(pcre_path, "libpcre.a"),
                         *glob.glob(os.path.join(pcre_path, '*.o')),
                     ],
-                    **pkgconfig(["libhs", "libch"], static=True),
+                    **pkg_config_options,
                 )
             ],
             "cmdclass": {"build_ext": build_ext},
