@@ -69,7 +69,6 @@ def pkgconfig(libs, optional="", static=False):
 def build(setup_kwargs):
     pkg_config_options = pkgconfig(["libhs", "libch"], static=True)
     pkg_config_options["libraries"].remove("pcre")
-    print(pkg_config_options)
     setup_kwargs.update(
         {
             "ext_modules": [
