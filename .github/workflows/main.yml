@@ -48,6 +48,7 @@ jobs:
             -D commit_author="github-actions <action@github.com>"
           ${PYTHONDIR}/bin/poetry install
           ${PYTHONDIR}/bin/poetry build -vvv
+          /usr/bin/ldd src/hyperscan/_hyperscan.*.so
           ${PYTHONDIR}/bin/poetry run pytest -vvv tests/
       - name: Archive dist
         uses: actions/upload-artifact@v2
