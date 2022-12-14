@@ -1,17 +1,18 @@
+import memunit
 import pytest
 
 import hyperscan
 
 patterns = (
-    (br'fo+', 0, 0, 0),
+    (rb"fo+", 0, 0, 0),
     (
-        br'^foobar',
+        rb"^foobar",
         1,
         hyperscan.HS_FLAG_CASELESS,
         hyperscan.CH_FLAG_CASELESS,
     ),
     (
-        br'BAR',
+        rb"BAR",
         2,
         hyperscan.HS_FLAG_CASELESS | hyperscan.HS_FLAG_SOM_LEFTMOST,
         hyperscan.CH_FLAG_CASELESS,
@@ -19,7 +20,7 @@ patterns = (
 )
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def database_chimera():
     db = hyperscan.Database(chimera=True, mode=hyperscan.CH_MODE_GROUPS)
     expressions, ids, _, flags = zip(*patterns)
@@ -32,7 +33,7 @@ def database_chimera():
     return db
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def database_block():
     db = hyperscan.Database()
     expressions, ids, flags, _ = zip(*patterns)
@@ -45,7 +46,7 @@ def database_block():
     return db
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def database_stream():
     db = hyperscan.Database(
         mode=(hyperscan.HS_MODE_STREAM | hyperscan.HS_MODE_SOM_HORIZON_LARGE)
@@ -60,7 +61,19 @@ def database_stream():
     return db
 
 
-@pytest.fixture(scope='module')
+@memunit.assert_lt_mb(50)
+def test_compilation_memory(database_block):
+    expressions, ids, flags, _ = zip(*patterns)
+    for i in range(100_000):
+        database_block.compile(
+            expressions=expressions,
+            ids=ids,
+            elements=len(patterns),
+            flags=flags,
+        )
+
+
+@pytest.fixture(scope="module")
 def database_vector():
     db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
     expressions, ids, flags, _ = zip(*patterns)
@@ -76,7 +89,7 @@ def database_vector():
 def test_chimera_scan(database_chimera, mocker):
     callback = mocker.Mock(return_value=None)
 
-    database_chimera.scan(b'foobar', match_event_handler=callback)
+    database_chimera.scan(b"foobar", match_event_handler=callback)
     callback.assert_has_calls(
         [
             mocker.call(0, 0, 3, 0, [(1, 0, 3)], None),
@@ -90,7 +103,7 @@ def test_chimera_scan(database_chimera, mocker):
 def test_block_scan(database_block, mocker):
     callback = mocker.Mock(return_value=None)
 
-    database_block.scan(b'foobar', match_event_handler=callback)
+    database_block.scan(b"foobar", match_event_handler=callback)
     callback.assert_has_calls(
         [
             mocker.call(0, 0, 2, 0, None),
@@ -106,9 +119,9 @@ def test_stream_scan(database_stream, mocker):
     callback = mocker.Mock(return_value=None)
 
     with database_stream.stream(match_event_handler=callback) as stream:
-        stream.scan(b'foo')
-        stream.scan(b'bar')
-        stream.scan(b'foo', context=1234)
+        stream.scan(b"foo")
+        stream.scan(b"bar")
+        stream.scan(b"foo", context=1234)
     callback.assert_has_calls(
         [
             mocker.call(0, 0, 2, 0, None),
@@ -126,9 +139,9 @@ def test_vectored_scan(database_vector, mocker):
     callback = mocker.Mock(return_value=None)
 
     buffers = [
-        bytearray(b'xxxfooxxx'),
-        bytearray(b'xxfoxbarx'),
-        bytearray(b'barxxxxxx'),
+        bytearray(b"xxxfooxxx"),
+        bytearray(b"xxfoxbarx"),
+        bytearray(b"barxxxxxx"),
     ]
     database_vector.scan(buffers, match_event_handler=callback)
     callback.assert_has_calls(
@@ -145,7 +158,7 @@ def test_ext_multi_min_offset(mocker):
     callback = mocker.Mock(return_value=None)
     db = hyperscan.Database()
     db.compile(
-        expressions=[b'foobar'],
+        expressions=[b"foobar"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -153,7 +166,7 @@ def test_ext_multi_min_offset(mocker):
             )
         ],
     )
-    db.scan(b'foobarfoobar', match_event_handler=callback)
+    db.scan(b"foobarfoobar", match_event_handler=callback)
     callback.assert_has_calls([mocker.call(0, 6, 12, 0, None)])
 
 
@@ -161,7 +174,7 @@ def test_ext_multi_max_offset(mocker):
     callback = mocker.Mock(return_value=None)
     db = hyperscan.Database()
     db.compile(
-        expressions=[b'foobar'],
+        expressions=[b"foobar"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -169,7 +182,7 @@ def test_ext_multi_max_offset(mocker):
             )
         ],
     )
-    db.scan(b'foobarfoobar', match_event_handler=callback)
+    db.scan(b"foobarfoobar", match_event_handler=callback)
     callback.assert_has_calls([mocker.call(0, 0, 6, 0, None)])
 
 
@@ -177,7 +190,7 @@ def test_ext_multi_min_length(mocker):
     callback = mocker.Mock(return_value=None)
     db = hyperscan.Database()
     db.compile(
-        expressions=[b'fo+'],
+        expressions=[b"fo+"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -185,9 +198,9 @@ def test_ext_multi_min_length(mocker):
             )
         ],
     )
-    db.scan(b'fo', match_event_handler=callback)
+    db.scan(b"fo", match_event_handler=callback)
     callback.assert_has_calls([])
-    db.scan(b'foo', match_event_handler=callback)
+    db.scan(b"foo", match_event_handler=callback)
     callback.assert_has_calls([mocker.call(0, 0, 3, 0, None)])
 
 
@@ -195,7 +208,7 @@ def test_ext_multi_edit_distance(mocker):
     callback = mocker.Mock(return_value=None)
     db = hyperscan.Database()
     db.compile(
-        expressions=[b'foobar'],
+        expressions=[b"foobar"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -203,11 +216,11 @@ def test_ext_multi_edit_distance(mocker):
             )
         ],
     )
-    db.scan(b'fxxxar', match_event_handler=callback)
+    db.scan(b"fxxxar", match_event_handler=callback)
     callback.assert_has_calls([])
 
     db.compile(
-        expressions=[b'foobar'],
+        expressions=[b"foobar"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -215,7 +228,7 @@ def test_ext_multi_edit_distance(mocker):
             )
         ],
     )
-    db.scan(b'fxxxar', match_event_handler=callback)
+    db.scan(b"fxxxar", match_event_handler=callback)
     callback.assert_has_calls([mocker.call(0, 0, 6, 0, None)])
 
 
@@ -223,7 +236,7 @@ def test_ext_multi_hamming_distance(mocker):
     callback = mocker.Mock(return_value=None)
     db = hyperscan.Database()
     db.compile(
-        expressions=[b'foobar'],
+        expressions=[b"foobar"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -232,11 +245,11 @@ def test_ext_multi_hamming_distance(mocker):
             )
         ],
     )
-    db.scan(b'fxxxar', match_event_handler=callback)
+    db.scan(b"fxxxar", match_event_handler=callback)
     callback.assert_has_calls([])
 
     db.compile(
-        expressions=[b'foobar'],
+        expressions=[b"foobar"],
         flags=hyperscan.HS_FLAG_SOM_LEFTMOST,
         ext=[
             hyperscan.ExpressionExt(
@@ -245,25 +258,25 @@ def test_ext_multi_hamming_distance(mocker):
             )
         ],
     )
-    db.scan(b'fxxxar', match_event_handler=callback)
+    db.scan(b"fxxxar", match_event_handler=callback)
     callback.assert_has_calls([mocker.call(0, 0, 6, 0, None)])
 
 
-@pytest.mark.parametrize('return_value', [1, True, 42])
+@pytest.mark.parametrize("return_value", [1, True, 42])
 def test_stream_scan_halt(database_stream, mocker, return_value):
     callback = mocker.Mock(return_value=return_value)
 
-    with pytest.raises(hyperscan.error):
+    with pytest.raises(hyperscan._hyperscan.ScanTerminated):
         with database_stream.stream(match_event_handler=callback) as stream:
-            stream.scan(b'foo')
+            stream.scan(b"foo")
 
     assert callback.call_count == 1
 
 
 def test_database_info(database_block):
     info_string = database_block.info()
-    for field in (b'Version', b'Features', b'Mode'):
-        assert field + b': ' in info_string
+    for field in (b"Version", b"Features", b"Mode"):
+        assert field + b": " in info_string
 
 
 def test_database_serialize(database_stream):
@@ -278,10 +291,10 @@ def test_database_deserialize(database_stream):
 
 
 def test_database_exception_in_callback(database_block, mocker):
-    callback = mocker.Mock(side_effect=RuntimeError('oops'))
+    callback = mocker.Mock(side_effect=RuntimeError("oops"))
 
-    with pytest.raises(RuntimeError, match=r'^oops$'):
-        database_block.scan(b'foobar', match_event_handler=callback)
+    with pytest.raises(RuntimeError, match=r"^oops$"):
+        database_block.scan(b"foobar", match_event_handler=callback)
 
 
 def test_literal_expressions(mocker):

@@ -40,11 +40,11 @@ classifiers = [
   "Topic :: Utilities",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Environment :: Console",
   "Intended Audience :: Developers",
@@ -56,7 +56,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6.1,<4.0"
+python = ">=3.8,<4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
@@ -67,9 +67,13 @@ tox = "^3.20.1"
 commitizen = "^2.10.0"
 pre-commit = "^2.9.2"
 python-semantic-release = "^7.6.0"
-black = "^20.8b1"
 clang-format = "^9.0.0"
 commitizen-emoji = "^0.1.5"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+matplotlib = "^3.6.2"
+memunit = "^0.5.2"
 
 [tool.semantic_release]
 commit_parser = "semantic_release.history.emoji_parser"

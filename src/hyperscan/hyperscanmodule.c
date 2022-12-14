@@ -7,49 +7,45 @@
 #include <stdio.h>
 #include <structmember.h>
 
-#define ADD_INT_CONSTANT(module, name) \
-  PyModule_AddIntConstant(module, #name, name);
-#define HANDLE_CHIMERA_ERR(err, rv)                \
-  if (err != CH_SUCCESS) {                         \
-    char serr[80];                                 \
-    sprintf(serr, "error code %i", err);           \
-    PyGILState_STATE gstate = PyGILState_Ensure(); \
-    PyErr_SetString(HyperscanError, serr);         \
-    PyGILState_Release(gstate);                    \
-    return rv;                                     \
+#define ADD_INT_CONSTANT(module, name)                    \
+  if (PyModule_AddIntConstant(module, #name, name) < 0) { \
+    Py_XDECREF(module);                                   \
+    return NULL;                                          \
+  };
+#define HANDLE_CHIMERA_ERR(err, rv)                   \
+  if (err != CH_SUCCESS) {                            \
+    char serr[80];                                    \
+    sprintf(serr, "error code %i", err);              \
+    PyGILState_STATE gstate = PyGILState_Ensure();    \
+    PyErr_SetString(HyperscanErrors[abs(err)], serr); \
+    PyGILState_Release(gstate);                       \
+    return rv;                                        \
   }
-#define HANDLE_HYPERSCAN_ERR(err, rv)              \
-  if (err != HS_SUCCESS) {                         \
-    char serr[80];                                 \
-    sprintf(serr, "error code %i", err);           \
-    PyGILState_STATE gstate = PyGILState_Ensure(); \
-    PyErr_SetString(HyperscanError, serr);         \
-    PyGILState_Release(gstate);                    \
-    return rv;                                     \
+#define HANDLE_HYPERSCAN_ERR(err, rv)                 \
+  if (err != HS_SUCCESS) {                            \
+    char serr[80];                                    \
+    sprintf(serr, "error code %i", err);              \
+    PyGILState_STATE gstate = PyGILState_Ensure();    \
+    PyErr_SetString(HyperscanErrors[abs(err)], serr); \
+    PyGILState_Release(gstate);                       \
+    return rv;                                        \
+  }
+#define ADD_HYPERSCAN_ERROR(module, errors, base, name, hs_err, doc) \
+  ADD_INT_CONSTANT(module, hs_err);                                  \
+  PyObject *name =                                                   \
+    PyErr_NewExceptionWithDoc("hyperscan." #name, doc, base, NULL);  \
+  if (name == NULL) {                                                \
+    Py_XDECREF(module);                                              \
+    return NULL;                                                     \
+  } else {                                                           \
+    if (PyModule_AddObject(module, #name, name) < 0) {               \
+      Py_XDECREF(module);                                            \
+      return NULL;                                                   \
+    }                                                                \
+    errors[abs(hs_err)] = name;                                      \
   }
 
-#if PY_MAJOR_VERSION >= 3
-#define MOD_ERROR_VAL NULL
-#define MOD_SUCCESS_VAL(val) val
-#define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
-#define MOD_DEF(ob, name, doc, methods)   \
-  static struct PyModuleDef moduledef = { \
-    PyModuleDef_HEAD_INIT,                \
-    name,                                 \
-    doc,                                  \
-    -1,                                   \
-    methods,                              \
-  };                                      \
-  ob = PyModule_Create(&moduledef);
-#else
-#define MOD_ERROR_VAL
-#define MOD_SUCCESS_VAL(val)
-#define MOD_INIT(name) void init##name(void)
-#define MOD_DEF(ob, name, doc, methods) ob = Py_InitModule3(name, methods, doc);
-#endif
-
-const char *DEFAULT_VERSION = "unknown";
-
+static PyObject *HyperscanErrors[33] = {NULL};
 static PyObject *HyperscanError;
 static PyTypeObject DatabaseType;
 static PyTypeObject ScratchType;
@@ -246,15 +242,21 @@ static PyObject *Database_compile(
   size_t *lens;
   uint32_t globalflag;
 
-  expressions = PyMem_RawMalloc(elements * sizeof(char *));
+  if (self->chimera && self->ch_db != NULL)
+    ch_free_database(self->ch_db);
+  else if (!self->chimera && self->hs_db != NULL) {
+    hs_free_database(self->hs_db);
+  }
+
+  expressions = malloc(elements * sizeof(char *));
   if (expressions == NULL)
     goto memory_error;
 
-  flags = PyMem_RawMalloc(elements * sizeof(uint32_t));
+  flags = malloc(elements * sizeof(uint32_t));
   if (flags == NULL)
     goto memory_error;
 
-  ids = PyMem_RawMalloc(elements * sizeof(uint32_t));
+  ids = malloc(elements * sizeof(uint32_t));
   if (ids == NULL)
     goto memory_error;
 
@@ -320,7 +322,7 @@ static PyObject *Database_compile(
         "chimera does not support pure literal expressions");
       goto python_error;
     }
-    lens = PyMem_RawMalloc(elements * sizeof(size_t));
+    lens = malloc(elements * sizeof(size_t));
     if (lens == NULL)
       goto memory_error;
     for (uint64_t i = 0; i < elements; i++) {
@@ -338,11 +340,11 @@ static PyObject *Database_compile(
       NULL,
       &self->hs_db,
       &hs_compile_err);
-    PyMem_RawFree(lens);
+    free(lens);
     Py_END_ALLOW_THREADS;
-    PyMem_RawFree(expressions);
-    PyMem_RawFree(flags);
-    PyMem_RawFree(ids);
+    free(expressions);
+    free(flags);
+    free(ids);
 
     if (hs_err != HS_SUCCESS) {
       PyErr_Format(
@@ -369,23 +371,15 @@ static PyObject *Database_compile(
         &self->ch_db,
         &ch_compile_err);
       Py_END_ALLOW_THREADS;
-      PyMem_RawFree(expressions);
-      PyMem_RawFree(flags);
-      PyMem_RawFree(ids);
-      if (ch_err != CH_SUCCESS) {
-        PyErr_Format(
-          HyperscanError,
-          "%s (id:%d)",
-          ch_compile_err->message,
-          hs_compile_err->expression);
-        ch_free_compile_error(ch_compile_err);
-        return NULL;
-      }
+      free(expressions);
+      free(flags);
+      free(ids);
+      HANDLE_CHIMERA_ERR(ch_err, NULL);
     } else {
       if (oext != Py_None) {
-        ext = PyMem_RawMalloc(elements * sizeof(struct hs_expr_ext *));
+        ext = malloc(elements * sizeof(struct hs_expr_ext *));
         for (uint64_t i = 0; i < elements; i++) {
-          ext[i] = PyMem_RawMalloc(sizeof(struct hs_expr_ext));
+          ext[i] = malloc(sizeof(struct hs_expr_ext));
           PyObject *oext_item = PySequence_GetItem(oext, i);
           if (oext_item == NULL) {
             PyErr_Format(
@@ -422,30 +416,43 @@ static PyObject *Database_compile(
         &hs_compile_err);
       Py_END_ALLOW_THREADS;
 
-      PyMem_RawFree(expressions);
-      PyMem_RawFree(flags);
-      PyMem_RawFree(ids);
+      free(expressions);
+      free(flags);
+      free(ids);
       if (hs_err != HS_SUCCESS) {
         PyErr_SetString(HyperscanError, hs_compile_err->message);
         hs_free_compile_error(hs_compile_err);
         return NULL;
       }
     }
-    PyMem_RawFree(ext);
+    free(ext);
   }
 
   if (self->scratch == Py_None) {
     self->scratch =
       PyObject_CallFunction((PyObject *)&ScratchType, "O", (PyObject *)self, 0);
-  } else {
-    Scratch *scratch = ((Scratch *)self->scratch);
-    if (self->chimera) {
-      ch_error_t ch_err = ch_alloc_scratch(self->ch_db, &scratch->ch_scratch);
+  }
+
+  Scratch *scratch = ((Scratch *)self->scratch);
+
+  if (self->chimera) {
+    ch_error_t ch_err;
+    if (scratch->ch_scratch != NULL) {
+      ch_err = ch_free_scratch(scratch->ch_scratch);
       HANDLE_CHIMERA_ERR(ch_err, NULL);
-    } else {
-      hs_error_t hs_err = hs_alloc_scratch(self->hs_db, &scratch->hs_scratch);
-      HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+      scratch->ch_scratch = NULL;
     }
+    ch_err = ch_alloc_scratch(self->ch_db, &scratch->ch_scratch);
+    HANDLE_CHIMERA_ERR(ch_err, NULL);
+  } else {
+    hs_error_t hs_err;
+    if (scratch->hs_scratch != NULL) {
+      hs_err = hs_free_scratch(scratch->hs_scratch);
+      HANDLE_HYPERSCAN_ERR(hs_err, NULL);
+      scratch->hs_scratch = NULL;
+    }
+    hs_err = hs_alloc_scratch(self->hs_db, &scratch->hs_scratch);
+    HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 
   Py_RETURN_NONE;
@@ -454,9 +461,9 @@ memory_error:
   return PyErr_NoMemory();
 
 python_error:
-  PyMem_RawFree(expressions);
-  PyMem_RawFree(flags);
-  PyMem_RawFree(ids);
+  free(expressions);
+  free(flags);
+  free(ids);
   return NULL;
 }
 
@@ -1260,7 +1267,7 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
   return odb;
 }
 
-static PyMethodDef Hyperscan_methods[] = {
+static PyMethodDef HyperscanMethods[] = {
   {"dumpb",
    (PyCFunction)dumpb,
    METH_VARARGS | METH_KEYWORDS,
@@ -1281,24 +1288,43 @@ static PyMethodDef Hyperscan_methods[] = {
    "        :class:`Database`: The deserialized database instance.\n\n"},
   {NULL}};
 
-MOD_INIT(_hyperscan)
+static struct PyModuleDef hyperscanmodule = {
+  PyModuleDef_HEAD_INIT,
+  "_hyperscan",
+  "Hyperscan bindings for CPython.",
+  -1,
+  HyperscanMethods,
+};
+
+PyMODINIT_FUNC PyInit__hyperscan(void)
 {
   PyObject *m;
 
-  MOD_DEF(
-    m, "_hyperscan", "Hyperscan bindings for CPython.", Hyperscan_methods);
+  m = PyModule_Create(&hyperscanmodule);
+  if (m == NULL)
+    return NULL;
 
-  if (!m)
-    return MOD_ERROR_VAL;
-
-  ADD_INT_CONSTANT(m, HS_ARCH_ERROR);
-  ADD_INT_CONSTANT(m, HS_BAD_ALIGN);
-  ADD_INT_CONSTANT(m, HS_BAD_ALLOC);
-  ADD_INT_CONSTANT(m, HS_COMPILER_ERROR);
+  ADD_INT_CONSTANT(m, CH_BAD_ALIGN);
+  ADD_INT_CONSTANT(m, CH_BAD_ALLOC);
+  ADD_INT_CONSTANT(m, CH_COMPILER_ERROR);
+  ADD_INT_CONSTANT(m, CH_DB_MODE_ERROR);
+  ADD_INT_CONSTANT(m, CH_DB_PLATFORM_ERROR);
+  ADD_INT_CONSTANT(m, CH_DB_VERSION_ERROR);
+  ADD_INT_CONSTANT(m, CH_FAIL_INTERNAL);
+  ADD_INT_CONSTANT(m, CH_FLAG_CASELESS);
+  ADD_INT_CONSTANT(m, CH_FLAG_DOTALL);
+  ADD_INT_CONSTANT(m, CH_FLAG_MULTILINE);
+  ADD_INT_CONSTANT(m, CH_FLAG_SINGLEMATCH);
+  ADD_INT_CONSTANT(m, CH_FLAG_UCP);
+  ADD_INT_CONSTANT(m, CH_FLAG_UTF8);
+  ADD_INT_CONSTANT(m, CH_INVALID);
+  ADD_INT_CONSTANT(m, CH_MODE_GROUPS);
+  ADD_INT_CONSTANT(m, CH_MODE_NOGROUPS);
+  ADD_INT_CONSTANT(m, CH_NOMEM);
+  ADD_INT_CONSTANT(m, CH_SCAN_TERMINATED);
+  ADD_INT_CONSTANT(m, CH_SCRATCH_IN_USE);
+  ADD_INT_CONSTANT(m, CH_SUCCESS);
   ADD_INT_CONSTANT(m, HS_CPU_FEATURES_AVX2);
-  ADD_INT_CONSTANT(m, HS_DB_MODE_ERROR);
-  ADD_INT_CONSTANT(m, HS_DB_PLATFORM_ERROR);
-  ADD_INT_CONSTANT(m, HS_DB_VERSION_ERROR);
   ADD_INT_CONSTANT(m, HS_EXT_FLAG_EDIT_DISTANCE);
   ADD_INT_CONSTANT(m, HS_EXT_FLAG_HAMMING_DISTANCE);
   ADD_INT_CONSTANT(m, HS_EXT_FLAG_MAX_OFFSET);
@@ -1315,7 +1341,6 @@ MOD_INIT(_hyperscan)
   ADD_INT_CONSTANT(m, HS_FLAG_SOM_LEFTMOST);
   ADD_INT_CONSTANT(m, HS_FLAG_UCP);
   ADD_INT_CONSTANT(m, HS_FLAG_UTF8);
-  ADD_INT_CONSTANT(m, HS_INVALID);
   ADD_INT_CONSTANT(m, HS_MODE_BLOCK);
   ADD_INT_CONSTANT(m, HS_MODE_NOSTREAM);
   ADD_INT_CONSTANT(m, HS_MODE_SOM_HORIZON_LARGE);
@@ -1323,9 +1348,7 @@ MOD_INIT(_hyperscan)
   ADD_INT_CONSTANT(m, HS_MODE_SOM_HORIZON_SMALL);
   ADD_INT_CONSTANT(m, HS_MODE_STREAM);
   ADD_INT_CONSTANT(m, HS_MODE_VECTORED);
-  ADD_INT_CONSTANT(m, HS_NOMEM);
   ADD_INT_CONSTANT(m, HS_OFFSET_PAST_HORIZON);
-  ADD_INT_CONSTANT(m, HS_SCAN_TERMINATED);
   ADD_INT_CONSTANT(m, HS_SCRATCH_IN_USE);
   ADD_INT_CONSTANT(m, HS_SUCCESS);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_BDW);
@@ -1337,47 +1360,158 @@ MOD_INIT(_hyperscan)
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SKX);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SLM);
   ADD_INT_CONSTANT(m, HS_TUNE_FAMILY_SNB);
-  ADD_INT_CONSTANT(m, CH_MODE_NOGROUPS);
-  ADD_INT_CONSTANT(m, CH_MODE_GROUPS);
-  ADD_INT_CONSTANT(m, CH_FLAG_CASELESS);
-  ADD_INT_CONSTANT(m, CH_FLAG_DOTALL);
-  ADD_INT_CONSTANT(m, CH_FLAG_MULTILINE);
-  ADD_INT_CONSTANT(m, CH_FLAG_SINGLEMATCH);
-  ADD_INT_CONSTANT(m, CH_FLAG_UTF8);
-  ADD_INT_CONSTANT(m, CH_FLAG_UCP);
-  ADD_INT_CONSTANT(m, CH_SUCCESS);
-  ADD_INT_CONSTANT(m, CH_INVALID);
-  ADD_INT_CONSTANT(m, CH_NOMEM);
-  ADD_INT_CONSTANT(m, CH_SCAN_TERMINATED);
-  ADD_INT_CONSTANT(m, CH_COMPILER_ERROR);
-  ADD_INT_CONSTANT(m, CH_DB_VERSION_ERROR);
-  ADD_INT_CONSTANT(m, CH_DB_PLATFORM_ERROR);
-  ADD_INT_CONSTANT(m, CH_DB_MODE_ERROR);
-  ADD_INT_CONSTANT(m, CH_BAD_ALIGN);
-  ADD_INT_CONSTANT(m, CH_BAD_ALLOC);
-  ADD_INT_CONSTANT(m, CH_SCRATCH_IN_USE);
-  ADD_INT_CONSTANT(m, CH_FAIL_INTERNAL);
 
-  HyperscanError = PyErr_NewException("hyperscan.error", NULL, NULL);
-  Py_INCREF(HyperscanError);
-  PyModule_AddObject(m, "error", HyperscanError);
+  HyperscanError = PyErr_NewExceptionWithDoc(
+    "hyperscan.error",
+    "Base exception class for Hyperscan errors.",
+    NULL,
+    NULL);
+  if (!HyperscanError) {
+    goto cleanup_module;
+  }
+  Py_XINCREF(HyperscanError);
+  if (PyModule_AddObject(m, "error", HyperscanError) < 0) {
+    Py_XDECREF(HyperscanError);
+    Py_CLEAR(HyperscanError);
+    goto cleanup_module;
+  }
+  if (PyModule_AddObject(m, "HyperscanError", HyperscanError) < 0) {
+    Py_XDECREF(HyperscanError);
+    Py_CLEAR(HyperscanError);
+    goto cleanup_module;
+  }
+
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    InvalidError,
+    HS_INVALID,
+    "Parameter passed to this function was invalid.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    NoMemoryError,
+    HS_NOMEM,
+    "Memory allocation failed.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    CompilerError,
+    HS_COMPILER_ERROR,
+    "Pattern compilation failed.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    ScanTerminated,
+    HS_SCAN_TERMINATED,
+    "The engine was terminated by callback.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    DatabaseVersionError,
+    HS_DB_VERSION_ERROR,
+    "The given database was built for a different version of Hyperscan.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    DatabasePlatformError,
+    HS_DB_PLATFORM_ERROR,
+    "The given database was built for a different platform (i.e., CPU type).");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    DatabaseModeError,
+    HS_DB_MODE_ERROR,
+    "The given database was built for a different mode of operation.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    BadAlignError,
+    HS_BAD_ALIGN,
+    "A parameter passed to this function was not correctly aligned.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    BadAllocationError,
+    HS_BAD_ALLOC,
+    "The memory allocator failed.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    ScratchInUseError,
+    HS_SCRATCH_IN_USE,
+    "The scratch region was already in use.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    ArchitectureError,
+    HS_ARCH_ERROR,
+    "Unsupported CPU architecture.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    InsufficientSpaceError,
+    HS_INSUFFICIENT_SPACE,
+    "Provided buffer was too small.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    UnknownError,
+    HS_UNKNOWN_ERROR,
+    "Unexpected internal error.");
+  ADD_HYPERSCAN_ERROR(
+    m,
+    HyperscanErrors,
+    HyperscanError,
+    InternalPCREError,
+    CH_FAIL_INTERNAL,
+    "Unexpected internal error.");
 
   if (
-    PyType_Ready(&DatabaseType) < 0 || PyType_Ready(&ScratchType) < 0 ||
-    PyType_Ready(&StreamType) < 0)
-    return MOD_ERROR_VAL;
+    (PyType_Ready(&DatabaseType) < 0) || (PyType_Ready(&ScratchType) < 0) ||
+    (PyType_Ready(&StreamType) < 0)) {
+    goto cleanup_module;
+  }
 
-  Py_INCREF(&DatabaseType);
-  PyModule_AddObject(m, "Database", (PyObject *)&DatabaseType);
+  Py_XINCREF(&DatabaseType);
+  if (PyModule_AddObject(m, "Database", (PyObject *)&DatabaseType) < 0) {
+    Py_XDECREF(&DatabaseType);
+    goto cleanup_module;
+  }
 
   ScratchType.tp_new = PyType_GenericNew;
-  Py_INCREF(&ScratchType);
-  PyModule_AddObject(m, "Scratch", (PyObject *)&ScratchType);
+  Py_XINCREF(&ScratchType);
+  if (PyModule_AddObject(m, "Scratch", (PyObject *)&ScratchType) < 0) {
+    Py_XDECREF(&ScratchType);
+    goto cleanup_module;
+  }
 
-  Py_INCREF(&StreamType);
-  PyModule_AddObject(m, "Stream", (PyObject *)&StreamType);
+  Py_XINCREF(&StreamType);
+  if (PyModule_AddObject(m, "Stream", (PyObject *)&StreamType) < 0) {
+    Py_XDECREF(&StreamType);
+    goto cleanup_module;
+  }
 
-  PyModule_AddStringConstant(m, "__version__", hs_version());
+  if (PyModule_AddStringConstant(m, "__version__", hs_version()) < 0) {
+    goto cleanup_module;
+  }
 
-  return MOD_SUCCESS_VAL(m);
+  return m;
+
+cleanup_module:
+  Py_DECREF(m);
+  return NULL;
 }

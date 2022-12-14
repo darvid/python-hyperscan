@@ -1,5 +1,8 @@
 name: python-hyperscan workflow
-on: [push]
+on:
+  push:
+    branches:
+      - master
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -20,17 +23,17 @@ jobs:
     runs-on: ${{ matrix.platform }}
     needs: lint
     container:
-      image: darvid/manylinux-hyperscan:5.4.0
+      image: darvid/manylinux-hyperscan:v0.1.0
     strategy:
       matrix:
         # Only Linux is supported at the moment
         platform: [ubuntu-latest]
         python-version:
-          - cp36-cp36m
           - cp37-cp37m
           - cp38-cp38
           - cp39-cp39
           - cp310-cp310
+          - cp311-cp311
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
     steps:

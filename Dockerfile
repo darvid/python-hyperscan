@@ -1,4 +1,4 @@
-FROM darvid/manylinux-hyperscan:5.4.0
+FROM darvid/manylinux-hyperscan:v0.1.0
 ENV PCRE_PATH=/opt/pcre/.libs
 RUN python3.9 -m pip install poetry
 RUN mkdir /src
