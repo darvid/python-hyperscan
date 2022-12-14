@@ -49,6 +49,7 @@ jobs:
           git config --global user.email "action@github.com"
           ${PYTHONDIR}/bin/pip install -UI poetry setuptools
           ${PYTHONDIR}/bin/poetry install --no-root
+          ${PYTHONDIR}/bin/poetry build -vvv
           git config --global --add safe.directory '*'
           ${PYTHONDIR}/bin/poetry run semantic-release version -v DEBUG \
             -D commit_author="github-actions <action@github.com>"
