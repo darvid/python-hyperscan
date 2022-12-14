@@ -66,7 +66,7 @@ urllib3 = "^1.26.2"
 tox = "^3.20.1"
 commitizen = "^2.10.0"
 pre-commit = "^2.9.2"
-python-semantic-release = "^7.6.0"
+python-semantic-release = "^7.32.2"
 clang-format = "^9.0.0"
 commitizen-emoji = "^0.1.5"
 
@@ -77,9 +77,6 @@ memunit = "^0.5.2"
 
 [tool.semantic_release]
 commit_parser = "semantic_release.history.emoji_parser"
-major_emoji = "💥"
-minor_emoji = "🎉,🚀"
-patch_emoji = "🐛"
 remove_dist = false
 upload_to_release = false
 upload_to_pypi = false
