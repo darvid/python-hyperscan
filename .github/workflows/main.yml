@@ -20,7 +20,7 @@ jobs:
         with:
           message: "style: clang-format"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
   build:
     runs-on: ${{ matrix.platform }}
     needs: lint
@@ -79,7 +79,7 @@ jobs:
           pip install "python-semantic-release==7.32.2"
           semantic-release changelog -v DEBUG > RELEASE_CHANGELOG
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
       - name: Archive release changelog
         uses: actions/upload-artifact@v2
         with:
@@ -91,7 +91,7 @@ jobs:
       - name: Python semantic release
         uses: relekang/python-semantic-release@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_PAT }}
   release:
     runs-on: ubuntu-latest
     needs: prepare_release
@@ -139,14 +139,14 @@ jobs:
           name: Release ${{ steps.package_version.outputs.release_version }}
           prerelease: false
           tag_name: ${{ steps.package_version.outputs.release_version }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
       - name: Delete RELEASE_CHANGELOG
         run: rm -f RELEASE_CHANGELOG
       - name: Upload release assets
         uses: actions/github-script@v3
         if: ${{ steps.git_tag.outputs.current_tag == steps.package_version.outputs.release_version }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const path = require('path');
             const fs = require('fs');
