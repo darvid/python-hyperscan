@@ -3,32 +3,28 @@
 <!--next-version-placeholder-->
 
 ## v0.3.3 (2022-12-14)
-### :bug:
-* :bug: fix memory leak (#46), improve error handling (#41), drop support for Py3.6  ([`297519e`](https://github.com/darvid/python-hyperscan/commit/297519ed5c632bab9477d460d78dfc0ff5291ac1))
 
-### Other
-* :construction_worker: add back poetry build  ([`9890686`](https://github.com/darvid/python-hyperscan/commit/9890686ffcf964846f6e92a5b3636b44df09299e))
-* :construction_worker: set git safe.directory to *  ([`a10483f`](https://github.com/darvid/python-hyperscan/commit/a10483f0f87ed347c20b0a310974e7b9ffcf4c25))
-* :construction_worker: set version_pattern for semantic-release  ([`c7165b2`](https://github.com/darvid/python-hyperscan/commit/c7165b25986d71695bd857e98ad27bb038d18774))
-* :construction_worker: set version_source to tag for semantic-release  ([`e0df50c`](https://github.com/darvid/python-hyperscan/commit/e0df50cf1f7d305f6d5b6c70106c04736c7ed426))
-* :construction_worker: update actions/checkout across all jobs  ([`cc8f7e5`](https://github.com/darvid/python-hyperscan/commit/cc8f7e50e028f59ba23ce048ed0a34f1d588f16e))
-* :construction_worker: update actions/checkout and set fetch-depth to 0  ([`806bf55`](https://github.com/darvid/python-hyperscan/commit/806bf55d491d2a6a5f817f78f56bed12233a76bf))
-* :package: update semantic-version configuration  ([`8da7b6b`](https://github.com/darvid/python-hyperscan/commit/8da7b6b1afc2116372ef90ee25bd12854a62ddb9))
-* :construction_worker: update manylinux-hyperscan Docker path  ([`12cbe1c`](https://github.com/darvid/python-hyperscan/commit/12cbe1cfeae79a7c1555e66a7f8f7e875f36ced6))
+### Bugfix
+
+* :bug: fix memory leak (#46), improve error handling (#41), drop support for Py3.6  ([`297519e`](https://github.com/darvid/python-hyperscan/commit/297519ed5c632bab9477d460d78dfc0ff5291ac1))
 
 ## v0.3.2 (2022-06-13)
 
-
 ## v0.3.1 (2022-06-13)
+
 ### Other
+
 * 🛸 ci: add cz emoji to semantic-release configuration  ([`6ea4e7d`](https://github.com/darvid/python-hyperscan/commit/6ea4e7dbce8379a932d95555a15e08f2aa78ecda))
 * 🚧 build: remove -fPIC, dedupe libraries  ([`eaab1da`](https://github.com/darvid/python-hyperscan/commit/eaab1da538600264a6cb0113e61eef607475832f))
 
 ## v0.3.0 (2022-04-11)
-### :sparkles:
+
+### Feature
+
 * :sparkles:  initial Chimera support (and upgrade to Hyperscan v5.4.0) ([`0527aac`](https://github.com/darvid/python-hyperscan/commit/0527aac060f29413a727e7fbb8db2c456bd25aab))
 
 ### Other
+
 * 🚧 build: change commit_parser for semantic_release to emoji_parser  ([`518782e`](https://github.com/darvid/python-hyperscan/commit/518782eb7f3ab24eaffeb76631451904309e161c))
 * 🛸 ci: add python 3.10 to CI  ([`06e25bc`](https://github.com/darvid/python-hyperscan/commit/06e25bcc96151428c45fe66f4a0b03d8662c9bf1))
 * 📜 docs: update docs to include Chimera requirements  ([`5ad70dc`](https://github.com/darvid/python-hyperscan/commit/5ad70dc4f69ba75a289f83ec007b334eac8f4ec3))
@@ -48,70 +44,71 @@
 ## [0.2.0] - 2020-12-12
 
 ### Feature
+
 * Add HS_FLAG_COMBINATION and HS_FLAG_QUIET (#21) ([`9804a55`](https://github.com/darvid/python-hyperscan/commit/9804a5563ee8cfa3e766ceb50481031f73a59009))
 * Support extended behavior for patterns (#11) ([`5bfc947`](https://github.com/darvid/python-hyperscan/commit/5bfc94765752b3a6fcc424fd58bedb2ca36ee0cc))
 * Support hs_scan_vector (#24) ([`6869b06`](https://github.com/darvid/python-hyperscan/commit/6869b0687a4efb5a8f4028c68b64a876f7d950fb))
 
 ### Fix
+
 * Dynamically allocate memory for arrays used by Database.compile (fixes #25) ([`3fe93fc`](https://github.com/darvid/python-hyperscan/commit/3fe93fc81578dd627991473e3f89dc822523578c))
 
 ## [0.1.5] - 2020-02-21
 
 ### Fixed
 
-- Fixed reference leak in ``Database.compile`` ([#18])
+* Fixed reference leak in ``Database.compile`` ([#18])
 
 ### Changed
 
-- Renamed ``dumps``/``loads`` to the more appropriate
+* Renamed ``dumps``/``loads`` to the more appropriate
   ``loadb``/``dumpb``. Both use ``bytes`` rather than ``bytearray`` now,
   as well.
-- Added serialization/deserialization examples to the usage guide.
+* Added serialization/deserialization examples to the usage guide.
 
 ## [0.1.4] - 2019-11-07
 
 ### Added
 
-- Hyperscan 5.2.0 and support for literal API ([#16])
+* Hyperscan 5.2.0 and support for literal API ([#16])
 
 ### Removed
 
-- Python 2.7 support
+* Python 2.7 support
 
 ## [0.1.3] - 2019-07-04
 
 ### Fixed
 
-- Handle exceptions in callback. ([#15])
+* Handle exceptions in callback. ([#15])
 
 ## [0.1.2] - 2019-06-10
 
 ### Added
 
-- Release the GIL when compiling patterns ([#13])
+* Release the GIL when compiling patterns ([#13])
 
 ## [0.1.1] - 2019-05-01
 
 ### Fixed
 
-- Fixed segfault ([#10])
+* Fixed segfault ([#10])
 
 ## [0.1.0] - 2019-04-13
 
 ### Changed
 
-- ``match_event_handler`` will now halt scanning if a truthy (and
+* ``match_event_handler`` will now halt scanning if a truthy (and
   not **None**) value is returned.
-- The C extension module is now accessible with
+* The C extension module is now accessible with
   ``import hyperscan._hyperscan``, and ``hyperscan.version.__version__``
   now returns the Hyperscan library version as opposed to the Python
   package version. ``hyperscan.__version__`` will, however, return the
   Python package version.
-- Major packaging update, now using [Poetry] rather than ``setup.py``.
-- Replaced [Sphinx] documentation with [MkDocs] and added an initial
+* Major packaging update, now using [Poetry] rather than ``setup.py``.
+* Replaced [Sphinx] documentation with [MkDocs] and added an initial
   usage guide.
-- Replaced [Travis CI] configuration with [Semaphore].
-
+* Replaced [Travis CI] configuration with [Semaphore].
 
 ## [0.0.2] - 2018-05-26
 
