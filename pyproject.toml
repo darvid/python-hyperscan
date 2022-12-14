@@ -80,6 +80,7 @@ commit_parser = "semantic_release.history.emoji_parser"
 remove_dist = false
 upload_to_release = false
 upload_to_pypi = false
+version_source = "tag"
 version_variable = [
   "pyproject.toml:version",
   "src/hyperscan/__init__.py:__version__",
