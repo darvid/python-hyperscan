@@ -2,6 +2,20 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.3 (2022-12-14)
+### :bug:
+* :bug: fix memory leak (#46), improve error handling (#41), drop support for Py3.6  ([`297519e`](https://github.com/darvid/python-hyperscan/commit/297519ed5c632bab9477d460d78dfc0ff5291ac1))
+
+### Other
+* :construction_worker: add back poetry build  ([`9890686`](https://github.com/darvid/python-hyperscan/commit/9890686ffcf964846f6e92a5b3636b44df09299e))
+* :construction_worker: set git safe.directory to *  ([`a10483f`](https://github.com/darvid/python-hyperscan/commit/a10483f0f87ed347c20b0a310974e7b9ffcf4c25))
+* :construction_worker: set version_pattern for semantic-release  ([`c7165b2`](https://github.com/darvid/python-hyperscan/commit/c7165b25986d71695bd857e98ad27bb038d18774))
+* :construction_worker: set version_source to tag for semantic-release  ([`e0df50c`](https://github.com/darvid/python-hyperscan/commit/e0df50cf1f7d305f6d5b6c70106c04736c7ed426))
+* :construction_worker: update actions/checkout across all jobs  ([`cc8f7e5`](https://github.com/darvid/python-hyperscan/commit/cc8f7e50e028f59ba23ce048ed0a34f1d588f16e))
+* :construction_worker: update actions/checkout and set fetch-depth to 0  ([`806bf55`](https://github.com/darvid/python-hyperscan/commit/806bf55d491d2a6a5f817f78f56bed12233a76bf))
+* :package: update semantic-version configuration  ([`8da7b6b`](https://github.com/darvid/python-hyperscan/commit/8da7b6b1afc2116372ef90ee25bd12854a62ddb9))
+* :construction_worker: update manylinux-hyperscan Docker path  ([`12cbe1c`](https://github.com/darvid/python-hyperscan/commit/12cbe1cfeae79a7c1555e66a7f8f7e875f36ced6))
+
 ## v0.3.2 (2022-06-13)
 
 

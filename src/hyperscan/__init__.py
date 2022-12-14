@@ -2,7 +2,7 @@ import typing
 
 from hyperscan._hyperscan import *
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 
 class ExpressionExt(typing.NamedTuple):
