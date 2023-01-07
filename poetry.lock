@@ -1533,6 +1533,32 @@ files = [
 idna2008 = ["idna"]
 
 [[package]]
+name = "ruff"
+version = "0.0.211"
+description = "An extremely fast Python linter, written in Rust."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "ruff-0.0.211-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:6b36c622ab82dadfdfaf53740953bb0d8d4a124d63b582ca008d907d80f56563"},
+    {file = "ruff-0.0.211-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:565b6dda159473ec50af3c44c257f0b812db216f2ef8b849d4271c8f0f4deb2a"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0197da34073498476b9e5f1c51e0d621a59691204724415bb3130adf3b9811a7"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:88e423dcda5379801521b2c45607e7a2943847d0a462fd034ec4c8dff053629e"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:0f83ed9b4c8f8e59dad6ca9388bcd02fc0e20191709c5b5463150a894a61d80a"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:fcd82863bcd6c54f1b52c87029f0a1f09e6774ce5e552a9b71b3c279bd8e7a4e"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:254aa74b6256d68fa3e75fb9d93be0637782c87dcd2dd274745aef2753e07dbe"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:31828f6c8264bdc92197a0757c393478659fab6235443e2d70c5e9195999f730"},
+    {file = "ruff-0.0.211-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4919ba3530a6ba23662bc149680cfcf643f9dbc52f91a7438a6d7e0dcc2cc200"},
+    {file = "ruff-0.0.211-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:9170c60d6da9f67446db41259bdcdfa77f5d947e3db32c70804bdeb5f1c54e0b"},
+    {file = "ruff-0.0.211-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:22dd3b8d8df1e2e034de21b19a4bdb73ac40734235065580a0065a03c9305a29"},
+    {file = "ruff-0.0.211-py3-none-musllinux_1_2_i686.whl", hash = "sha256:2e68049c28ee8dde99d9b5a196c738c1ed2bf5c7eb27068992abc4d863398d69"},
+    {file = "ruff-0.0.211-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:b2f1edc7826aa7867fe083d2d0c99d8046ab375131659bab3ace1dde6e6b99eb"},
+    {file = "ruff-0.0.211-py3-none-win32.whl", hash = "sha256:b2e38bff1a2262b8a0d481f1954f36bb35aba33b2430a5634f69f9ebd7f5b33e"},
+    {file = "ruff-0.0.211-py3-none-win_amd64.whl", hash = "sha256:b66d6a234b5bbdbc1c5c802e2f18f3ef20175fa30dff55958d087fe55cc5adfb"},
+    {file = "ruff-0.0.211.tar.gz", hash = "sha256:3aa977bbae3f2505b53d72b66cf80f00aec17cb2f978c3ea2f34321207da2651"},
+]
+
+[[package]]
 name = "secretstorage"
 version = "3.3.3"
 description = "Python bindings to FreeDesktop.org Secret Service API"
@@ -1810,4 +1836,4 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=4.6)", "pytest-black (
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "94b7e518752c85b2419c81ee96e455aaad69dec26d135bd71aee4bee671ab769"
+content-hash = "a9648e00b58bed02a6d61c6f41f3858be72f9892a5ef3e6ae29b94e1eb2a31f4"

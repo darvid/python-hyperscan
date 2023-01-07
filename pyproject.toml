@@ -1,6 +1,5 @@
 [tool.black]
 line-length = 79
-py36 = true
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -10,6 +9,23 @@ exclude = '''
 )/
 '''
 skip-string-normalization = true
+
+[tool.ruff]
+line-length = 79
+select = [
+  # Pyflakes
+  "F",
+  # Pycodestyle
+  "E",
+  "W",
+  # isort
+  "I001",
+]
+src = ["hyperscan"]
+
+[tool.ruff.isort]
+known-first-party = ["hyperscan"]
+
 
 [tool.commitizen]
 name = "cz_commitizen_emoji"
@@ -74,6 +90,7 @@ commitizen-emoji = "^0.1.5"
 black = "^22.12.0"
 matplotlib = "^3.6.2"
 memunit = "^0.5.2"
+ruff = "^0.0.211"
 
 [tool.semantic_release]
 commit_parser = "semantic_release.history.emoji_parser"
