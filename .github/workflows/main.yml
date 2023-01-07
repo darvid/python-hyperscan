@@ -144,27 +144,6 @@ jobs:
           token: ${{ secrets.GH_PAT }}
       - name: Delete RELEASE_CHANGELOG
         run: rm -f RELEASE_CHANGELOG
-      - name: Upload release assets
-        uses: actions/github-script@v3
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        with:
-          github-token: ${{ secrets.GH_PAT }}
-          script: |
-            const path = require('path');
-            const fs = require('fs');
-            const release_id = '${{ steps.create_release.outputs.id }}';
-            for (let file of await fs.readdirSync('./dist')) {
-              if (path.extname(file) === '.gz' || path.extname(file) === '.whl') {
-                console.log('uploadReleaseAsset', file);
-                await github.repos.uploadReleaseAsset({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: release_id,
-                  name: file,
-                  data: await fs.readFileSync(`./dist/${file}`)
-                });
-              }
-            }
       - name: Upload to PyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
