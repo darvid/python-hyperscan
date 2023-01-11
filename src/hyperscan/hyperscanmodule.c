@@ -656,7 +656,7 @@ static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
     NULL,
   };
   if (!PyArg_ParseTupleAndKeywords(
-        args, kwds, "|IOO", kwlist, &flags, &ocallback, &octx))
+        args, kwds, "O|IO", kwlist, &ocallback, &flags, &octx))
     return NULL;
   PyObject *stream = PyObject_CallFunction(
     (PyObject *)&StreamType, "OIOO", (PyObject *)self, flags, ocallback, octx);

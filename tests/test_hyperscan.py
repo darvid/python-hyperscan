@@ -3,32 +3,32 @@ import pytest
 
 import hyperscan
 
-patterns = (
-    (rb"fo+", 0, 0, 0),
-    (
-        rb"^foobar",
-        1,
-        hyperscan.HS_FLAG_CASELESS,
-        hyperscan.CH_FLAG_CASELESS,
-    ),
-    (
-        rb"BAR",
-        2,
-        hyperscan.HS_FLAG_CASELESS | hyperscan.HS_FLAG_SOM_LEFTMOST,
-        hyperscan.CH_FLAG_CASELESS,
-    ),
+expressions = (
+    rb"fo+",
+    rb"^foobar",
+    rb"BAR",
+)
+ids = (0, 1, 2)
+hs_flags = (
+    0,
+    hyperscan.HS_FLAG_CASELESS,
+    hyperscan.HS_FLAG_CASELESS | hyperscan.HS_FLAG_SOM_LEFTMOST,
+)
+ch_flags = (
+    0,
+    hyperscan.CH_FLAG_CASELESS,
+    hyperscan.CH_FLAG_CASELESS,
 )
 
 
 @pytest.fixture(scope="module")
 def database_chimera():
     db = hyperscan.Database(chimera=True, mode=hyperscan.CH_MODE_GROUPS)
-    expressions, ids, _, flags = zip(*patterns)
     db.compile(
         expressions=expressions,
         ids=ids,
-        elements=len(patterns),
-        flags=flags,
+        elements=len(expressions),
+        flags=ch_flags,
     )
     return db
 
@@ -36,12 +36,11 @@ def database_chimera():
 @pytest.fixture(scope="module")
 def database_block():
     db = hyperscan.Database()
-    expressions, ids, flags, _ = zip(*patterns)
     db.compile(
         expressions=expressions,
         ids=ids,
-        elements=len(patterns),
-        flags=flags,
+        elements=len(expressions),
+        flags=hs_flags,
     )
     return db
 
@@ -51,37 +50,34 @@ def database_stream():
     db = hyperscan.Database(
         mode=(hyperscan.HS_MODE_STREAM | hyperscan.HS_MODE_SOM_HORIZON_LARGE)
     )
-    expressions, ids, flags, _ = zip(*patterns)
     db.compile(
         expressions=expressions,
         ids=ids,
-        elements=len(patterns),
-        flags=flags,
+        elements=len(expressions),
+        flags=hs_flags,
     )
     return db
 
 
 @memunit.assert_lt_mb(50)
 def test_compilation_memory(database_block):
-    expressions, ids, flags, _ = zip(*patterns)
     for i in range(100_000):
         database_block.compile(
             expressions=expressions,
             ids=ids,
-            elements=len(patterns),
-            flags=flags,
+            elements=len(expressions),
+            flags=hs_flags,
         )
 
 
 @pytest.fixture(scope="module")
 def database_vector():
     db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
-    expressions, ids, flags, _ = zip(*patterns)
     db.compile(
         expressions=expressions,
         ids=ids,
-        elements=len(patterns),
-        flags=flags,
+        elements=len(expressions),
+        flags=hs_flags,
     )
     return db
 
@@ -266,7 +262,7 @@ def test_ext_multi_hamming_distance(mocker):
 def test_stream_scan_halt(database_stream, mocker, return_value):
     callback = mocker.Mock(return_value=return_value)
 
-    with pytest.raises(hyperscan._hyperscan.ScanTerminated):
+    with pytest.raises(hyperscan.ScanTerminated):
         with database_stream.stream(match_event_handler=callback) as stream:
             stream.scan(b"foo")
 
@@ -299,7 +295,6 @@ def test_database_exception_in_callback(database_block, mocker):
 
 def test_literal_expressions(mocker):
     db = hyperscan.Database()
-    expressions, ids, _, __ = zip(*patterns)
     db.compile(expressions=list(expressions), ids=ids, literal=True)
     callback = mocker.Mock(return_value=None)
     expected = []

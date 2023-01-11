@@ -9,14 +9,10 @@ trim_trailing_whitespace = true
 [*.{bat,cmd,ps1}]
 end_of_line = crlf
 
-[*.{c,ini,py,rst,yml}]
+[*.{py,rst}]
+indent_size = 4
 indent_style = space
 
-[*.{json,py,rst}]
-indent_size = 4
-
-[*.{c,cfg,in,ini,rst,sh,yml}]
+[*.{c,cfg,in,ini,json,rst,sh,yml,yaml}]
 indent_size = 2
-
-[{Makefile,**.json,**.mk}]
-indent_style = tab
+indent_style = space
