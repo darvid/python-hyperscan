@@ -650,8 +650,8 @@ static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
   PyObject *ocallback = Py_None;
   PyObject *octx = Py_None;
   static char *kwlist[] = {
-    "flags",
     "match_event_handler",
+    "flags",
     "context",
     NULL,
   };
@@ -667,12 +667,12 @@ static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef Database_members[] = {
-  {"mode", T_INT, offsetof(Database, mode), 0, ":obj:`int`: Scanning mode."},
+  {"mode", T_INT, offsetof(Database, mode), 0, "int: Scanning mode."},
   {"scratch",
    T_OBJECT_EX,
    offsetof(Database, scratch),
    0,
-   ":class:`~.Scratch`: Scratch space object."},
+   ":class:`Scratch`: Scratch space object."},
   {NULL}};
 
 static PyMethodDef Database_methods[] = {
@@ -682,23 +682,22 @@ static PyMethodDef Database_methods[] = {
    "compile(expressions, ids=None, elements=None, flags=0, literal=False)\n\n"
    "    Compiles regular expressions.\n\n"
    "    Args:\n"
-   "        expressions (sequence of :obj:`str`): A sequence of regular\n"
+   "        expressions (sequence of str): A sequence of regular\n"
    "            expressions.\n"
-   "        ids (sequence of :obj:`int`, optional): A sequence of\n"
+   "        ids (sequence of int, optional): A sequence of\n"
    "            expression identifiers.\n"
-   "        elements (:obj:`int`, optional): Length of the expressions\n"
+   "        elements (int, optional): Length of the expressions\n"
    "            sequence.\n"
-   "        flags (sequence of :obj:`int` or :obj:`int`, optional):\n"
+   "        flags (sequence of int or int, optional):\n"
    "            Sequence of flags associated with each expression, or a\n"
    "            single value which is applied to all expressions.\n"
    "        literal (bool, optional): If True, uses the pure literal\n"
    "            expression compiler introduced in Hyperscan 5.2.0.\n\n"
-   "        ext (list, optional): A list of tuples used to define extended\n"
-   "            behavior for each pattern. Tuples must contain **flags**,\n"
-   "            **min_offset**, **max_offset**, **min_length**,\n"
-   "            **edit_distance**, and **hamming_distance**. See hyperscan\n"
-   "            documentation for more information. **Note:** this\n"
-   "            parameter if **literal** is True.\n\n"},
+   "        ext (sequence of tuple, optional): A list of tuples used to "
+   "            define extended behavior for each pattern. Tuples must \n"
+   "            contain **flags**, **min_offset**, **max_offset**, \n"
+   "            **min_length**, **edit_distance**, and **hamming_distance**.\n"
+   "            See hyperscan documentation for more information.\n\n"},
   {"info",
    (PyCFunction)Database_info,
    METH_VARARGS,
@@ -720,30 +719,30 @@ static PyMethodDef Database_methods[] = {
    "scan(data, match_event_handler, flags=0, context=None, scratch=None)\n\n"
    "    Scans a block of text.\n\n"
    "    Args:\n"
-   "        data (:obj:`str`): The block of text to scan, if the database\n"
+   "        data (str): The block of text to scan, if the database\n"
    "            was opened with streaming or block mode, or a list of\n"
    "            buffers (i.e. :obj:`bytearray`) if the database was\n"
    "            opened with vectored mode.\n"
    "        match_event_handler (callable): The match callback, which is\n"
    "            invoked for each match result, and passed the expression\n"
    "            id, start offset, end offset, flags, and a context object.\n"
-   "        flags (:obj:`int`): Currently unused.\n"
+   "        flags (int): Currently unused.\n"
    "        context (:obj:`object`): A context object passed as the last\n"
    "            arg to **match_event_handler**.\n"
-   "        scratch (:class:`~.Scratch`): A scratch object.\n\n"},
+   "        scratch (:class:`Scratch`): A scratch object.\n\n"},
   {"stream",
    (PyCFunction)Database_stream,
    METH_VARARGS | METH_KEYWORDS,
-   "stream(flags=0, match_event_handler=None, context=None)\n\n"
+   "stream(match_event_handler=None, flags=0, context=None)\n\n"
    "    Returns a new stream context manager.\n\n"
    "    Args:\n"
-   "        flags (:obj:`int`): Currently unused.\n"
    "        match_event_handler (callable, optional): The match callback,\n"
    "            which is invoked for each match result, and passed the\n"
    "            expression id, start offset, end offset, flags, and a\n"
    "            context object. Note that this callback will override\n"
    "            the match event handler defined in the\n"
-   "            :class:`~.Database` instance.\n"
+   "            :class:`Database` instance.\n"
+   "        flags (int): Currently unused.\n"
    "        context (:obj:`object`): A context object passed as the last\n"
    "            arg to **match_event_handler**.\n\n"},
   {NULL}};
@@ -771,9 +770,9 @@ static PyTypeObject DatabaseType = {
   "Database(scratch=None, mode=0)\n\n"
   "    Represents a Hyperscan database.\n\n"
   "    Args:\n"
-  "        scratch (:class:`~.Scratch`, optional): Thread-specific\n"
+  "        scratch (:class:`Scratch`, optional): Thread-specific\n"
   "            scratch space.\n"
-  "        mode (:obj:`int`, optional): One of :const:`HS_MODE_BLOCK`,\n"
+  "        mode (int, optional): One of :const:`HS_MODE_BLOCK`,\n"
   "            :const:`HS_MODE_STREAM`, or :const:`HS_MODE_VECTORED`.\n"
   "        chimera (bool): Enable Chimera support."
   "\n\n",                  /* tp_doc */
@@ -986,8 +985,8 @@ static PyMemberDef Stream_members[] = {
    T_OBJECT_EX,
    offsetof(Stream, database),
    0,
-   ":class:`~.Database`: Database instance."},
-  {"flags", T_INT, offsetof(Stream, flags), 0, ":obj:`int`: Stream flags."},
+   ":class:`Database`: Database instance."},
+  {"flags", T_INT, offsetof(Stream, flags), 0, "int: Stream flags."},
   {NULL}};
 
 static PyMethodDef Stream_methods[] = {
@@ -999,7 +998,7 @@ static PyMethodDef Stream_methods[] = {
    "close(scratch=None, match_event_handler=None, context=None)\n\n"
    "    Closes the stream.\n\n"
    "    Args:\n"
-   "        scratch (:class:`~.Scratch`, optional): Scratch space.\n"
+   "        scratch (:class:`Scratch`, optional): Scratch space.\n"
    "            If a **match_event_handler** is provided and a scratch\n"
    "            space is not, the scratch space of the associated\n"
    "            database will be used.\n"
@@ -1012,12 +1011,13 @@ static PyMethodDef Stream_methods[] = {
   {"scan",
    (PyCFunction)Stream_scan,
    METH_VARARGS | METH_KEYWORDS,
-   "scan(data, flags=0, scratch=None, match_event_handler, context=None)\n\n"
+   "scan(data, flags=0, scratch=None, match_event_handler=None, "
+   "context=None)\n\n"
    "    Scans streaming text.\n\n"
    "    Args:\n"
-   "        data (:obj:`str`): The block of text to scan.\n"
-   "        flags (:obj:`int`, optional): Currently unused.\n"
-   "        scratch (:obj:`~.Scratch`, optional): Scratch space.\n"
+   "        data (str): The block of text to scan.\n"
+   "        flags (int, optional): Currently unused.\n"
+   "        scratch (:obj:`Scratch`, optional): Scratch space.\n"
    "        match_event_handler (callable, optional): The match \n"
    "            callback, which is invoked for each match result, and\n"
    "            passed the expression id, start offset, end offset,\n"
@@ -1057,9 +1057,9 @@ static PyTypeObject StreamType = {
   "Stream(database=None, flags=0, match_event_handler=None)\n\n"
   "    Provides a context manager for scanning streams of text.\n\n"
   "    Args:\n"
-  "        database (:class:`~.Database`): A database initialized with\n"
+  "        database (:class:`Database`): A database initialized with\n"
   "            :const:`HS_MODE_STREAM`.\n"
-  "        flags (:obj:`int`, optional): Currently unused.\n"
+  "        flags (int, optional): Currently unused.\n"
   "        match_event_handler (callable, optional): The match callback,\n"
   "            which is invoked for each match result, and passed the\n"
   "            expression id, start offset, end offset, flags, and a\n"
@@ -1155,7 +1155,7 @@ static PyMemberDef Scratch_members[] = {
    T_OBJECT_EX,
    offsetof(Scratch, database),
    0,
-   ":class:`~.Database`: The database associated with this scratch space."},
+   ":class:`Database`: The database associated with this scratch space."},
   {NULL}};
 
 static PyMethodDef Scratch_methods[] = {
@@ -1165,7 +1165,7 @@ static PyMethodDef Scratch_methods[] = {
    "clone()\n\n"
    "    Clones a scratch space.\n\n"
    "    Returns:\n"
-   "        :class:`~.Scratch`: The cloned scratch space.\n\n"},
+   "        :class:`Scratch`: The cloned scratch space.\n\n"},
   {"set_database",
    (PyCFunction)Scratch_set_database,
    METH_VARARGS | METH_KEYWORDS,
@@ -1196,7 +1196,7 @@ static PyTypeObject ScratchType = {
   "Scratch(database=None)\n\n"
   "    Represents Hyperscan 'scratch space.'\n\n"
   "    Args:\n"
-  "        database (:class:`~.Database`, optional): A database instance."
+  "        database (:class:`Database`, optional): A database instance."
   "\n\n",                 /* tp_doc */
   0,                      /* tp_traverse */
   0,                      /* tp_clear */
@@ -1243,10 +1243,9 @@ static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
 static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
 {
   char *buf;
-  PyObject *obuf, *ocreatescratch = Py_True;
-  static char *kwlist[] = {"buf", "create_scratch", NULL};
-  if (!PyArg_ParseTupleAndKeywords(
-        args, kwds, "O|O", kwlist, &obuf, &ocreatescratch))
+  PyObject *obuf = Py_None;
+  static char *kwlist[] = {"buf", NULL};
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &obuf))
     return NULL;
   if (!PyBytes_Check(obuf)) {
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
@@ -1255,13 +1254,10 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
   PyObject *odb;
   odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
   Database *db = (Database *)odb;
-  Py_INCREF(odb);
   Py_ssize_t length = PyBytes_Size(obuf);
   buf = PyBytes_AsString(obuf);
   hs_error_t err = hs_deserialize_database(buf, length, &db->hs_db);
   HANDLE_HYPERSCAN_ERR(err, NULL);
-  if (PyObject_IsTrue(ocreatescratch))
-    db->scratch = PyObject_CallFunction((PyObject *)&ScratchType, "O", odb, 0);
   if (PyErr_Occurred())
     return NULL;
   return odb;
