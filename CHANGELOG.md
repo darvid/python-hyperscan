@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-01-11)
+### Feature
+* 🎉 feat: add typing stubs and update tests  ([`60a7324`](https://github.com/darvid/python-hyperscan/commit/60a7324b489a7dac27095311bfb34a9b07e480c3))
+
+### Fix
+* 🐛 fix: fix memory leak in loadb (#46) and minor doc tweaks  ([`71b6462`](https://github.com/darvid/python-hyperscan/commit/71b64627e940c1e34ad8dde18f7b5800c113c25a))
+
+### Other
+* 🛸 ci: update release pipeline  ([`4f70032`](https://github.com/darvid/python-hyperscan/commit/4f7003273267f7dff0877ad28157a63c34e17960))
+
 ## v0.3.3 (2022-12-14)
 
 ### Bugfix
