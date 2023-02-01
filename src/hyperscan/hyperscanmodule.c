@@ -31,7 +31,10 @@
     return rv;                                        \
   }
 #define ADD_HYPERSCAN_ERROR(module, errors, base, name, hs_err, doc) \
-  ADD_INT_CONSTANT(module, hs_err);                                  \
+  if (PyModule_AddIntConstant(module, #hs_err, hs_err) < 0) {        \
+    Py_XDECREF(module);                                              \
+    return NULL;                                                     \
+  }                                                                  \
   PyObject *name =                                                   \
     PyErr_NewExceptionWithDoc("hyperscan." #name, doc, base, NULL);  \
   if (name == NULL) {                                                \
