@@ -275,15 +275,43 @@ def test_database_info(database_block):
         assert field + b": " in info_string
 
 
-def test_database_serialize(database_stream):
-    serialized = hyperscan.dumpb(database_stream)
+@pytest.mark.parametrize(
+    "db_fixture_name",
+    ["database_stream", "database_block", "database_vector"],
+)
+def test_database_serialize(db_fixture_name, request):
+    database: hyperscan.Database = request.getfixturevalue(db_fixture_name)
+    serialized = hyperscan.dumpb(database)
     assert len(serialized) >= 6000
 
 
-def test_database_deserialize(database_stream):
-    serialized = hyperscan.dumpb(database_stream)
+@pytest.mark.parametrize(
+    "db_fixture_name",
+    ["database_stream", "database_block", "database_vector"],
+)
+def test_database_deserialize(db_fixture_name, request):
+    database: hyperscan.Database = request.getfixturevalue(db_fixture_name)
+    serialized = hyperscan.dumpb(database)
     db = hyperscan.loadb(serialized)
     assert id(db) != id(database_stream)
+
+
+@pytest.mark.parametrize(
+    "db_fixture_name",
+    ["database_stream", "database_block", "database_vector"],
+)
+def test_database_deserialize_scan(db_fixture_name, request, mocker):
+    callback = mocker.Mock(return_value=None)
+
+    database: hyperscan.Database = request.getfixturevalue(db_fixture_name)
+    serialized = hyperscan.dumpb(database)
+    db = hyperscan.loadb(serialized)
+    db.scratch = hyperscan.Scratch(db)
+    if db_fixture_name.endswith("stream"):
+        with db.stream(match_event_handler=callback) as stream:
+            stream.scan(b"foobar")
+    else:
+        db.scan("foobar", match_event_handler=callback)
 
 
 def test_database_exception_in_callback(database_block, mocker):

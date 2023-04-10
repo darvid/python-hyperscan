@@ -3,6 +3,7 @@ from typing import (
     ByteString,
     Callable,
     Optional,
+    Self,
     Sequence,
     Tuple,
     TypeAlias,
@@ -198,7 +199,7 @@ class Stream:
         """
     def scan(
         self,
-        data: str,
+        data: AnyStr,
         flags: int = 0,
         scratch=None,
         match_event_handler: Optional[match_event_callback] = None,
@@ -220,6 +221,8 @@ class Stream:
         """
     def size(self) -> int:
         """Return the size of the stream state in bytes"""
+    def __enter__(self) -> Self: ...
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> None: ...
 
 class Database:
     """Represents a Hyperscan database.
@@ -233,9 +236,14 @@ class Database:
 
     Attributes:
         mode (int): Scanning mode.
+        chimera (bool): Indicates if Chimera support is enabled.
         scratch (:class:`Scratch`): Scratch space.
 
     """
+
+    mode: int
+    chimera: bool
+    scratch: Scratch
 
     def __init__(
         self,

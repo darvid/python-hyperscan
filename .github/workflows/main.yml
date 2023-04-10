@@ -49,7 +49,7 @@ jobs:
           PYTHONDIR=/opt/python/${PYTHON_VERSION}
           git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
-          ${PYTHONDIR}/bin/pip install -UI poetry setuptools
+          ${PYTHONDIR}/bin/pip install -UI poetry==1.4.2 setuptools
           ${PYTHONDIR}/bin/poetry install --no-root
           git config --global --add safe.directory '*'
           ${PYTHONDIR}/bin/poetry run semantic-release version -v DEBUG

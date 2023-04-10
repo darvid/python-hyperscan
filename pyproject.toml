@@ -21,7 +21,7 @@ select = [
   # isort
   "I001",
 ]
-src = ["hyperscan"]
+src = ["hyperscan", "tests"]
 
 [tool.ruff.isort]
 known-first-party = ["hyperscan"]
@@ -36,7 +36,6 @@ version_files = [
 ]
 
 [tool.poetry]
-build = "build.py"
 name = "hyperscan"
 version = "0.4.0"
 description = "Python bindings for Hyperscan."
@@ -71,10 +70,15 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
 ]
 
+[tool.poetry.build]
+script = "build_hyperscan_extension.py"
+generate-setup-file = true
+
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
 
 [tool.poetry.dev-dependencies]
+
 pytest = "^6.1.2"
 pytest-mock = "^3.3.1"
 requests = "^2.25.0"

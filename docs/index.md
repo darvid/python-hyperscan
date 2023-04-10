@@ -48,7 +48,7 @@ $ pip install hyperscan
 To build and install from source, using [Poetry][5]:
 
 ```shell
-$ pip install poetry
+$ pip install poetry==1.4.2
 $ git clone https://github.com/darvid/python-hyperscan.git
 $ cd python-hyperscan
 $ poetry install
