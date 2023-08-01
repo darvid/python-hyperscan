@@ -1224,6 +1224,7 @@ static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
   char *buf;
   size_t length;
   static char *kwlist[] = {"database", NULL};
+
   if (!PyArg_ParseTupleAndKeywords(
         args, kwds, "O!", kwlist, &DatabaseType, &db))
     return NULL;
@@ -1239,7 +1240,7 @@ static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
     PyErr_SetString(HyperscanError, "failed to serialize database");
     return NULL;
   }
-  Py_INCREF(bytes);
+  PyMem_Free(buf);
   return bytes;
 }
 
