@@ -1247,8 +1247,12 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
 {
   char *buf;
   PyObject *obuf = Py_None;
-  static char *kwlist[] = {"buf", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &obuf))
+  PyObject *odb;
+  odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
+  Database *db = (Database *)odb;
+
+  static char *kwlist[] = {"buf", "mode", NULL};
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OI", kwlist, &obuf, &db->mode))
     return NULL;
   if (!PyBytes_Check(obuf)) {
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
@@ -1279,10 +1283,11 @@ static PyMethodDef HyperscanMethods[] = {
   {"loadb",
    (PyCFunction)loadb,
    METH_VARARGS | METH_KEYWORDS,
-   "loadb(buf)\n"
+   "loadb(buf, mode)\n"
    "    Deserializes a Hyperscan database.\n\n"
    "    Args:\n"
-   "        buf (:obj:`bytearray`): A serialized Hyperscan database.\n\n"
+   "        buf (:obj:`bytearray`): A serialized Hyperscan database.\n"
+   "        mode (int): The expected mode of the database.\n\n"
    "    Returns:\n"
    "        :class:`Database`: The deserialized database instance.\n\n"},
   {NULL}};
