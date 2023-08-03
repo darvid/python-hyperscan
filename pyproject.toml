@@ -86,9 +86,6 @@ release = ["python-semantic-release>=8.0.0"]
 build = ["cibuildwheel>=2.14.1"]
 memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
 
-[tool.pdm.scripts]
-post_build = "pdm_post_build.py"
-
 [tool.setuptools.dynamic]
 version = { attr = "hyperscan._version.__version__" }
 readme = { file = ["README.md", "USAGE.md"] }
