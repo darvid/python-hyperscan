@@ -1,0 +1,24 @@
+include *.rst
+recursive-include docs *
+recursive-include examples *
+recursive-include src/hyperscan *.c *.cpp *.h *.pyx *.pxd *.pxi
+include COPYING
+include README.md
+include README.rst
+include pyproject.toml
+include conftest.py
+include Makefile
+include MANIFEST.in
+include .coveragerc
+
+recursive-exclude .github *
+recursive-exclude .pdm-build *
+recursive-exclude .vscode *
+recursive-exclude build *
+recursive-exclude dist *
+exclude .codecov.yml
+exclude .pre-commit-config.yaml
+exclude CODE_OF_CONDUCT.md
+exclude CONTRIBUTING.md
+exclude SECURITY.md
+exclude PULL_REQUEST_TEMPLATE.md

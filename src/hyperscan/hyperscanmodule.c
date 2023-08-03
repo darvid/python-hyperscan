@@ -1259,9 +1259,7 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
     return NULL;
   }
-  PyObject *odb;
-  odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
-  Database *db = (Database *)odb;
+
   Py_ssize_t length = PyBytes_Size(obuf);
   buf = PyBytes_AsString(obuf);
   hs_error_t err = hs_deserialize_database(buf, length, &db->hs_db);
@@ -1295,13 +1293,13 @@ static PyMethodDef HyperscanMethods[] = {
 
 static struct PyModuleDef hyperscanmodule = {
   PyModuleDef_HEAD_INIT,
-  "_hyperscan",
+  "_ext",
   "Hyperscan bindings for CPython.",
   -1,
   HyperscanMethods,
 };
 
-PyMODINIT_FUNC PyInit__hyperscan(void)
+PyMODINIT_FUNC PyInit__ext(void)
 {
   PyObject *m;
 

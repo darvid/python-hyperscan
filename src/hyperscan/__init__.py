@@ -1,8 +1,11 @@
 import typing
 
-from hyperscan._hyperscan import *  # noqa: F401, F403
+from hyperscan._ext import *  # noqa: F401, F403
 
-__version__ = "0.4.0"
+try:
+    from hyperscan._version import __version__  # pyright: ignore
+except ImportError:
+    __version__ = "unknown"
 
 
 class ExpressionExt(typing.NamedTuple):
