@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=65", "setuptools_scm[toml]>=7.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 79
 include = '\.pyi?$'
@@ -21,80 +25,21 @@ select = [
   # isort
   "I001",
 ]
+
 src = ["hyperscan", "tests"]
 
 [tool.ruff.isort]
 known-first-party = ["hyperscan"]
 
+[tool.cibuildwheel]
+test-command = "bash {project}/build_tools/wheels/test_wheels.sh"
+before-test = "bash {project}/build_tools/wheels/before_test.sh"
+# Will avoid testing on emulated architectures and macOS Apple silicon
+test-skip = "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64"
 
-[tool.commitizen]
-name = "cz_commitizen_emoji"
-version = "0.4.0"
-version_files = [
-  "pyproject.toml:version",
-  "src/hyperscan/__init__.py:__version__",
-]
-
-[tool.poetry]
-name = "hyperscan"
-version = "0.4.0"
-description = "Python bindings for Hyperscan."
-authors = ["David Gidwani <david.gidwani@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-homepage = "https://github.com/darvid/python-hyperscan"
-repository = "https://github.com/darvid/python-hyperscan"
-documentation = "https://python-hyperscan.rtfd.io"
-keywords = ["regex", "hypercan"]
-include = ["README.md", "CHANGELOG.md"]
-packages = [{ include = "hyperscan", from = "src" }]
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Topic :: Software Development :: Libraries",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Utilities",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Environment :: Console",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: POSIX :: Linux",
-  "Operating System :: Unix",
-  "Operating System :: MacOS",
-  "Operating System :: Microsoft :: Windows",
-]
-
-[tool.poetry.build]
-script = "build_hyperscan_extension.py"
-generate-setup-file = true
-
-[tool.poetry.dependencies]
-python = ">=3.8,<4.0"
-
-[tool.poetry.dev-dependencies]
-
-pytest = "^6.1.2"
-pytest-mock = "^3.3.1"
-requests = "^2.25.0"
-urllib3 = "^1.26.2"
-tox = "^3.20.1"
-commitizen = "^2.10.0"
-pre-commit = "^2.9.2"
-python-semantic-release = "^7.32.2"
-clang-format = "^9.0.0"
-commitizen-emoji = "^0.1.5"
-
-[tool.poetry.group.dev.dependencies]
-black = "^22.12.0"
-matplotlib = "^3.6.2"
-memunit = "^0.5.2"
-ruff = "^0.0.211"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-07-30-b83be08"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-07-30-b83be08"
+musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-07-30-b83be08"
 
 [tool.semantic_release]
 build_command = false
@@ -107,11 +52,81 @@ remove_dist = false
 upload_to_release = true
 upload_to_pypi = true
 use_textual_changelog_sections = true
-version_variable = [
-  "pyproject.toml:version",
-  "src/hyperscan/__init__.py:__version__",
+version_variable = ["src/hyperscan/_version.py:__version__"]
+
+[tool.semantic_release.publish]
+dist_glob_patterns = ["dist/*", "wheelhouse/*"]
+
+[tool.pdm]
+[tool.pdm.build]
+is-purelib = false
+run-setuptools = true
+
+[tool.pdm.dev-dependencies]
+dev = ["ipython>=8.12.2", "rich>=13.5.0"]
+lint = [
+  "black>=23.7.0",
+  "isort>=5.12.0",
+  "ruff>=0.0.280",
+  "commitizen>=2.42.1",
+  "pre-commit>=2.21.0",
+  "clang-format>=9.0.0",
+]
+test = [
+  "pytest>=6.2.5",
+  "pytest-mock>=3.11.1",
+  "requests>=2.31.0",
+  "urllib3>=1.26.16",
+  "tox>=3.28.0",
+  "memunit>=0.5.2",
+  "pytest-xdist>=3.3.1",
+  "joblib>=1.3.1",
+]
+release = ["python-semantic-release>=8.0.0"]
+build = ["cibuildwheel>=2.14.1"]
+memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
+
+[tool.pdm.scripts]
+post_build = "pdm_post_build.py"
+
+[tool.setuptools.dynamic]
+version = { attr = "hyperscan._version.__version__" }
+readme = { file = ["README.md", "USAGE.md"] }
+
+[tool.setuptools_scm]
+write_to = "src/hyperscan/_version.py"
+
+[project]
+name = "hyperscan"
+dynamic = ["version", "readme"]
+description = "Python bindings for Hyperscan."
+authors = [{ name = "David Gidwani", email = "david.gidwani@gmail.com" }]
+requires-python = ">=3.8,<4.0"
+license = { text = "MIT" }
+keywords = ["regex", "hypercan"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Unix",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
 ]
 
-[build-system]
-requires = ["setuptools", "poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+[project.urls]
+Homepage = "https://github.com/darvid/python-hyperscan"
+Repository = "https://github.com/darvid/python-hyperscan"
+Documentation = "https://python-hyperscan.readthedocs.io/en/latest/"

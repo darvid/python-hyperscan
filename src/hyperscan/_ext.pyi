@@ -80,11 +80,12 @@ def dumpb(database: "Database") -> bytes:
 
     """
 
-def loadb(buf: ByteString) -> "Database":
+def loadb(buf: ByteString, mode: int) -> "Database":
     """Deserializes a Hyperscan database.
 
     Args:
         buf (bytes): A serialized Hyperscan database.
+        mode (int): The expected mode of the database.
 
     Returns:
         :class:`Database`: The deserialized database instance.

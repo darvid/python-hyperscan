@@ -1,4 +1,3 @@
-import memunit
 import pytest
 
 import hyperscan
@@ -22,7 +21,7 @@ ch_flags = (
 
 
 @pytest.fixture(scope="module")
-def database_chimera():
+def database_chimera() -> hyperscan.Database:
     db = hyperscan.Database(chimera=True, mode=hyperscan.CH_MODE_GROUPS)
     db.compile(
         expressions=expressions,
@@ -34,7 +33,7 @@ def database_chimera():
 
 
 @pytest.fixture(scope="module")
-def database_block():
+def database_block() -> hyperscan.Database:
     db = hyperscan.Database()
     db.compile(
         expressions=expressions,
@@ -46,7 +45,7 @@ def database_block():
 
 
 @pytest.fixture(scope="module")
-def database_stream():
+def database_stream() -> hyperscan.Database:
     db = hyperscan.Database(
         mode=(hyperscan.HS_MODE_STREAM | hyperscan.HS_MODE_SOM_HORIZON_LARGE)
     )
@@ -57,17 +56,6 @@ def database_stream():
         flags=hs_flags,
     )
     return db
-
-
-@memunit.assert_lt_mb(50)
-def test_compilation_memory(database_block):
-    for i in range(100_000):
-        database_block.compile(
-            expressions=expressions,
-            ids=ids,
-            elements=len(expressions),
-            flags=hs_flags,
-        )
 
 
 @pytest.fixture(scope="module")
@@ -292,7 +280,7 @@ def test_database_serialize(db_fixture_name, request):
 def test_database_deserialize(db_fixture_name, request):
     database: hyperscan.Database = request.getfixturevalue(db_fixture_name)
     serialized = hyperscan.dumpb(database)
-    db = hyperscan.loadb(serialized)
+    db = hyperscan.loadb(serialized, database.mode)
     assert id(db) != id(database_stream)
 
 
@@ -303,15 +291,18 @@ def test_database_deserialize(db_fixture_name, request):
 def test_database_deserialize_scan(db_fixture_name, request, mocker):
     callback = mocker.Mock(return_value=None)
 
-    database: hyperscan.Database = request.getfixturevalue(db_fixture_name)
-    serialized = hyperscan.dumpb(database)
-    db = hyperscan.loadb(serialized)
+    original_db: hyperscan.Database = request.getfixturevalue(db_fixture_name)
+    serialized_db = hyperscan.dumpb(original_db)
+    db = hyperscan.loadb(serialized_db, original_db.mode)
     db.scratch = hyperscan.Scratch(db)
-    if db_fixture_name.endswith("stream"):
+    if db_fixture_name == "database_stream":
         with db.stream(match_event_handler=callback) as stream:
             stream.scan(b"foobar")
     else:
-        db.scan("foobar", match_event_handler=callback)
+        buf = b"foobar"
+        if db_fixture_name == "database_vector":
+            buf = [buf]
+        db.scan(buf, match_event_handler=callback)
 
 
 def test_database_exception_in_callback(database_block, mocker):

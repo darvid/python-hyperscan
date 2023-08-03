@@ -1,0 +1,59 @@
+name: Lint
+
+on:
+  - pull_request_target
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    # setting any permission will set everything else to none for GITHUB_TOKEN
+    permissions:
+      pull-requests: none
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+            pip install pytest ruff black
+
+      - name: Format with clang-format
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: "./src"
+          extensions: "c"
+          clangFormatVersion: 9
+          inplace: True
+
+      - name: Format with black
+        uses: psf/black@stable
+        with:
+          options: "--verbose"
+          src: "./src"
+          version: "~= 23.0"
+
+      - name: Format with ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          src: "./src"
+          args: check --fix
+
+      - name: Commit formatting changes
+        uses: EndBug/add-and-commit@v4
+        with:
+          message: "style: autoformatting"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
