@@ -3,12 +3,14 @@ on:
   push:
     branches:
       - main
+      - develop
       - "v[0-9]+.[0-9]+"
     tags:
       - "v*"
   pull_request:
     branches:
       - main
+      - develop
       - "v[0-9]+.[0-9]+"
   workflow_dispatch:
 
