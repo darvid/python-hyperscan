@@ -39,11 +39,11 @@ jobs:
             python_id: 39
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
-            python: 3.10
+            python: "3.10"
             python_id: 310
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
-            python: 3.11
+            python: "3.11"
             python_id: 311
             platform_id: manylinux_x86_64
 
@@ -57,11 +57,11 @@ jobs:
             python_id: 39
             platform_id: musslinux_1_1
           - os: ubuntu-latest
-            python: 3.10
+            python: "3.10"
             python_id: 310
             platform_id: musslinux_1_1
           - os: ubuntu-latest
-            python: 3.11
+            python: "3.11"
             python_id: 311
             platform_id: musslinux_1_1
 
@@ -75,11 +75,11 @@ jobs:
             python_id: 39
             platform_id: macosx_x86_64
           - os: macos-latest
-            python: 3.10
+            python: "3.10"
             python_id: 310
             platform_id: macosx_x86_64
           - os: macos-latest
-            python: 3.11
+            python: "3.11"
             python_id: 311
             platform_id: macosx_x86_64
 
