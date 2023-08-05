@@ -37,9 +37,9 @@ before-test = "bash {project}/build_tools/wheels/before_test.sh"
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64"
 
-manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-04-cca6c65"
-manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-04-cca6c65"
-musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-08-04-cca6c65"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-04-14254a5"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-04-14254a5"
+musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-08-04-14254a5"
 
 [tool.semantic_release]
 build_command = false
