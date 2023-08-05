@@ -51,19 +51,19 @@ jobs:
           - os: ubuntu-latest
             python: 3.8
             python_id: 38
-            platform_id: musslinux_1_1
+            platform_id: musslinux_x86_64
           - os: ubuntu-latest
             python: 3.9
             python_id: 39
-            platform_id: musslinux_1_1
+            platform_id: musslinux_x86_64
           - os: ubuntu-latest
             python: "3.10"
             python_id: 310
-            platform_id: musslinux_1_1
+            platform_id: musslinux_x86_64
           - os: ubuntu-latest
             python: "3.11"
             python_id: 311
-            platform_id: musslinux_1_1
+            platform_id: musslinux_x86_64
 
           # MacOS x86_64
           - os: macos-latest
@@ -92,14 +92,9 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: true
 
-      - name: Python Semantic Release
-        uses: python-semantic-release/python-semantic-release@v8.0.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          push: "false"
-
       - name: Build source distribution
         run: |
+          pdm run semantic-release version
           pdm build --no-wheel
 
       - name: Build and test wheels
