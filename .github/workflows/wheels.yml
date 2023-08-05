@@ -94,8 +94,9 @@ jobs:
 
       - name: Build source distribution
         run: |
+          pdm install -G build -G release --no-self --no-lock -v
           pdm run semantic-release version
-          pdm build --no-wheel
+          pdm build --no-wheel -v
 
       - name: Build and test wheels
         env:

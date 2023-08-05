@@ -35,5 +35,4 @@ if [[ $(uname) == "Darwin" ]]; then
   make -j${nproc} && make install
 fi
 
-python -m pip install cibuildwheel
-python -m cibuildwheel --output-dir wheelhouse
+pdm run cibuildwheel --output-dir wheelhouse
