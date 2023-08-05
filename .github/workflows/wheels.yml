@@ -51,19 +51,19 @@ jobs:
           - os: ubuntu-latest
             python: 3.8
             python_id: 38
-            platform_id: musslinux_x86_64
+            platform_id: musllinux_x86_64
           - os: ubuntu-latest
             python: 3.9
             python_id: 39
-            platform_id: musslinux_x86_64
+            platform_id: musllinux_x86_64
           - os: ubuntu-latest
             python: "3.10"
             python_id: 310
-            platform_id: musslinux_x86_64
+            platform_id: musllinux_x86_64
           - os: ubuntu-latest
             python: "3.11"
             python_id: 311
-            platform_id: musslinux_x86_64
+            platform_id: musllinux_x86_64
 
           # MacOS x86_64
           - os: macos-latest
