@@ -1,4 +1,5 @@
-_version.py
+.envrc
+**/_version.py
 
 *.whl
 *.png

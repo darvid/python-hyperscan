@@ -6,7 +6,7 @@ groups = ["default", "dev", "lint", "test", "release", "build", "memprofile"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:6ca78c969f580f0796cf152b11b95d4ee114ac802e118fe73a8c9db3a27806ec"
+content_hash = "sha256:0e87ed024ddadf73750c75df8d927b0a2e2e251b6da87dac2149676a0e444f37"
 
 [[package]]
 name = "appnope"
@@ -15,16 +15,6 @@ summary = "Disable App Nap on macOS >= 10.9"
 files = [
     {file = "appnope-0.1.3-py2.py3-none-any.whl", hash = "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"},
     {file = "appnope-0.1.3.tar.gz", hash = "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24"},
-]
-
-[[package]]
-name = "argcomplete"
-version = "3.1.1"
-requires_python = ">=3.6"
-summary = "Bash tab completion for argparse"
-files = [
-    {file = "argcomplete-3.1.1-py3-none-any.whl", hash = "sha256:35fa893a88deea85ea7b20d241100e64516d6af6d7b0ae2bed1d263d26f70948"},
-    {file = "argcomplete-3.1.1.tar.gz", hash = "sha256:6c4c563f14f01440aaffa3eae13441c5db2357b5eec639abe7c0b15334627dff"},
 ]
 
 [[package]]
@@ -282,29 +272,6 @@ files = [
 ]
 
 [[package]]
-name = "commitizen"
-version = "3.6.0"
-requires_python = ">=3.7,<4.0"
-summary = "Python commitizen client tool"
-dependencies = [
-    "argcomplete<3.2,>=1.12.1",
-    "charset-normalizer<4,>=2.1.0",
-    "colorama<0.5.0,>=0.4.1",
-    "decli<0.7.0,>=0.6.0",
-    "importlib-metadata<7,>=4.13",
-    "jinja2>=2.10.3",
-    "packaging>=19",
-    "pyyaml>=3.08",
-    "questionary<2.0.0,>=1.4.0",
-    "termcolor<3,>=1.1",
-    "tomlkit<1.0.0,>=0.5.3",
-]
-files = [
-    {file = "commitizen-3.6.0-py3-none-any.whl", hash = "sha256:4414724b306b252d08a5ae6701401c65cd53554d446c0cc4cedcae7ab8591a5a"},
-    {file = "commitizen-3.6.0.tar.gz", hash = "sha256:979f659f9fc071c675f41796bb7c56a827aacc2e312db4ec3920951211a72ce3"},
-]
-
-[[package]]
 name = "contourpy"
 version = "1.1.0"
 requires_python = ">=3.8"
@@ -362,16 +329,6 @@ summary = "Composable style cycles"
 files = [
     {file = "cycler-0.11.0-py3-none-any.whl", hash = "sha256:3a27e95f763a428a739d2add979fa7494c912a32c17c4c38c4d5f082cad165a3"},
     {file = "cycler-0.11.0.tar.gz", hash = "sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f"},
-]
-
-[[package]]
-name = "decli"
-version = "0.6.1"
-requires_python = ">=3.7"
-summary = "Minimal, easy-to-use, declarative cli tool"
-files = [
-    {file = "decli-0.6.1-py3-none-any.whl", hash = "sha256:7815ac58617764e1a200d7cadac6315fcaacc24d727d182f9878dd6378ccf869"},
-    {file = "decli-0.6.1.tar.gz", hash = "sha256:ed88ccb947701e8e5509b7945fda56e150e2ac74a69f25d47ac85ef30ab0c0f0"},
 ]
 
 [[package]]
@@ -528,19 +485,6 @@ summary = "Internationalized Domain Names in Applications (IDNA)"
 files = [
     {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
     {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
-]
-
-[[package]]
-name = "importlib-metadata"
-version = "6.8.0"
-requires_python = ">=3.8"
-summary = "Read metadata from Python packages"
-dependencies = [
-    "zipp>=0.5",
-]
-files = [
-    {file = "importlib_metadata-6.8.0-py3-none-any.whl", hash = "sha256:3ebb78df84a805d7698245025b975d9d67053cd94c79245ba4b3eb694abe68bb"},
-    {file = "importlib_metadata-6.8.0.tar.gz", hash = "sha256:dbace7892d8c0c4ac1ad096662232f831d4e64f4c4545bd53016a3e9d4654743"},
 ]
 
 [[package]]
@@ -1334,19 +1278,6 @@ files = [
 ]
 
 [[package]]
-name = "questionary"
-version = "1.10.0"
-requires_python = ">=3.6,<4.0"
-summary = "Python library to build pretty command line user prompts ⭐️"
-dependencies = [
-    "prompt-toolkit<4.0,>=2.0",
-]
-files = [
-    {file = "questionary-1.10.0-py3-none-any.whl", hash = "sha256:fecfcc8cca110fda9d561cb83f1e97ecbb93c613ff857f655818839dac74ce90"},
-    {file = "questionary-1.10.0.tar.gz", hash = "sha256:600d3aefecce26d48d97eee936fdb66e4bc27f934c3ab6dd1e292c4f43946d90"},
-]
-
-[[package]]
 name = "requests"
 version = "2.31.0"
 requires_python = ">=3.7"
@@ -1499,16 +1430,6 @@ dependencies = [
 files = [
     {file = "stack_data-0.6.2-py3-none-any.whl", hash = "sha256:cbb2a53eb64e5785878201a97ed7c7b94883f48b87bfb0bbe8b623c74679e4a8"},
     {file = "stack_data-0.6.2.tar.gz", hash = "sha256:32d2dd0376772d01b6cb9fc996f3c8b57a357089dec328ed4b6553d037eaf815"},
-]
-
-[[package]]
-name = "termcolor"
-version = "2.3.0"
-requires_python = ">=3.7"
-summary = "ANSI color formatting for output in terminal"
-files = [
-    {file = "termcolor-2.3.0-py3-none-any.whl", hash = "sha256:3afb05607b89aed0ffe25202399ee0867ad4d3cb4180d98aaf8eefa6a5f7d475"},
-    {file = "termcolor-2.3.0.tar.gz", hash = "sha256:b5b08f68937f138fe92f6c089b99f1e2da0ae56c52b78bf7075fd95420fd9a5a"},
 ]
 
 [[package]]

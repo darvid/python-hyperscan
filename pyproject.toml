@@ -68,7 +68,6 @@ lint = [
   "black>=23.7.0",
   "isort>=5.12.0",
   "ruff>=0.0.280",
-  "commitizen>=2.42.1",
   "pre-commit>=2.21.0",
   "clang-format>=9.0.0",
 ]
