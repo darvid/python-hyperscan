@@ -17,12 +17,12 @@ if [[ $(uname) == "Darwin" ]]; then
   nproc=$(sysctl -n hw.logicalcpu)
   make -j${nproc} && make install
 
-  cd /tmp/hyperscan
+  cd /tmp
   mkdir -p build
   git clone -b ${HYPERSCAN_VERSION} https://github.com/01org/hyperscan.git
   export CFLAGS="-fPIC"
   export CXXFLAGS="$CFLAGS -D_GLIBCXX_USE_CXX11_ABI=0"
-  cd build
+  cd hyperscan/build
   cmake \
     -DCMAKE_INSTALL_PREFIX=/opt/hyperscan \
     -DFAT_RUNTIME=ON \
