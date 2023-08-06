@@ -32,14 +32,26 @@ src = ["hyperscan", "tests"]
 known-first-party = ["hyperscan"]
 
 [tool.cibuildwheel]
-test-command = "bash {project}/build_tools/wheels/test_wheels.sh"
+test-command = "bash {project}/build_tools/wheels/test_wheels.sh {project}"
 before-test = "bash {project}/build_tools/wheels/before_test.sh"
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64"
 
-manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-04-14254a5"
-manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-04-14254a5"
-musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-08-04-14254a5"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-06-a7d76aa"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-06-a7d76aa"
+musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-08-06-a7d76aa"
+
+[tool.cibuildwheel.linux.environment]
+LD_LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64"
+LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64"
+PCRE_PATH = "/opt/pcre/.libs"
+
+[tool.cibuildwheel.macos.environment]
+LD_LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
+LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
+DYLD_LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
+PKG_CONFIG_PATH = "/opt/hyperscan/lib/pkgconfig:/opt/pcre/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+PDM_HOME = "/tmp/pdm"
 
 [tool.semantic_release]
 build_command = false

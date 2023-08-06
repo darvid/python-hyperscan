@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-            pip install pytest ruff black
+          pip install pytest ruff black
 
       - name: Format with clang-format
         uses: DoozyX/clang-format-lint-action@v0.11

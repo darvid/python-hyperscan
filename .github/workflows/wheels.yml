@@ -87,22 +87,68 @@ jobs:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v3
 
+      - name: Restore build artifacts cache
+        id: cache-dist
+        uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-cp${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('./src') }}
+          path: |
+            dist/*.tar.gz
+            wheelhouse/*.whl
+
       - uses: pdm-project/setup-pdm@v3
+        if: steps.cache-dist.outputs.cache-hit != 'true'
         with:
           python-version: ${{ matrix.python }}
           cache: true
 
+      - name: Cache build dependencies (macOS)
+        id: build-deps-macos
+        if: matrix.os == 'macos-latest' && steps.cache-dist.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          key: build-deps-${{ runner.os }}-${{ matrix.platform_id }}
+          path: |
+            /opt/hyperscan
+            /opt/pcre
+
+      - name: Build Hyperscan (macOS)
+        if: matrix.os == 'macos-latest' && steps.cache-dist.outputs.cache-hit != 'true'
+        run: |
+          ./build_tools/macos/build_hyperscan.sh
+        env:
+          HYPERSCAN_VERSION: "v5.4.2"
+
+      - name: Upload build dependencies (macOS)
+        if: matrix.os == 'macos-latest' && steps.build-deps-macos.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          key: ${{ steps.build-deps-macos.outputs.cache-primary-key }}
+          path: |
+            /opt/hyperscan
+            /opt/pcre
+
       - name: Build source distribution
+        if: steps.cache-dist.outputs.cache-hit != 'true'
         run: |
           pdm install -G build -G release --no-self --no-lock -v
           pdm run semantic-release version
           pdm build --no-wheel -v
 
       - name: Build and test wheels
+        if: steps.cache-dist.outputs.cache-hit != 'true'
         env:
           CIBW_BUILD: cp${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
         run: bash ./build_tools/wheels/build_wheels.sh
+
+      - name: Cache build artifacts
+        uses: actions/cache/save@v3
+        with:
+          key: ${{ steps.cache-dist.outputs.cache-primary-key }}
+          path: |
+            dist/*.tar.gz
+            wheelhouse/*.whl
 
       - name: Store artifacts
         uses: actions/upload-artifact@v3
