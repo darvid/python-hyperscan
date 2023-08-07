@@ -1,6 +1,6 @@
 name: Semantic release
 on:
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   release:
@@ -8,17 +8,22 @@ jobs:
     concurrency: release
     permissions:
       id-token: write
-    if: github.repository == 'darvid/python-hyperscan'
+    if: github.repository == 'darvid/python-hyperscan' && github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/download-artifact@v3
+      - name: Download release artifacts
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v2
         with:
-          name: wheelhouse
-          path: wheelhouse
+          workflow: wheels.yml
+          workflow_conclusion: success
+          branch: main
+          run_id: ${{ github.event.workflow_run.id }}
+          skip_unpack: true
 
       - name: Semantic release
         id: release

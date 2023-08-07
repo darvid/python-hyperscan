@@ -7,11 +7,6 @@ on:
       - "v[0-9]+.[0-9]+"
     tags:
       - "v*"
-  pull_request:
-    branches:
-      - main
-      - develop
-      - "v[0-9]+.[0-9]+"
   workflow_dispatch:
 
 concurrency:
@@ -20,7 +15,7 @@ concurrency:
 
 jobs:
   build_wheels:
-    name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}
+    name: ${{ matrix.python_id }}-${{ matrix.platform_id }} wheel
     runs-on: ${{ matrix.os }}
     if: github.repository == 'darvid/python-hyperscan'
 
@@ -32,55 +27,68 @@ jobs:
           # Linux 64 bit manylinux2014
           - os: ubuntu-latest
             python: 3.8
-            python_id: 38
+            python_id: cp38
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
             python: 3.9
-            python_id: 39
+            python_id: cp39
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
             python: "3.10"
-            python_id: 310
+            python_id: cp310
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
             python: "3.11"
-            python_id: 311
+            python_id: cp311
+            platform_id: manylinux_x86_64
+
+          - os: ubuntu-latest
+            python: 3.8
+            python_id: pp38
+            platform_id: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 3.9
+            python_id: pp39
+            platform_id: manylinux_x86_64
+          - os: ubuntu-latest
+            python: "3.10"
+            python_id: pp310
             platform_id: manylinux_x86_64
 
           # Linux 64 bit musllinux
           - os: ubuntu-latest
             python: 3.8
-            python_id: 38
+            python_id: cp38
             platform_id: musllinux_x86_64
           - os: ubuntu-latest
             python: 3.9
-            python_id: 39
+            python_id: cp39
             platform_id: musllinux_x86_64
           - os: ubuntu-latest
             python: "3.10"
-            python_id: 310
+            python_id: cp310
             platform_id: musllinux_x86_64
           - os: ubuntu-latest
             python: "3.11"
-            python_id: 311
+            python_id: cp311
             platform_id: musllinux_x86_64
 
           # MacOS x86_64
           - os: macos-latest
             python: 3.8
-            python_id: 38
+            python_id: cp38
             platform_id: macosx_x86_64
           - os: macos-latest
             python: 3.9
-            python_id: 39
+            python_id: cp39
             platform_id: macosx_x86_64
           - os: macos-latest
             python: "3.10"
-            python_id: 310
+            python_id: cp310
             platform_id: macosx_x86_64
           - os: macos-latest
             python: "3.11"
-            python_id: 311
+            python_id: cp311
             platform_id: macosx_x86_64
 
     steps:
@@ -91,9 +99,8 @@ jobs:
         id: cache-dist
         uses: actions/cache@v3
         with:
-          key: ${{ runner.os }}-cp${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('./src') }}
+          key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('./src') }}
           path: |
-            dist/*.tar.gz
             wheelhouse/*.whl
 
       - uses: pdm-project/setup-pdm@v3
@@ -128,17 +135,10 @@ jobs:
             /opt/hyperscan
             /opt/pcre
 
-      - name: Build source distribution
-        if: steps.cache-dist.outputs.cache-hit != 'true'
-        run: |
-          pdm install -G build -G release --no-self --no-lock -v
-          pdm run semantic-release version
-          pdm build --no-wheel -v
-
       - name: Build and test wheels
         if: steps.cache-dist.outputs.cache-hit != 'true'
         env:
-          CIBW_BUILD: cp${{ matrix.python_id }}-${{ matrix.platform_id }}
+          CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
         run: bash ./build_tools/wheels/build_wheels.sh
 
@@ -147,13 +147,65 @@ jobs:
         with:
           key: ${{ steps.cache-dist.outputs.cache-primary-key }}
           path: |
-            dist/*.tar.gz
             wheelhouse/*.whl
 
-      - name: Store artifacts
+      - name: Upload wheels to artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: dist
+          name: wheel-${{ matrix.python_id }}-${{ matrix.platform_id }}
+          path: |
+            wheelhouse/*.whl
+
+  build_sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    outputs:
+      current_version: ${{ steps.current_version.outputs.version }}
+      next_version: ${{ steps.next_version.outputs.version }}
+    steps:
+      - name: Checkout python-hyperscan
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: "3.11"
+          cache: true
+
+      - name: Get current version
+        id: current_version
+        run: |
+          version=$(python setup.py --version 2>/dev/null | tail -n1)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Install build tooling
+        run: |
+          pdm install -G build -G release --no-self --no-lock -v
+
+      - name: Increment version
+        run: pdm run semantic-release version
+
+      - name: Get next version
+        id: next_version
+        run: |
+          version=$(python setup.py --version 2>/dev/null | tail -n1)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Build source distribution
+        run: |
+          pdm build --no-wheel -v
+
+      - name: Upload source distribution to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdist
           path: |
             dist/*.tar.gz
-            wheelhouse/*.whl
+
+  trigger_release:
+    name: Trigger release
+    uses: ./.github/workflows/release.yml
+    needs: [build_wheels, build_sdist]
+    if: github.ref == 'refs/heads/main' && needs.build_sdist.outputs.current_version != needs.build_sdist.outputs.next_version
