@@ -57,7 +57,6 @@ PDM_HOME = "/tmp/pdm"
 build_command = false
 commit_author = "github-actions <action@github.com>"
 commit_parser = "semantic_release.history.emoji_parser"
-version_variables = ["src/hyperscan/_version.py:__version__"]
 
 [tool.semantic_release.commit_parser_options]
 major_tags = [":boom:"]
