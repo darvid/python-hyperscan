@@ -34,7 +34,7 @@ jobs:
         id: package_version
         run: |
           pdm install -G release --no-self --no-lock
-          echo "current=$(pdm run python -m setuptools_scm)" >> "$GITHUB_OUTPUT"
+          echo "current=$(pdm run python -m setuptools_scm --strip-dev)" >> "$GITHUB_OUTPUT"
           echo "remote=$(curl -sL https://pypi.org/pypi/hyperscan/json | jq -r .info.version)" >> "$GITHUB_OUTPUT"
 
       - uses: madhead/semver-utils@latest
@@ -42,6 +42,7 @@ jobs:
         with:
           version: "${{ steps.package_version.outputs.current }}"
           compare-to: "${{ steps.package_version.outputs.remote }}"
+          lenient: false
 
       - name: Semantic release
         id: release
