@@ -1,2 +1,2 @@
 [tools]
-python = "3.11-dev"
+python = "latest"

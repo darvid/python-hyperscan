@@ -33,7 +33,8 @@ jobs:
       - name: Compare local and PyPI release versions
         id: package_version
         run: |
-          echo "current=$(python setup.py --version 2>/dev/null | tail -n1)" >> "$GITHUB_OUTPUT"
+          pdm install -G release --no-self --no-lock
+          echo "current=$(pdm run -m setuptools_scm)" >> "$GITHUB_OUTPUT"
           echo "remote=$(curl -sL https://pypi.org/pypi/hyperscan/json | jq -r .info.version)" >> "$GITHUB_OUTPUT"
 
       - uses: madhead/semver-utils@latest

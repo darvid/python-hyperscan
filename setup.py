@@ -7,6 +7,15 @@ from distutils.sysconfig import get_python_inc
 
 from setuptools import Extension, setup
 
+try:
+    from hyperscan._version import version  # pyright: ignore
+
+    __version__ = version
+except ImportError:
+    from setuptools_scm import get_version  # pyright: ignore
+
+    __version__ = get_version()
+
 
 def _pkgconfig(args):
     return subprocess.getoutput(f"pkg-config {args}").strip()
@@ -48,6 +57,15 @@ def get_platform_specific_options():
     return ext_kwargs
 
 
+def scm_version():
+    from setuptools_scm.version import get_local_dirty_tag  # pyright: ignore
+
+    def clean_scheme(version):
+        return get_local_dirty_tag(version) if version.dirty else '+clean'
+
+    return {'local_scheme': clean_scheme}
+
+
 if __name__ == "__main__":
     setup(
         ext_modules=[
@@ -58,5 +76,7 @@ if __name__ == "__main__":
                 extra_compile_args=["-O0", "-DPCRE_STATIC"],
                 **get_platform_specific_options(),
             )
-        ]
+        ],
+        use_scm_version=scm_version,
+        version=__version__,
     )
