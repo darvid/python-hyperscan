@@ -25,9 +25,22 @@ jobs:
           branch: main
           run_id: ${{ github.event.workflow_run.id }}
 
-      - name: Check PyPI release version
-        uses: maybe-hello-world/pyproject-check-version@v3
-        id: pypi_version
+      - uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: "3.11"
+          cache: true
+
+      - name: Compare local and PyPI release versions
+        id: package_version
+        run: |
+          echo "current=$(python setup.py --version 2>/dev/null | tail -n1)" >> "$GITHUB_OUTPUT"
+          echo "remote=$(curl -sL https://pypi.org/pypi/hyperscan/json | jq -r .info.version)" >> "$GITHUB_OUTPUT"
+
+      - uses: madhead/semver-utils@latest
+        id: version
+        with:
+          version: "${{ steps.package_version.outputs.current }}"
+          compare-to: "${{ steps.package_version.outputs.remote }}"
 
       - name: Semantic release
         id: release
@@ -37,10 +50,10 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: steps.release.outputs.released == 'true' || steps.pypi_version.outputs.local_version_is_higher == 'true'
+        if: steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>'
 
       - name: Publish package distributions to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
-        if: steps.release.outputs.released == 'true' || steps.pypi_version.outputs.local_version_is_higher == 'true'
+        if: steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
