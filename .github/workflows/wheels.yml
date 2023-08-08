@@ -4,7 +4,6 @@ on:
     branches:
       - main
       - develop
-      - "v[0-9]+.[0-9]+"
     tags:
       - "v*"
   workflow_dispatch:
@@ -188,7 +187,7 @@ jobs:
           pdm install -G build -G release --no-self --no-lock -v
 
       - name: Increment version
-        run: pdm run semantic-release version
+        run: pdm run semantic-release version --no-commit
 
       - name: Get next version
         id: next_version

@@ -1,6 +1,7 @@
 name: Semantic release
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   release:
