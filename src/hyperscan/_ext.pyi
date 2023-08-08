@@ -113,7 +113,7 @@ class DatabaseModeError(error):
     """The given database was built for a different mode of operation."""
 
 class DatabasePlatformError(error):
-    """The given database was built for a different platform (i.e., CPU type)."""
+    """The given database was built for a different platform."""
 
 class DatabaseVersionError(error):
     """The given database was built for a different version of Hyperscan."""
