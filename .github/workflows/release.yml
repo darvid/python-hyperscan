@@ -25,6 +25,12 @@ jobs:
           branch: main
           run_id: ${{ github.event.workflow_run.id }}
 
+      - name: Prepare dist
+        run: |
+          mkdir -p dist
+          mv ./wheel-*/*.whl dist/
+          mv ./sdist/*.tar.gz dist/
+
       - uses: pdm-project/setup-pdm@v3
         with:
           python-version: "3.11"
