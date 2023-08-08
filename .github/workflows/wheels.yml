@@ -176,15 +176,15 @@ jobs:
           python-version: "3.11"
           cache: true
 
-      - name: Get current version
-        id: current_version
-        run: |
-          version=$(python setup.py --version 2>/dev/null | tail -n1)
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-
       - name: Install build tooling
         run: |
           pdm install -G build -G release --no-self --no-lock -v
+
+      - name: Get current version
+        id: current_version
+        run: |
+          version=$(pdm run -m setuptools_scm --strip-dev)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Increment version
         run: pdm run semantic-release version --no-commit
@@ -192,7 +192,7 @@ jobs:
       - name: Get next version
         id: next_version
         run: |
-          version=$(python setup.py --version 2>/dev/null | tail -n1)
+          version=$(pdm run -m setuptools_scm --strip-dev)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Build source distribution
