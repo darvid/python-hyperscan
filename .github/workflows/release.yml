@@ -24,7 +24,10 @@ jobs:
           workflow_conclusion: success
           branch: main
           run_id: ${{ github.event.workflow_run.id }}
-          skip_unpack: true
+
+      - name: Check PyPI release version
+        uses: maybe-hello-world/pyproject-check-version@v3
+        id: pypi_version
 
       - name: Semantic release
         id: release
@@ -34,10 +37,10 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: steps.release.outputs.released == 'true'
+        if: steps.release.outputs.released == 'true' || steps.pypi_version.outputs.local_version_is_higher == 'true'
 
       - name: Publish package distributions to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
-        if: steps.release.outputs.released == 'true'
+        if: steps.release.outputs.released == 'true' || steps.pypi_version.outputs.local_version_is_higher == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
