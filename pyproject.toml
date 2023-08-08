@@ -54,7 +54,6 @@ PKG_CONFIG_PATH = "/opt/hyperscan/lib/pkgconfig:/opt/pcre/lib/pkgconfig:/usr/loc
 PDM_HOME = "/tmp/pdm"
 
 [tool.semantic_release]
-build_command = false
 commit_author = "github-actions <action@github.com>"
 commit_parser = "emoji"
 
