@@ -14,5 +14,5 @@ fi
 
 cd "${GITHUB_WORKSPACE}"
 pdm install -G build -G release --no-self --no-lock -v
-pdm run semantic-release version
+pdm run semantic-release version --no-commit
 pdm run cibuildwheel --output-dir wheelhouse
