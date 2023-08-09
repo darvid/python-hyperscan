@@ -183,7 +183,7 @@ jobs:
       - name: Get current version
         id: current_version
         run: |
-          version=$(pdm run -m setuptools_scm --strip-dev)
+          version=$(pdm run python -m setuptools_scm --strip-dev)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Increment version
@@ -192,7 +192,7 @@ jobs:
       - name: Get next version
         id: next_version
         run: |
-          version=$(pdm run -m setuptools_scm --strip-dev)
+          version=$(pdm run python -m setuptools_scm --strip-dev)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Build source distribution
