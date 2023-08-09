@@ -132,7 +132,7 @@ dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 
 [project]
 name = "hyperscan"
-dynamic = ["version", "readme"]
+dynamic = ["version"]
 description = "Python bindings for Hyperscan."
 authors = [{ name = "David Gidwani", email = "david.gidwani@gmail.com" }]
 requires-python = ">=3.8,<4.0"
