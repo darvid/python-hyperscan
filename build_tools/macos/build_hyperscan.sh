@@ -19,7 +19,7 @@ cd hyperscan
 # build and install PCRE (static required for Chimera)
 wget -qO- https://sourceforge.net/projects/pcre/files/pcre/${PCRE_VERSION}/pcre-${PCRE_VERSION}.tar.gz/download | tar xvz
 cd "pcre-${PCRE_VERSION}"
-./configure --prefix=/opt/pcre --enable-unicode-properties --enable-utf
+CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/pcre --enable-unicode-properties --enable-utf
 nproc=$(sysctl -n hw.logicalcpu)
 make -j${nproc} && sudo make install
 

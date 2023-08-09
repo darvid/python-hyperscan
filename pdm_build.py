@@ -5,17 +5,26 @@ import subprocess
 import sys
 from distutils.sysconfig import get_python_inc
 
-from setuptools import Extension, setup
+from setuptools import Extension
 
-try:
-    from semantic_release import setup_hook  # pyright: ignore
 
-    if __name__ == "__main__":
-        setup_hook(sys.argv)
-except ImportError:
-    pass
+def pdm_build_hook_enabled(context):
+    return context.target == "wheel"
 
-__version__ = "0.0.0"
+
+def pdm_build_update_setup_kwargs(context, setup_kwargs):
+    setup_kwargs.update(ext_modules=_get_extension())
+
+
+def _get_extension(name="hyperscan._ext", **kwargs):
+    return Extension(
+        name,
+        sources=["src/hyperscan/hyperscanmodule.c"],
+        library_dirs=os.getenv("LIBRARY_PATH", "").split(":"),
+        extra_compile_args=["-fPIC", "-O0", "-DPCRE_STATIC"],
+        **get_platform_specific_options(),
+        **kwargs,
+    )
 
 
 def _pkgconfig(args):
@@ -56,19 +65,3 @@ def get_platform_specific_options():
         *ext_kwargs["extra_objects"],
     ]
     return ext_kwargs
-
-
-if __name__ == "__main__":
-    setup(
-        ext_modules=[
-            Extension(
-                "hyperscan._ext",
-                sources=["src/hyperscan/hyperscanmodule.c"],
-                library_dirs=os.getenv("LIBRARY_PATH", "").split(":"),
-                extra_compile_args=["-O0", "-DPCRE_STATIC"],
-                # extra_link_args=["-Wl,--exclude-libs,ALL"],
-                **get_platform_specific_options(),
-            )
-        ],
-        version=__version__,
-    )

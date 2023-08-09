@@ -1,6 +1,10 @@
+# [build-system]
+# requires = ["setuptools>=65", "setuptools_scm[toml]>=7.1", "wheel"]
+# build-backend = "setuptools.build_meta"
+
 [build-system]
-requires = ["setuptools>=65", "setuptools_scm[toml]>=7.1", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["pdm-backend", "setuptools>=65", "wheel"]
+build-backend = "pdm.backend"
 
 [tool.black]
 line-length = 79
@@ -32,17 +36,26 @@ src = ["hyperscan", "tests"]
 known-first-party = ["hyperscan"]
 
 [tool.cibuildwheel]
+build-frontend = "build"
 test-command = "bash {project}/build_tools/wheels/test_wheels.sh {project}"
 before-test = "bash {project}/build_tools/wheels/before_test.sh"
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64"
 
-manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-06-a7d76aa"
-manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux2014_x86_64:2023-08-06-a7d76aa"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2023-08-06-a7d76aa"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2023-08-06-a7d76aa"
 musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-08-06-a7d76aa"
 
+# repair-wheel-command = [
+#   'pip install auditwheel-symbols',
+#   'auditwheel-symbols --manylinux 2014 {wheel}',
+#   'python scripts/repair_wheel.py -w {dest_dir} {wheel}',
+#   'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
+# ]
+
 [tool.cibuildwheel.linux.environment]
-LD_LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64"
+AUDITWHEEL_PLAT = "manylinux_2_28_$(uname -m)"
+# LD_LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64:$LD_LIBRARY_PATH"
 LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64"
 PCRE_PATH = "/opt/pcre/.libs"
 
@@ -52,40 +65,6 @@ LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
 DYLD_LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
 PKG_CONFIG_PATH = "/opt/hyperscan/lib/pkgconfig:/opt/pcre/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 PDM_HOME = "/tmp/pdm"
-
-[tool.semantic_release]
-commit_author = "github-actions <action@github.com>"
-commit_parser = "emoji"
-
-[tool.semantic_release.commit_parser_options]
-major_tags = [":boom:"]
-minor_tags = [
-  ":sparkles:",
-  ":children_crossing:",
-  ":lipstick:",
-  ":iphone:",
-  ":egg:",
-  ":chart_with_upwards_trend:",
-]
-patch_tags = [
-  ":ambulance:",
-  ":lock:",
-  ":bug:",
-  ":zap:",
-  ":goal_net:",
-  ":alien:",
-  ":wheelchair:",
-  ":speech_balloon:",
-  ":mag:",
-  ":apple:",
-  ":penguin:",
-  ":checkered_flag:",
-  ":robot:",
-  ":green_apple:",
-]
-
-[tool.semantic_release.publish]
-dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 
 [tool.pdm]
 [tool.pdm.build]
@@ -116,16 +95,54 @@ release = [
   "setuptools>=68.0.0",
   "setuptools-scm>=7.1.0",
 ]
-build = ["cibuildwheel>=2.14.1"]
+build = ["cibuildwheel>=2.14.1", "build>=0.10.0"]
 memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
 
-[tool.setuptools.dynamic]
-version = { attr = "hyperscan._version.__version__" }
-readme = { file = ["README.md", "USAGE.md"] }
+[tool.pdm.version]
+source = "scm"
 
-[tool.setuptools_scm]
-write_to = "src/hyperscan/_version.py"
+[tool.setuptools.dynamic]
+# version = { attr = "hyperscan._version.__version__" }
+readme = { file = ["README.md"] }
+
+# [tool.setuptools_scm]
+# write_to = "src/hyperscan/_version.py"
 # version_file = "src/hyperscan/_version.py"
+
+[tool.semantic_release]
+commit_author = "github-actions <action@github.com>"
+commit_parser = "emoji"
+version_variables = ["setup.py:__version__"]
+
+[tool.semantic_release.commit_parser_options]
+major_tags = [":boom:"]
+minor_tags = [
+  ":sparkles:",
+  ":children_crossing:",
+  ":lipstick:",
+  ":iphone:",
+  ":egg:",
+  ":chart_with_upwards_trend:",
+]
+patch_tags = [
+  ":ambulance:",
+  ":lock:",
+  ":bug:",
+  ":zap:",
+  ":goal_net:",
+  ":alien:",
+  ":wheelchair:",
+  ":speech_balloon:",
+  ":mag:",
+  ":apple:",
+  ":penguin:",
+  ":checkered_flag:",
+  ":robot:",
+  ":green_apple:",
+]
+
+[tool.semantic_release.publish]
+dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 
 [project]
 name = "hyperscan"
