@@ -2,6 +2,18 @@ name: Semantic release
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      workflow_run_id:
+        type: string
+        description: Workflow run ID to pull dist artifacts from
+      publish_pypi:
+        type: boolean
+        description: Upload sdist and wheels to PyPI
+        default: true
+      publish_github:
+        type: boolean
+        description: Upload sdist and wheels to GitHub release
+        default: true
 
 jobs:
   release:
@@ -23,7 +35,7 @@ jobs:
           workflow: wheels.yml
           workflow_conclusion: success
           branch: main
-          run_id: ${{ github.event.workflow_run.id }}
+          run_id: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
 
       - name: Prepare dist
         run: |
@@ -58,10 +70,10 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>'
+        if: github.event.inputs.publish_pypi == 'true' && (steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>')
 
       - name: Publish package distributions to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
-        if: steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>'
+        if: github.event.inputs.publish_github == 'true' && (steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

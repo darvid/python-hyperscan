@@ -101,7 +101,7 @@ jobs:
         id: cache-dist
         uses: actions/cache@v3
         with:
-          key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('./src') }}
+          key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('./src', './build_tools/**/build_*.sh') }}
           path: |
             wheelhouse/*.whl
 
