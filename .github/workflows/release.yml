@@ -34,7 +34,6 @@ jobs:
         with:
           workflow: wheels.yml
           workflow_conclusion: success
-          branch: main
           run_id: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
 
       - name: Prepare dist
