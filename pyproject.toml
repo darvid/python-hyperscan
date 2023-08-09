@@ -54,7 +54,6 @@ musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2
 # ]
 
 [tool.cibuildwheel.linux.environment]
-AUDITWHEEL_PLAT = "manylinux_2_28_$(uname -m)"
 # LD_LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64:$LD_LIBRARY_PATH"
 LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64"
 PCRE_PATH = "/opt/pcre/.libs"
