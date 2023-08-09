@@ -1,19 +1,10 @@
 name: Semantic release
 on:
-  workflow_call:
-  workflow_dispatch:
-    inputs:
-      workflow_run_id:
-        type: string
-        description: Workflow run ID to pull dist artifacts from
-      publish_pypi:
-        type: boolean
-        description: Upload sdist and wheels to PyPI
-        default: true
-      publish_github:
-        type: boolean
-        description: Upload sdist and wheels to GitHub release
-        default: true
+  pull_request_target:
+    types:
+      - closed
+    branches:
+      - main
 
 jobs:
   release:
@@ -21,7 +12,7 @@ jobs:
     concurrency: release
     permissions:
       id-token: write
-    if: github.repository == 'darvid/python-hyperscan' && github.ref == 'refs/heads/main'
+    if: github.repository == 'darvid/python-hyperscan' && github.event.pull_request.merged == true
 
     steps:
       - uses: actions/checkout@v3
@@ -35,13 +26,10 @@ jobs:
         with:
           workflow: wheels.yml
           workflow_conclusion: success
-          run_id: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
-
-      - name: Prepare dist
-        run: |
-          mkdir -p dist
-          mv ./wheel-*/*.whl dist/
-          mv ./sdist/*.tar.gz dist/
+          branch: main
+          name: '(wheel\-.*|sdist)'
+          name_is_regexp: true
+          path: dist
 
       - name: Semantic release
         id: release
