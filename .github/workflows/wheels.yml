@@ -111,6 +111,14 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: true
 
+      - name: Install Python deps
+        run: |
+          pdm install -G build -G release --no-self --no-lock -v
+
+      - name: Increment version
+        if: steps.cache-dist.outputs.cache-hit != 'false'
+        run: pdm run semantic-release version --no-commit
+
       - name: Cache build dependencies (macOS)
         id: build-deps-macos
         if: matrix.os == 'macos-latest' && steps.cache-dist.outputs.cache-hit != 'true'
@@ -176,24 +184,12 @@ jobs:
           python-version: "3.11"
           cache: true
 
-      - name: Install build tooling
+      - name: Install Python deps
         run: |
           pdm install -G build -G release --no-self --no-lock -v
 
-      - name: Get current version
-        id: current_version
-        run: |
-          version=$(pdm run python -m setuptools_scm --strip-dev)
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-
       - name: Increment version
         run: pdm run semantic-release version --no-commit
-
-      - name: Get next version
-        id: next_version
-        run: |
-          version=$(pdm run python -m setuptools_scm --strip-dev)
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Build source distribution
         run: |
@@ -210,4 +206,4 @@ jobs:
     name: Trigger release
     uses: ./.github/workflows/release.yml
     needs: [build_wheels, build_sdist]
-    if: github.ref == 'refs/heads/main' && needs.build_sdist.outputs.current_version != needs.build_sdist.outputs.next_version
+    if: github.ref == 'refs/heads/main'

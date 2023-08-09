@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{secrets.GH_PAT}}
 
       - name: Download release artifacts
         id: download-artifact
@@ -42,25 +43,6 @@ jobs:
           mv ./wheel-*/*.whl dist/
           mv ./sdist/*.tar.gz dist/
 
-      - uses: pdm-project/setup-pdm@v3
-        with:
-          python-version: "3.11"
-          cache: true
-
-      - name: Compare local and PyPI release versions
-        id: package_version
-        run: |
-          pdm install -G release --no-self --no-lock
-          echo "current=$(pdm run python -m setuptools_scm --strip-dev)" >> "$GITHUB_OUTPUT"
-          echo "remote=$(curl -sL https://pypi.org/pypi/hyperscan/json | jq -r .info.version)" >> "$GITHUB_OUTPUT"
-
-      - uses: madhead/semver-utils@latest
-        id: version
-        with:
-          version: "${{ steps.package_version.outputs.current }}"
-          compare-to: "${{ steps.package_version.outputs.remote }}"
-          lenient: false
-
       - name: Semantic release
         id: release
         uses: python-semantic-release/python-semantic-release@v8.0.0
@@ -69,10 +51,10 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: github.event.inputs.publish_pypi == 'true' && (steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>')
+        if: github.event.inputs.publish_pypi == 'true'
 
       - name: Publish package distributions to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
-        if: github.event.inputs.publish_github == 'true' && (steps.release.outputs.released == 'true' || steps.version.outputs.comparison-result == '>')
+        if: github.event.inputs.publish_github == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,4 @@
 .envrc
-**/_version.py
 
 *.whl
 *.png

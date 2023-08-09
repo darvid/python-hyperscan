@@ -1,7 +1,3 @@
-# [build-system]
-# requires = ["setuptools>=65", "setuptools_scm[toml]>=7.1", "wheel"]
-# build-backend = "setuptools.build_meta"
-
 [build-system]
 requires = ["pdm-backend", "setuptools>=65", "wheel"]
 build-backend = "pdm.backend"
@@ -97,21 +93,13 @@ release = [
 build = ["cibuildwheel>=2.14.1", "build>=0.10.0"]
 memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
 
-[tool.pdm.version]
-source = "scm"
-
 [tool.setuptools.dynamic]
-# version = { attr = "hyperscan._version.__version__" }
+version = { attr = "hyperscan._version.__version__" }
 readme = { file = ["README.md"] }
 
-# [tool.setuptools_scm]
-# write_to = "src/hyperscan/_version.py"
-# version_file = "src/hyperscan/_version.py"
-
 [tool.semantic_release]
-commit_author = "github-actions <action@github.com>"
 commit_parser = "emoji"
-version_variables = ["setup.py:__version__"]
+version_variables = ["src/hyperscan/_version.py:__version__"]
 
 [tool.semantic_release.commit_parser_options]
 major_tags = [":boom:"]
