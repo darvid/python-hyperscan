@@ -201,9 +201,3 @@ jobs:
           name: sdist
           path: |
             dist/*.tar.gz
-
-  trigger_release:
-    name: Trigger release
-    uses: ./.github/workflows/release.yml
-    needs: [build_wheels, build_sdist]
-    if: github.ref == 'refs/heads/main'
