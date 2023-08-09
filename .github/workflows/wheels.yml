@@ -97,6 +97,11 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
 
+      - uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: ${{ matrix.python }}
+          cache: true
+
       - name: Restore build artifacts cache
         id: cache-dist
         uses: actions/cache@v3
@@ -104,12 +109,6 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('./src', './build_tools/**/build_*.sh') }}
           path: |
             wheelhouse/*.whl
-
-      - uses: pdm-project/setup-pdm@v3
-        if: steps.cache-dist.outputs.cache-hit != 'true'
-        with:
-          python-version: ${{ matrix.python }}
-          cache: true
 
       - name: Install Python deps
         run: |
