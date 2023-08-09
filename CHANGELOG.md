@@ -2,6 +2,29 @@
 
 
 
+## v0.6.0 (2023-08-09)
+
+### :sparkles:
+
+* feat: :sparkles: manylinux_2_28 support and build improvements ([`c31c8cf`](https://github.com/darvid/python-hyperscan/commit/c31c8cfebeb2436013853ef773783fa4914841c3))
+
+### Other
+
+* ci: :ferris_wheel: add step to organize dist for pypi release ([`9921c97`](https://github.com/darvid/python-hyperscan/commit/9921c97232d50f7c4b49ecb3fa1b41142cfbcf1a))
+
+* ci: :ferris_wheel: pass strip-dev to setuptools-scm when determining version ([`21dcfb5`](https://github.com/darvid/python-hyperscan/commit/21dcfb51a29282a22223469cd2486d1534033aa3))
+
+* ci: :ferris_wheel: fix release pipeline *again* ([`b166870`](https://github.com/darvid/python-hyperscan/commit/b166870bfcb7a1049f53f10f81a4f25acca187c4))
+
+* build: :package: fix version detection with setuptools-scm ([`84a80e9`](https://github.com/darvid/python-hyperscan/commit/84a80e9f6976d5b49be91eb6813bf873e70c67ef))
+
+* ci: :ferris_wheel: fix release version detection again ([`24cfaa2`](https://github.com/darvid/python-hyperscan/commit/24cfaa2debebd1c5fe55081cd8c0b7fa39370a95))
+
+* ci: :ferris_wheel: fix release trigger in CI ([`fdcfb23`](https://github.com/darvid/python-hyperscan/commit/fdcfb23128c3c9c829ac2afcb84a791a0e2c5cda))
+
+* ci: :ferris_wheel: more CI fixes ([`5c36436`](https://github.com/darvid/python-hyperscan/commit/5c364365cb8347bde36b7d61a58b0e38b606fd00))
+
+
 ## v0.5.0 (2023-08-08)
 
 ### :bug:
