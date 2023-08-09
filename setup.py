@@ -15,8 +15,6 @@ try:
 except ImportError:
     pass
 
-__version__ = "0.6.0"
-
 
 def _pkgconfig(args):
     return subprocess.getoutput(f"pkg-config {args}").strip()
@@ -70,5 +68,4 @@ if __name__ == "__main__":
                 **get_platform_specific_options(),
             )
         ],
-        version=__version__,
     )
