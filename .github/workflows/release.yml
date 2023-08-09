@@ -39,10 +39,8 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: github.event.inputs.publish_pypi == 'true'
 
       - name: Publish package distributions to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
-        if: github.event.inputs.publish_github == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
