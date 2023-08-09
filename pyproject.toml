@@ -95,7 +95,6 @@ memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
 
 [tool.setuptools.dynamic]
 version = { attr = "hyperscan._version.__version__" }
-readme = { file = ["README.md"] }
 
 [tool.semantic_release]
 commit_parser = "emoji"
@@ -160,6 +159,7 @@ classifiers = [
   "Operating System :: MacOS",
   "Operating System :: Microsoft :: Windows",
 ]
+readme = "README.md"
 
 [project.urls]
 Homepage = "https://github.com/darvid/python-hyperscan"
