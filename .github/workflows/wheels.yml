@@ -209,6 +209,7 @@ jobs:
 
       - name: Prepare dist
         run: |
+          mkdir dist
           mv ./wheel-*/*.whl dist/
           mv ./sdist/*.tar.gz dist/
 
