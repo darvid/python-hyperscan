@@ -200,6 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: release
     if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
+    needs: [build_wheels, build_sdist]
     permissions:
       id-token: write
       contents: write
