@@ -7,13 +7,15 @@ from distutils.sysconfig import get_python_inc
 
 from setuptools import Extension
 
+__version__ = "0.6.0"
+
 
 def pdm_build_hook_enabled(context):
     return context.target == "wheel"
 
 
 def pdm_build_update_setup_kwargs(context, setup_kwargs):
-    setup_kwargs.update(ext_modules=_get_extension())
+    setup_kwargs.update(ext_modules=_get_extension(), version=__version__)
 
 
 def _get_extension(name="hyperscan._ext", **kwargs):

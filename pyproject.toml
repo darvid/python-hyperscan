@@ -93,12 +93,20 @@ release = [
 build = ["cibuildwheel>=2.14.1", "build>=0.10.0"]
 memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
 
+[tool.pdm.version]
+source = "file"
+path = "src/hyperscan/_version.py"
+
 [tool.setuptools.dynamic]
 version = { attr = "hyperscan._version.__version__" }
 
 [tool.semantic_release]
 commit_parser = "emoji"
-version_variables = ["src/hyperscan/_version.py:__version__"]
+version_variables = [
+  "src/hyperscan/_version.py:__version__",
+  "setup.py:__version__",
+  "pdm_build.py:__version__",
+]
 
 [tool.semantic_release.commit_parser_options]
 major_tags = [":boom:"]
