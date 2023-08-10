@@ -227,8 +227,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish package distributions to PyPI
-        # if: steps.release.outputs.released == 'true'
+        if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
       - name: Publish package distributions to GitHub Releases
         # if: steps.release.outputs.released == 'true'
