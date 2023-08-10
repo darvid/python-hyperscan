@@ -150,6 +150,7 @@ jobs:
 
       - name: Cache build artifacts
         uses: actions/cache/save@v3
+        if: steps.cache-dist.outputs.cache-hit != 'true'
         with:
           key: ${{ steps.cache-dist.outputs.cache-primary-key }}
           path: |
