@@ -197,6 +197,8 @@ jobs:
   release:
     name: Publish package
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v3
