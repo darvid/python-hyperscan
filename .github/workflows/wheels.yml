@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - main
-      - develop
-    tags:
-      - "v*"
   workflow_dispatch:
 
 concurrency:
@@ -95,7 +92,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
 
       - uses: pdm-project/setup-pdm@v3
         with:
@@ -174,7 +170,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{secrets.GH_PAT}}
 
       - uses: pdm-project/setup-pdm@v3
         with:
@@ -202,7 +197,6 @@ jobs:
   release:
     name: Publish package
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'ref/tags/v')
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v3
@@ -225,9 +219,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish package distributions to PyPI
+        # if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Publish package distributions to GitHub Releases
+        # if: steps.release.outputs.released == 'true'
         uses: python-semantic-release/upload-to-gh-release@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
