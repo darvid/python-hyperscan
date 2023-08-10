@@ -197,8 +197,11 @@ jobs:
   release:
     name: Publish package
     runs-on: ubuntu-latest
+    concurrency: release
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
     permissions:
       id-token: write
+      contents: write
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v3
