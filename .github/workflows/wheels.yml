@@ -37,6 +37,10 @@ jobs:
             python: "3.11"
             python_id: cp311
             platform_id: manylinux_x86_64
+          - os: ubuntu-latest
+            python: "3.12"
+            python_id: cp312
+            platform_id: manylinux_x86_64
 
           - os: ubuntu-latest
             python: 3.8
@@ -68,6 +72,10 @@ jobs:
             python: "3.11"
             python_id: cp311
             platform_id: musllinux_x86_64
+          - os: ubuntu-latest
+            python: "3.12"
+            python_id: cp312
+            platform_id: musllinux_x86_64
 
           # MacOS x86_64
           - os: macos-latest
@@ -85,6 +93,10 @@ jobs:
           - os: macos-latest
             python: "3.11"
             python_id: cp311
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python: "3.12"
+            python_id: cp312
             platform_id: macosx_x86_64
 
     steps:
