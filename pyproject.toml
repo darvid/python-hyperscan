@@ -38,9 +38,9 @@ before-test = "bash {project}/build_tools/wheels/before_test.sh"
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64"
 
-manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2023-11-18-cabc627"
-manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2023-11-18-cabc627"
-musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-11-18-cabc627"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2023-11-18-5d811a1"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2023-11-18-5d811a1"
+musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2023-11-18-5d811a1"
 
 # repair-wheel-command = [
 #   'pip install auditwheel-symbols',
