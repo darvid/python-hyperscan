@@ -2,9 +2,9 @@
 set -euxo pipefail
 
 # Only applicable to macOS builds
-HYPERSCAN_VERSION=${HYPERSCAN_VERSION:-v5.4.2}
-HYPERSCAN_BUILD_TYPE=${HYPERSCAN_BUILD_TYPE:-Release}
-PCRE_VERSION="${PCRE_VERSION:-8.45}"
+export HYPERSCAN_VERSION=${HYPERSCAN_VERSION:-v5.4.2}
+export HYPERSCAN_BUILD_TYPE=${HYPERSCAN_BUILD_TYPE:-Release}
+export PCRE_VERSION="${PCRE_VERSION:-8.45}"
 
 if [[ $(uname) == "Darwin" ]]; then
   export MACOSX_DEPLOYMENT_TARGET="10.14"
