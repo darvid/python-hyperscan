@@ -90,7 +90,7 @@ release = [
   "setuptools>=68.0.0",
   "setuptools-scm>=7.1.0",
 ]
-build = ["cibuildwheel>=2.14.1", "build>=0.10.0"]
+build = ["cibuildwheel>=2.16.2", "build>=0.10.0"]
 memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
 
 [tool.pdm.version]
