@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euxo pipefail
+
 PCRE_VERSION=${PCRE_VERSION:-8.45}
 
 if pkg-config --validate libhs; then
@@ -13,9 +15,10 @@ fi
 
 cd /tmp
 git clone -b "${HYPERSCAN_VERSION}" https://github.com/01org/hyperscan.git
-brew install boost cmake git pkg-config python@3.11 ragel wget
+brew install boost cmake git pkg-config python@3.11 ragel wget gnu-tar
 cd hyperscan
 
+export PATH="$(brew --prefix gnu-tar)/bin:$PATH"
 # build and install PCRE (static required for Chimera)
 wget -qO- https://sourceforge.net/projects/pcre/files/pcre/${PCRE_VERSION}/pcre-${PCRE_VERSION}.tar.gz/download | tar xvz
 cd "pcre-${PCRE_VERSION}"
