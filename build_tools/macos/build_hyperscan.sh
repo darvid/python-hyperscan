@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euxo pipefail
 
+HYPERSCAN_VERSION=${HYPERSCAN_VERSION:-v5.4.2}
+HYPERSCAN_BUILD_TYPE=${HYPERSCAN_BUILD_TYPE:-Release}
 PCRE_VERSION=${PCRE_VERSION:-8.45}
 
 if pkg-config --validate libhs; then
@@ -22,7 +24,10 @@ export PATH="$(brew --prefix gnu-tar)/bin:$PATH"
 # build and install PCRE (static required for Chimera)
 wget -qO- https://sourceforge.net/projects/pcre/files/pcre/${PCRE_VERSION}/pcre-${PCRE_VERSION}.tar.gz/download | tar xvz
 cd "pcre-${PCRE_VERSION}"
-CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/pcre --enable-unicode-properties --enable-utf
+
+export CFLAGS=-fPIC
+export CXXFLAGS=-fPIC
+./configure --prefix=/opt/pcre --enable-unicode-properties --enable-utf
 nproc=$(sysctl -n hw.logicalcpu)
 make -j${nproc} && sudo make install
 
@@ -35,7 +40,7 @@ cmake \
   -DBUILD_STATIC_AND_SHARED=ON \
   -DCMAKE_BUILD_TYPE=${HYPERSCAN_BUILD_TYPE} \
   -DPCRE_SOURCE=/tmp/hyperscan/pcre-${PCRE_VERSION} \
-  -DCMAKE_C_FLAGS="-fPIC" \
-  -DCMAKE_CXX_FLAGS="$CFLAGS -D_GLIBCXX_USE_CXX11_ABI=0"
+  -DCMAKE_C_FLAGS="$CFLAGS" \
+  -DCMAKE_CXX_FLAGS="$CXXFLAGS -D_GLIBCXX_USE_CXX11_ABI=0"
 cmake --build build --parallel ${nproc}
 sudo cmake --install build
