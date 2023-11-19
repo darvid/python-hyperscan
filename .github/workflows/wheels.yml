@@ -198,7 +198,7 @@ jobs:
 
       - name: Build source distribution
         run: |
-          pdm build --no-wheel -v
+          python setup.py sdist
 
       - name: Upload source distribution to artifacts
         uses: actions/upload-artifact@v3
