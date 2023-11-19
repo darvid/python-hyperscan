@@ -1,4 +1,4 @@
-name: Build wheels
+name: Build wheels and source distribution
 on:
   push:
     branches:
