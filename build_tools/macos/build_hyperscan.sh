@@ -16,7 +16,7 @@ if [ -z "$HYPERSCAN_VERSION" ]; then
 fi
 
 cd /tmp
-git clone -b "${HYPERSCAN_VERSION}" https://github.com/01org/hyperscan.git
+git clone -b "${HYPERSCAN_VERSION}" https://github.com/intel/hyperscan.git
 brew install boost cmake git pkg-config python@3.11 ragel wget gnu-tar
 cd hyperscan
 
