@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-HYPERSCAN_GIT_SOURCE=https://github.com/VectorCamp/vectorscan
+HYPERSCAN_GIT_SOURCE=${HYPERSCAN_GIT_SOURCE:-https://github.com/VectorCamp/vectorscan}
 HYPERSCAN_GIT_REF=${HYPERSCAN_GIT_REF:-vectorscan/5.4.11}
 HYPERSCAN_BUILD_TYPE=${HYPERSCAN_BUILD_TYPE:-MinSizeRel}
 PCRE_VERSION=${PCRE_VERSION:-8.45}
