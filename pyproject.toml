@@ -50,15 +50,15 @@ musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2
 # ]
 
 [tool.cibuildwheel.linux.environment]
-# LD_LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64:$LD_LIBRARY_PATH"
-LIBRARY_PATH = "/opt/hyperscan/lib:/opt/hyperscan/lib64"
+# LD_LIBRARY_PATH = "/opt/vectorscan/lib:/opt/vectorscan/lib64:$LD_LIBRARY_PATH"
+LIBRARY_PATH = "/opt/vectorscan/lib:/opt/vectorscan/lib64"
 PCRE_PATH = "/opt/pcre/.libs"
 
 [tool.cibuildwheel.macos.environment]
-LD_LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
-LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
-DYLD_LIBRARY_PATH = "/opt/hyperscan/lib:/usr/local/lib"
-PKG_CONFIG_PATH = "/opt/hyperscan/lib/pkgconfig:/opt/pcre/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+LD_LIBRARY_PATH = "/opt/vectorscan/lib:/usr/local/lib"
+LIBRARY_PATH = "/opt/vectorscan/lib:/usr/local/lib"
+DYLD_LIBRARY_PATH = "/opt/vectorscan/lib:/usr/local/lib"
+PKG_CONFIG_PATH = "/opt/vectorscan/lib/pkgconfig:/opt/pcre/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 PDM_HOME = "/tmp/pdm"
 
 [tool.pdm]
