@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "ms-vscode.cpptools",
+    "elagil.pre-commit-helper",
+    "xaver.clang-format"
+  ]
+}

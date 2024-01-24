@@ -121,16 +121,16 @@ jobs:
 
       - name: Restore build artifacts cache
         id: cache-dist
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ steps.semantic-version.outputs.version }}-${{ hashFiles('./src', './build_tools/**/build_*.sh') }}
           path: |
             wheelhouse/*.whl
 
-      - name: Cache build dependencies (macOS)
+      - name: Restore build dependencies cache (macOS)
         id: build-deps-macos
         if: matrix.os == 'macos-latest' && steps.cache-dist.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           key: build-deps-${{ runner.os }}-${{ matrix.platform_id }}
           path: |
@@ -146,7 +146,7 @@ jobs:
 
       - name: Upload build dependencies (macOS)
         if: matrix.os == 'macos-latest' && steps.build-deps-macos.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           key: ${{ steps.build-deps-macos.outputs.cache-primary-key }}
           path: |
@@ -160,8 +160,8 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
         run: bash ./build_tools/wheels/build_wheels.sh
 
-      - name: Cache build artifacts
-        uses: actions/cache/save@v3
+      - name: Save build artifacts
+        uses: actions/cache/save@v4
         if: steps.cache-dist.outputs.cache-hit != 'true'
         with:
           key: ${{ steps.cache-dist.outputs.cache-primary-key }}
@@ -169,7 +169,7 @@ jobs:
             wheelhouse/*.whl
 
       - name: Upload wheels to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.python_id }}-${{ matrix.platform_id }}
           path: |
@@ -180,7 +180,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout python-hyperscan
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -201,7 +201,7 @@ jobs:
           python setup.py sdist
 
       - name: Upload source distribution to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sdist
           path: |
@@ -218,13 +218,13 @@ jobs:
       contents: write
     steps:
       - name: Checkout python-hyperscan
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{secrets.GH_PAT}}
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Prepare dist
         run: |
