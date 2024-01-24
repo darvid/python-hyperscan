@@ -19,7 +19,7 @@ fi
 cd /tmp
 git clone -b "${HYPERSCAN_GIT_REF}" ${HYPERSCAN_GIT_SOURCE}
 brew install boost cmake git pkg-config python@3.11 ragel wget gnu-tar
-cd hyperscan
+cd $(basename ${HYPERSCAN_GIT_SOURCE})
 
 export PATH="$(brew --prefix gnu-tar)/bin:$PATH"
 # build and install PCRE (static required for Chimera)
