@@ -14,6 +14,8 @@ jobs:
     name: ${{ matrix.python_id }}-${{ matrix.platform_id }} wheel
     runs-on: ${{ matrix.os }}
     if: github.repository == 'darvid/python-hyperscan'
+    env:
+      PCRE_VERSION: "8.45"
 
     strategy:
       fail-fast: false
@@ -156,6 +158,7 @@ jobs:
       - name: Build and test wheels
         if: steps.cache-dist.outputs.cache-hit != 'true'
         env:
+          PCRE_VERSION: "${{env.PCRE_VERSION}}"
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
         run: bash ./build_tools/wheels/build_wheels.sh
