@@ -1,20 +1,19 @@
 # Hyperscan/Vectorscan for Python
 
-[![Build wheels](https://github.com/darvid/python-hyperscan/actions/workflows/wheels.yml/badge.svg)](https://github.com/darvid/python-hyperscan/actions/workflows/wheels.yml)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hyperscan.svg)
-![PyPI - Wheel](https://img.shields.io/pypi/wheel/hyperscan.svg)
-![PyPI - Status](https://img.shields.io/pypi/status/hyperscan.svg)
-![PyPI - License](https://img.shields.io/pypi/l/hyperscan.svg)
-[![Read the Docs](https://img.shields.io/readthedocs/python-hyperscan.svg)](https://python-hyperscan.readthedocs.io/en/latest/)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/darvid/python-hyperscan/wheels.yml?style=plastic)
+![PyPI - Version](https://img.shields.io/pypi/v/hyperscan?style=plastic)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/hyperscan?style=plastic)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hyperscan.svg?style=plastic)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/hyperscan.svg?style=plastic)
+![PyPI - License](https://img.shields.io/pypi/l/hyperscan.svg?style=plastic)
+[![Read the Docs](https://img.shields.io/readthedocs/python-hyperscan.svg?style=plastic)](https://python-hyperscan.readthedocs.io/en/latest/)
 
 A CPython extension for [Vectorscan][7], an open source fork of
 [Hyperscan][8], Intel's open source ([prior to version 5.4][9]),
-high-performance multiple regex matching library. Currently only
-supports manylinux-compatible Linux distributions.
+high-performance multiple regex matching library.
 
-* ✅ Binary wheels with support for Linux and macOS x86_64 (ARM64 and
-  win32 support is planned)
-* ✅ Statically linked (no need to build Hyperscan)
+* ✅ Binary [manylinux][12]-compatible wheels
+* ✅ Statically linked (no need to build Hyperscan/Vectorscan)
 * ✅ [Chimera][1] support
 
 ## Installation
@@ -47,9 +46,9 @@ See the [documentation][6] for more detailed build instructions.
 
 ## Resources
 
-* [PyPI Project](https://pypi.org/project/hyperscan/)
+* [PyPI Project][13]
 * [Documentation][6]
-* [Hyperscan C API Documentation](http://intel.github.io/hyperscan/dev-reference/)
+* [Hyperscan C API Documentation][14]
 
 [1]: http://intel.github.io/hyperscan/dev-reference/chimera.html
 [2]: http://intel.github.io/hyperscan/dev-reference/runtime.html#stream-compression
@@ -62,3 +61,6 @@ See the [documentation][6] for more detailed build instructions.
 [9]: https://github.com/VectorCamp/vectorscan?tab=readme-ov-file#hyperscan-license-change-after-54
 [10]: https://github.com/darvid/manylinux-hyperscan/
 [11]: https://github.com/VectorCamp/vectorscan?tab=readme-ov-file#configure--build
+[12]: https://github.com/pypa/manylinux
+[13]: https://pypi.org/project/hyperscan/
+[14]: http://intel.github.io/hyperscan/dev-reference/
