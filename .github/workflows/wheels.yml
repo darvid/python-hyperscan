@@ -244,6 +244,7 @@ jobs:
         if: steps.release.outputs.released == 'true'
 
       - name: Prepare dist
+        if: steps.release.outputs.released == 'true'
         run: |
           mkdir dist
           mv ./wheel-*/*.whl dist/
