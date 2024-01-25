@@ -108,6 +108,10 @@ version_variables = [
   "pdm_build.py:__version__",
 ]
 
+[tool.semantic_release.branches.release]
+match = 'release/v?[\\d\\.\\-]+'
+prerelease = false
+
 [tool.semantic_release.commit_parser_options]
 major_tags = [":boom:"]
 minor_tags = [
