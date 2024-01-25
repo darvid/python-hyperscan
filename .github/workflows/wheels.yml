@@ -1,4 +1,4 @@
-name: Build wheels and source distribution
+name: Build
 on:
   push:
     branches:
@@ -214,19 +214,34 @@ jobs:
     name: Publish package
     runs-on: ubuntu-latest
     concurrency: release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.repository == 'darvid/python-hyperscan'
     needs: [build_wheels, build_sdist]
     permissions:
       id-token: write
+      pull-requests: write
       contents: write
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
+
+      - uses: chainguard-dev/actions/setup-gitsign@main
+
+      - name: Check if release needed
+        id: release
+        uses: python-semantic-release/python-semantic-release@v8.7.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          root_options: "-vv --noop"
+          # python-semantic-release displays what it would have
+          # committed if commit is true and noop is set
+          commit: "true"
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
+        if: steps.release.outputs.released == 'true'
 
       - name: Prepare dist
         run: |
@@ -234,20 +249,36 @@ jobs:
           mv ./wheel-*/*.whl dist/
           mv ./sdist/*.tar.gz dist/
 
+      - name: Create release branch
+        if: steps.release.outputs.released == 'true'
+        run: |
+          # use the same default branch name that create-pull-request uses
+          git checkout -b create-pull-request/patch
+          git branch --set-origin-to=origin/create-pull-request/patch
+
       - name: Semantic release
-        id: release
-        uses: python-semantic-release/python-semantic-release@v8.0.0
+        uses: python-semantic-release/python-semantic-release@v8.7.2
+        if: steps.release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          root_options: "-vv"
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v4.0.2
+        if: steps.release.outputs.released == 'true'
+        with:
+          title: "Release ${{ steps.release.outputs.version }}"
+
+      - name: Publish package distributions to GitHub Releases
+        if: steps.release.outputs.released == 'true'
+        uses: python-semantic-release/upload-to-gh-release@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
 
       - name: Publish package distributions to PyPI
         if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-
-      - name: Publish package distributions to GitHub Releases
-        # if: steps.release.outputs.released == 'true'
-        uses: python-semantic-release/upload-to-gh-release@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          verbose: true
