@@ -267,6 +267,8 @@ jobs:
         uses: peter-evans/create-pull-request@v4.0.2
         if: steps.release.outputs.released == 'true'
         with:
+          base: main
+          assignees: ${{ github.repository_owner }}
           title: "Release ${{ steps.release.outputs.version }}"
 
       - name: Publish package distributions to GitHub Releases
