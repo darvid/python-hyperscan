@@ -255,7 +255,6 @@ jobs:
         run: |
           # use the same default branch name that create-pull-request uses
           git checkout -b create-pull-request/patch
-          git branch -u origin/create-pull-request/patch
 
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v8.7.2
