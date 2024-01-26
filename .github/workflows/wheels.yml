@@ -214,7 +214,7 @@ jobs:
     name: Publish package
     runs-on: ubuntu-latest
     concurrency: release
-    if: github.event_name == 'push' && github.repository == 'darvid/python-hyperscan'
+    if: github.repository == 'darvid/python-hyperscan'
     needs: [build_wheels, build_sdist]
     permissions:
       id-token: write
@@ -241,10 +241,10 @@ jobs:
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
-        if: steps.release.outputs.released == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
 
       - name: Prepare dist
-        if: steps.release.outputs.released == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
         run: |
           mkdir dist
           mv ./wheel-*/*.whl dist/
@@ -271,14 +271,14 @@ jobs:
           title: "Release ${{ steps.release.outputs.version }}"
 
       - name: Publish package distributions to GitHub Releases
-        if: steps.release.outputs.released == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
         uses: python-semantic-release/upload-to-gh-release@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
 
       - name: Publish package distributions to PyPI
-        if: steps.release.outputs.released == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
