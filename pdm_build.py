@@ -7,7 +7,7 @@ from distutils.sysconfig import get_python_inc
 
 from setuptools import Extension
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 
 def pdm_build_hook_enabled(context):
