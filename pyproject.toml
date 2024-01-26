@@ -109,7 +109,7 @@ version_variables = [
 ]
 
 [tool.semantic_release.branches.release]
-match = '(main|release/v?[\\d\\.\\-]+)'
+match = '(main|create-pull-request/patch|release/v?[\\d\\.\\-]+)'
 prerelease = false
 
 [tool.semantic_release.commit_parser_options]
