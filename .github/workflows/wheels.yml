@@ -220,6 +220,8 @@ jobs:
       id-token: write
       pull-requests: write
       contents: write
+    env:
+      RELEASE_PR_BRANCH: create-pull-request/patch
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v4
@@ -254,7 +256,8 @@ jobs:
         if: steps.release.outputs.released == 'true'
         run: |
           # use the same default branch name that create-pull-request uses
-          git checkout -b create-pull-request/patch
+          git checkout -b ${RELEASE_PR_BRANCH}
+          git branch --set-upstream-to=${RELEASE_PR_BRANCH}
 
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v8.7.2
