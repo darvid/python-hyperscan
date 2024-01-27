@@ -16,9 +16,6 @@ except ImportError:
     pass
 
 
-__version__ = "0.6.0"
-
-
 def _pkgconfig(args):
     return subprocess.getoutput(f"pkg-config {args}").strip()
 
@@ -40,7 +37,7 @@ def get_platform_specific_options():
     hs_libdir = _pkgconfig_get_libdir("libhs")
     pcre_static_libs = [
         os.path.join(pcre_libdir, "libpcre.a"),
-        *glob.glob(os.path.join(pcre_libdir, '*.o')),
+        *glob.glob(os.path.join(pcre_libdir, "*.o")),
     ]
     ext_kwargs = {
         "extra_objects": pcre_static_libs,
@@ -71,5 +68,4 @@ if __name__ == "__main__":
                 **get_platform_specific_options(),
             )
         ],
-        version=__version__,
     )

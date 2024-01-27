@@ -7,15 +7,13 @@ from distutils.sysconfig import get_python_inc
 
 from setuptools import Extension
 
-__version__ = "0.6.0"
-
 
 def pdm_build_hook_enabled(context):
     return context.target == "wheel"
 
 
 def pdm_build_update_setup_kwargs(context, setup_kwargs):
-    setup_kwargs.update(ext_modules=_get_extension(), version=__version__)
+    setup_kwargs.update(ext_modules=_get_extension())
 
 
 def _get_extension(name="hyperscan._ext", **kwargs):
@@ -50,7 +48,7 @@ def get_platform_specific_options():
     hs_libdir = _pkgconfig_get_libdir("libhs")
     pcre_static_libs = [
         os.path.join(pcre_libdir, "libpcre.a"),
-        *glob.glob(os.path.join(pcre_libdir, '*.o')),
+        *glob.glob(os.path.join(pcre_libdir, "*.o")),
     ]
     ext_kwargs = {
         "extra_objects": pcre_static_libs,
