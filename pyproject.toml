@@ -1,5 +1,5 @@
 [build-system]
-requires = ["pdm-backend", "setuptools>=65", "wheel"]
+requires = ["pdm-backend", "setuptools>=69", "wheel"]
 build-backend = "pdm.backend"
 
 [tool.black]
@@ -87,11 +87,11 @@ test = [
 ]
 release = [
   "python-semantic-release>=8.0.0",
-  "setuptools>=68.0.0",
+  "setuptools>=69.0.0",
   "setuptools-scm>=7.1.0",
 ]
 build = ["cibuildwheel>=2.16.2", "build>=0.10.0"]
-memprofile = ["matplotlib>=3.7.2", "numpy>=1.24.4", "scipy>=1.9.3"]
+memprofile = ["matplotlib>=3.7.2", "numpy>=1.26", "scipy>=1.12"]
 
 [tool.pdm.version]
 source = "file"
@@ -104,8 +104,6 @@ version = { attr = "hyperscan._version.__version__" }
 commit_parser = "emoji"
 version_variables = [
   "src/hyperscan/_version.py:__version__",
-  "setup.py:__version__",
-  "pdm_build.py:__version__",
 ]
 
 [tool.semantic_release.branches.release]
@@ -147,7 +145,7 @@ name = "hyperscan"
 dynamic = ["version"]
 description = "Python bindings for Hyperscan."
 authors = [{ name = "David Gidwani", email = "david.gidwani@gmail.com" }]
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.9,<4.0"
 license = { text = "MIT" }
 keywords = ["regex", "hypercan"]
 classifiers = [
