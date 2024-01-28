@@ -49,6 +49,33 @@ jobs:
             python_id: pp310
             platform_id: manylinux_x86_64
 
+          # Linux aarch64 manylinux2014
+          - os: ubuntu-latest
+            python: "3.9"
+            python_id: cp39
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: "3.10"
+            python_id: cp310
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: "3.11"
+            python_id: cp311
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: "3.12"
+            python_id: cp312
+            platform_id: manylinux_aarch64
+
+          - os: ubuntu-latest
+            python: "3.9"
+            python_id: pp39
+            platform_id: manylinux_x86_64
+          - os: ubuntu-latest
+            python: "3.10"
+            python_id: pp310
+            platform_id: manylinux_x86_64
+
           # Linux 64 bit musllinux
           - os: ubuntu-latest
             python: "3.9"
@@ -66,6 +93,24 @@ jobs:
             python: "3.12"
             python_id: cp312
             platform_id: musllinux_x86_64
+
+          # Linux aarch64 musllinux
+          - os: ubuntu-latest
+            python: "3.9"
+            python_id: cp39
+            platform_id: musllinux_aarch64
+          - os: ubuntu-latest
+            python: "3.10"
+            python_id: cp310
+            platform_id: musllinux_aarch64
+          - os: ubuntu-latest
+            python: "3.11"
+            python_id: cp311
+            platform_id: musllinux_aarch64
+          - os: ubuntu-latest
+            python: "3.12"
+            python_id: cp312
+            platform_id: musllinux_aarch64
 
           # MacOS x86_64
           - os: macos-latest
