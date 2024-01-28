@@ -24,11 +24,7 @@ jobs:
           # TODO: Windows support
           # Linux 64 bit manylinux2014
           - os: ubuntu-latest
-            python: 3.8
-            python_id: cp38
-            platform_id: manylinux_x86_64
-          - os: ubuntu-latest
-            python: 3.9
+            python: "3.9"
             python_id: cp39
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
@@ -45,11 +41,7 @@ jobs:
             platform_id: manylinux_x86_64
 
           - os: ubuntu-latest
-            python: 3.8
-            python_id: pp38
-            platform_id: manylinux_x86_64
-          - os: ubuntu-latest
-            python: 3.9
+            python: "3.9"
             python_id: pp39
             platform_id: manylinux_x86_64
           - os: ubuntu-latest
@@ -59,11 +51,7 @@ jobs:
 
           # Linux 64 bit musllinux
           - os: ubuntu-latest
-            python: 3.8
-            python_id: cp38
-            platform_id: musllinux_x86_64
-          - os: ubuntu-latest
-            python: 3.9
+            python: "3.9"
             python_id: cp39
             platform_id: musllinux_x86_64
           - os: ubuntu-latest
@@ -81,11 +69,7 @@ jobs:
 
           # MacOS x86_64
           - os: macos-latest
-            python: 3.8
-            python_id: cp38
-            platform_id: macosx_x86_64
-          - os: macos-latest
-            python: 3.9
+            python: "3.9"
             python_id: cp39
             platform_id: macosx_x86_64
           - os: macos-latest
