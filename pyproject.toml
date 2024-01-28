@@ -36,11 +36,13 @@ build-frontend = "build"
 test-command = "bash {project}/build_tools/wheels/test_wheels.sh {project}"
 before-test = "bash {project}/build_tools/wheels/before_test.sh"
 # Will avoid testing on emulated architectures and macOS Apple silicon
-test-skip = "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64"
+test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
 
-manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-08-5c754d0"
-manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-08-5c754d0"
-musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2024-01-08-5c754d0"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-27-1e3cb40"
+manylinux-aarch64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-27-1e3cb40"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-27-1e3cb40"
+musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2024-01-27-1e3cb40"
+musllinux-aarch64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2024-01-27-1e3cb40"
 
 # repair-wheel-command = [
 #   'pip install auditwheel-symbols',
