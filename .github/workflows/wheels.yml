@@ -113,19 +113,19 @@ jobs:
             platform_id: musllinux_aarch64
 
           # MacOS x86_64
-          - os: macos-latest
+          - os: macos-latest-xlarge
             python: "3.9"
             python_id: cp39
             platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-latest-xlarge
             python: "3.10"
             python_id: cp310
             platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-latest-xlarge
             python: "3.11"
             python_id: cp311
             platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-latest-xlarge
             python: "3.12"
             python_id: cp312
             platform_id: macosx_x86_64
@@ -160,7 +160,7 @@ jobs:
 
       - name: Restore build dependencies cache (macOS)
         id: build-deps-macos
-        if: matrix.os == 'macos-latest' && steps.cache-dist.outputs.cache-hit != 'true'
+        if: matrix.os == 'macos-latest-xlarge' && steps.cache-dist.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           key: build-deps-${{ runner.os }}-${{ matrix.platform_id }}
@@ -169,14 +169,14 @@ jobs:
             /opt/pcre
 
       - name: Build Hyperscan (macOS)
-        if: matrix.os == 'macos-latest' && steps.cache-dist.outputs.cache-hit != 'true'
+        if: matrix.os == 'macos-latest-xlarge' && steps.cache-dist.outputs.cache-hit != 'true'
         run: |
           ./build_tools/macos/build_hyperscan.sh
         env:
           HYPERSCAN_VERSION: "v5.4.2"
 
       - name: Upload build dependencies (macOS)
-        if: matrix.os == 'macos-latest' && steps.build-deps-macos.outputs.cache-hit != 'true'
+        if: matrix.os == 'macos-latest-xlarge' && steps.build-deps-macos.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.build-deps-macos.outputs.cache-primary-key }}
@@ -188,6 +188,8 @@ jobs:
         if: steps.cache-dist.outputs.cache-hit != 'true'
         env:
           PCRE_VERSION: "${{env.PCRE_VERSION}}"
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
         run: bash ./build_tools/wheels/build_wheels.sh
