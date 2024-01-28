@@ -22,113 +22,135 @@ jobs:
       matrix:
         include:
           # TODO: Windows support
-          # Linux 64 bit manylinux2014
-          - os: ubuntu-latest
+          # 🐧 manylinux2014 x86_64
+          - os: ubuntu-22.04
             python: "3.9"
             python_id: cp39
             platform_id: manylinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.10"
             python_id: cp310
             platform_id: manylinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.11"
             python_id: cp311
             platform_id: manylinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.12"
             python_id: cp312
             platform_id: manylinux_x86_64
 
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.9"
             python_id: pp39
             platform_id: manylinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.10"
             python_id: pp310
             platform_id: manylinux_x86_64
 
-          # Linux aarch64 manylinux2014
-          - os: ubuntu-latest
+          # 🐧 manylinux2014 aarch64
+          - os: ubuntu-22.04
             python: "3.9"
             python_id: cp39
             platform_id: manylinux_aarch64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.10"
             python_id: cp310
             platform_id: manylinux_aarch64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.11"
             python_id: cp311
             platform_id: manylinux_aarch64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.12"
             python_id: cp312
             platform_id: manylinux_aarch64
 
-          - os: ubuntu-latest
+          # 🐧 manylinux2014 PyPy
+          - os: ubuntu-22.04
             python: "3.9"
             python_id: pp39
             platform_id: manylinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.10"
             python_id: pp310
             platform_id: manylinux_x86_64
 
-          # Linux 64 bit musllinux
-          - os: ubuntu-latest
+          # 🦀 musllinux x86_64
+          - os: ubuntu-22.04
             python: "3.9"
             python_id: cp39
             platform_id: musllinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.10"
             python_id: cp310
             platform_id: musllinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.11"
             python_id: cp311
             platform_id: musllinux_x86_64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.12"
             python_id: cp312
             platform_id: musllinux_x86_64
 
-          # Linux aarch64 musllinux
-          - os: ubuntu-latest
+          # 🦀 musllinux ARM
+          - os: ubuntu-22.04
             python: "3.9"
             python_id: cp39
             platform_id: musllinux_aarch64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.10"
             python_id: cp310
             platform_id: musllinux_aarch64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.11"
             python_id: cp311
             platform_id: musllinux_aarch64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: "3.12"
             python_id: cp312
             platform_id: musllinux_aarch64
 
-          # MacOS x86_64
-          - os: macos-latest-xlarge
+          # 🍎 macOS x86_64
+          - os: macos-12-xl
             python: "3.9"
             python_id: cp39
-            platform_id: macosx_*
-          - os: macos-latest-xlarge
+            platform_id: macosx_x86_64
+          - os: macos-12-xl
             python: "3.10"
             python_id: cp310
-            platform_id: macosx_*
-          - os: macos-latest-xlarge
+            platform_id: macosx_x86_64
+          - os: macos-12-xl
             python: "3.11"
             python_id: cp311
-            platform_id: macosx_*
-          - os: macos-latest-xlarge
+            platform_id: macosx_x86_64
+          - os: macos-12-xl
             python: "3.12"
             python_id: cp312
-            platform_id: macosx_*
+            platform_id: macosx_x86_64
+
+          # 🍎 macOS arm64 (Apple silicon)
+          # see https://github.com/actions/runner-images/blob/main/README.md
+
+          # XXX: ☠️ https://github.com/actions/setup-python/issues/696
+          # - os: macos-13-xl
+          #   python: "3.9"
+          #   python_id: cp39
+          #   platform_id: macosx_arm64
+          - os: macos-13-xl
+            python: "3.10"
+            python_id: cp310
+            platform_id: macosx_arm64
+          - os: macos-13-xl
+            python: "3.11"
+            python_id: cp311
+            platform_id: macosx_arm64
+          - os: macos-13-xl
+            python: "3.12"
+            python_id: cp312
+            platform_id: macosx_arm64
 
     steps:
       - name: Checkout python-hyperscan
@@ -160,7 +182,7 @@ jobs:
 
       - name: Restore build dependencies cache (macOS)
         id: build-deps-macos
-        if: matrix.os == 'macos-latest-xlarge' && steps.cache-dist.outputs.cache-hit != 'true'
+        if: startsWith(matrix.platform_id, 'macos') && steps.cache-dist.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           key: build-deps-${{ runner.os }}-${{ matrix.platform_id }}
@@ -169,14 +191,14 @@ jobs:
             /opt/pcre
 
       - name: Build Hyperscan (macOS)
-        if: matrix.os == 'macos-latest-xlarge' && steps.cache-dist.outputs.cache-hit != 'true'
+        if: startsWith(matrix.platform_id, 'macos') && steps.cache-dist.outputs.cache-hit != 'true'
         run: |
           ./build_tools/macos/build_hyperscan.sh
         env:
           HYPERSCAN_VERSION: "v5.4.2"
 
       - name: Upload build dependencies (macOS)
-        if: matrix.os == 'macos-latest-xlarge' && steps.build-deps-macos.outputs.cache-hit != 'true'
+        if: startsWith(matrix.platform_id, 'macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.build-deps-macos.outputs.cache-primary-key }}
@@ -188,7 +210,7 @@ jobs:
         if: steps.cache-dist.outputs.cache-hit != 'true'
         env:
           PCRE_VERSION: "${{env.PCRE_VERSION}}"
-          CIBW_ARCHS_MACOS: "${{ matrix.python_id == 'cp39' && 'x86_64 arm64' || 'x86_64' }}"
+          CIBW_ARCHS_MACOS: "${{ matrix.platform_id == 'macosx_arm64' && 'arm64' || 'x86_64' }}"
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
@@ -204,6 +226,7 @@ jobs:
 
       - name: Upload wheels to artifacts
         uses: actions/upload-artifact@v4
+        if: steps.cache-dist.outputs.cache-hit != 'true'
         with:
           name: wheel-${{ matrix.python_id }}-${{ matrix.platform_id }}
           path: |
@@ -211,7 +234,7 @@ jobs:
 
   build_sdist:
     name: Source distribution
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v4
@@ -243,7 +266,7 @@ jobs:
 
   release:
     name: Publish package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     concurrency: release
     if: github.repository == 'darvid/python-hyperscan'
     needs: [build_wheels, build_sdist]
