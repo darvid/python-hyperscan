@@ -87,11 +87,11 @@ jobs:
 
     steps:
       - name: Checkout python-hyperscan
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pdm-project/setup-pdm@v3
+      - uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python }}
           cache: true
@@ -171,7 +171,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pdm-project/setup-pdm@v3
+      - uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.11"
           cache: true
