@@ -1,5 +1,5 @@
 [build-system]
-requires = ["pdm-backend", "setuptools>=69", "wheel"]
+requires = ["pdm-backend", "setuptools>=68", "wheel"]
 build-backend = "pdm.backend"
 
 [tool.black]
@@ -89,7 +89,7 @@ test = [
 ]
 release = [
   "python-semantic-release>=8.0.0",
-  "setuptools>=69.0.0",
+  "setuptools>=68",
   "setuptools-scm>=7.1.0",
 ]
 build = ["cibuildwheel>=2.16.2", "build>=0.10.0"]
