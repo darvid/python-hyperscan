@@ -116,19 +116,19 @@ jobs:
           - os: macos-latest-xlarge
             python: "3.9"
             python_id: cp39
-            platform_id: macosx_x86_64
+            platform_id: macosx_*
           - os: macos-latest-xlarge
             python: "3.10"
             python_id: cp310
-            platform_id: macosx_x86_64
+            platform_id: macosx_*
           - os: macos-latest-xlarge
             python: "3.11"
             python_id: cp311
-            platform_id: macosx_x86_64
+            platform_id: macosx_*
           - os: macos-latest-xlarge
             python: "3.12"
             python_id: cp312
-            platform_id: macosx_x86_64
+            platform_id: macosx_*
 
     steps:
       - name: Checkout python-hyperscan
@@ -188,7 +188,7 @@ jobs:
         if: steps.cache-dist.outputs.cache-hit != 'true'
         env:
           PCRE_VERSION: "${{env.PCRE_VERSION}}"
-          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_MACOS: "${{ matrix.python_id == 'cp39' && 'x86_64 arm64' || 'x86_64' }}"
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
