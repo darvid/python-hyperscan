@@ -171,6 +171,11 @@ jobs:
           path: |
             wheelhouse/*.whl
 
+      - name: Setup macOS environment
+        if: startsWith(matrix.platform_id, 'macos')
+        run: |
+          sudo mkdir -p /opt/vectorscan /opt/pcre
+
       - name: Restore build dependencies cache (macOS)
         id: build-deps-macos
         if: startsWith(matrix.platform_id, 'macos')
@@ -178,15 +183,13 @@ jobs:
         with:
           key: build-deps-${{ runner.os }}-${{ matrix.platform_id }}
           path: |
-            /opt/hyperscan
+            /opt/vectorscan
             /opt/pcre
 
       - name: Build Hyperscan (macOS)
-        if: startsWith(matrix.platform_id, 'macos') && steps.cache-dist.outputs.cache-hit != 'true'
+        if: startsWith(matrix.platform_id, 'macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
         run: |
           ./build_tools/macos/build_hyperscan.sh
-        env:
-          HYPERSCAN_VERSION: "v5.4.2"
 
       - name: Upload build dependencies (macOS)
         if: startsWith(matrix.platform_id, 'macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
@@ -194,7 +197,7 @@ jobs:
         with:
           key: ${{ steps.build-deps-macos.outputs.cache-primary-key }}
           path: |
-            /opt/hyperscan
+            /opt/vectorscan
             /opt/pcre
 
       - name: Build and test wheels
