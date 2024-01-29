@@ -173,7 +173,7 @@ jobs:
 
       - name: Restore build dependencies cache (macOS)
         id: build-deps-macos
-        if: startsWith(matrix.platform_id, 'macos') && steps.cache-dist.outputs.cache-hit != 'true'
+        if: startsWith(matrix.platform_id, 'macos')
         uses: actions/cache/restore@v4
         with:
           key: build-deps-${{ runner.os }}-${{ matrix.platform_id }}
