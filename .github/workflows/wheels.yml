@@ -40,6 +40,7 @@ jobs:
             python_id: cp312
             platform_id: manylinux_x86_64
 
+          # 🐧 manylinux2014 PyPy
           - os: ubuntu-22.04
             python: "3.9"
             python_id: pp39
@@ -67,15 +68,15 @@ jobs:
             python_id: cp312
             platform_id: manylinux_aarch64
 
-          # 🐧 manylinux2014 PyPy
+          # 🦀 musllinux x86_64 pypy
           - os: ubuntu-22.04
             python: "3.9"
             python_id: pp39
-            platform_id: manylinux_x86_64
+            platform_id: musllinux_x86_64
           - os: ubuntu-22.04
             python: "3.10"
             python_id: pp310
-            platform_id: manylinux_x86_64
+            platform_id: musllinux_x86_64
 
           # 🦀 musllinux x86_64
           - os: ubuntu-22.04
