@@ -70,7 +70,7 @@ jobs:
       matrix:
         include:
           # TODO: Windows support
-          # 🐧 manylinux2014 x86_64
+          # 🐧 manylinux x86_64
           - os: ubuntu-22.04
             python: "3.9"
             python_id: cp39
@@ -88,7 +88,25 @@ jobs:
             python_id: cp312
             platform_id: manylinux_x86_64
 
-          # 🐧 manylinux2014 PyPy
+          # 🐧 manylinux aarch64
+          - os: ubicloud-standard-2-arm
+            python: "3.9"
+            python_id: cp39
+            platform_id: manylinux_aarch64
+          - os: ubicloud-standard-2-arm
+            python: "3.10"
+            python_id: cp310
+            platform_id: manylinux_aarch64
+          - os: ubicloud-standard-2-arm
+            python: "3.11"
+            python_id: cp311
+            platform_id: manylinux_aarch64
+          - os: ubicloud-standard-2-arm
+            python: "3.12"
+            python_id: cp312
+            platform_id: manylinux_aarch64
+
+          # 🐧 manylinux2014 PyPy x86_64
           - os: ubuntu-22.04
             python: "3.9"
             python_id: pp39
@@ -98,22 +116,14 @@ jobs:
             python_id: pp310
             platform_id: manylinux_x86_64
 
-          # 🐧 manylinux2014 aarch64
-          - os: ubuntu-22.04
+          # 🐧 manylinux2014 PyPy ARM
+          - os: ubicloud-standard-2-arm
             python: "3.9"
-            python_id: cp39
+            python_id: pp39
             platform_id: manylinux_aarch64
-          - os: ubuntu-22.04
+          - os: ubicloud-standard-2-arm
             python: "3.10"
-            python_id: cp310
-            platform_id: manylinux_aarch64
-          - os: ubuntu-22.04
-            python: "3.11"
-            python_id: cp311
-            platform_id: manylinux_aarch64
-          - os: ubuntu-22.04
-            python: "3.12"
-            python_id: cp312
+            python_id: pp310
             platform_id: manylinux_aarch64
 
           # 🦀 musllinux x86_64
@@ -135,19 +145,19 @@ jobs:
             platform_id: musllinux_x86_64
 
           # 🦀 musllinux ARM
-          - os: ubuntu-22.04
+          - os: ubicloud-standard-2-arm
             python: "3.9"
             python_id: cp39
             platform_id: musllinux_aarch64
-          - os: ubuntu-22.04
+          - os: ubicloud-standard-2-arm
             python: "3.10"
             python_id: cp310
             platform_id: musllinux_aarch64
-          - os: ubuntu-22.04
+          - os: ubicloud-standard-2-arm
             python: "3.11"
             python_id: cp311
             platform_id: musllinux_aarch64
-          - os: ubuntu-22.04
+          - os: ubicloud-standard-2-arm
             python: "3.12"
             python_id: cp312
             platform_id: musllinux_aarch64
@@ -197,10 +207,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pdm-project/setup-pdm@v4
+      # XXX: ☠️ https://github.com/actions/setup-python/issues/108
+      - if: ${{ !endsWith(matrix.os, '-arm') }}
+        uses: pdm-project/setup-pdm@v4
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "${{ matrix.python }}"
           cache: true
+
+      # XXX: deadsnakes does not provide Python 3.10 for ubuntu 20.04 (jammy)
+      # as it's already the default upstream version; so we only need to use
+      # it for other versions, and only on ARM.
+      - if: ${{ endsWith(matrix.os, '-arm') && !endsWith(matrix.python_id, '310') }}
+        uses: deadsnakes/action@v3.1.0
+        with:
+          python-version: "${{ matrix.python }}"
+
+      - if: ${{ endsWith(matrix.os, '-arm') }}
+        name: Install PDM
+        run: |
+          curl -sSL https://pdm-project.org/install-pdm.py | python3 -
 
       - name: Install Python deps
         run: |
