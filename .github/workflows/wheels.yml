@@ -16,6 +16,8 @@ jobs:
     env:
       PCRE_VERSION: "8.45"
 
+    outputs:
+      build-deps-cache-key: ${{ steps.build-deps-cache-key.outputs.value }}
     strategy:
       fail-fast: true
       matrix:
@@ -56,6 +58,11 @@ jobs:
           path: |
             /opt/vectorscan
             /opt/pcre
+
+      - name: Capture build dependencies cache key
+        id: build-deps-cache-key
+        run: |
+          echo "value=${{ startsWith(matrix.os, 'macos') && steps.build-deps-macos.outputs.cache-primary-key || '' }}" >> $GITHUB_OUTPUT
 
   build_wheels:
     name: ${{ matrix.python_id }}-${{ matrix.platform_id }} wheel
@@ -211,7 +218,7 @@ jobs:
       - if: ${{ !endsWith(matrix.os, '-arm') }}
         uses: pdm-project/setup-pdm@v4
         with:
-          python-version: "${{ matrix.python }}"
+          python-version: ${{ matrix.python }}
           cache: true
 
       # XXX: deadsnakes does not provide Python 3.10 for ubuntu 20.04 (jammy)
@@ -220,7 +227,7 @@ jobs:
       - if: ${{ endsWith(matrix.os, '-arm') && !endsWith(matrix.python_id, '310') }}
         uses: deadsnakes/action@v3.1.0
         with:
-          python-version: "${{ matrix.python }}"
+          python-version: ${{ matrix.python }}
 
       - if: ${{ endsWith(matrix.os, '-arm') }}
         name: Install PDM
@@ -236,6 +243,23 @@ jobs:
         run: |
           echo "version=$(pdm run semantic-release version --no-commit 2>/dev/null)" >> "$GITHUB_OUTPUT"
 
+      - name: Setup macOS environment
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          gid=$(id -g)
+          uid=$(id -u)
+          sudo mkdir -p /opt/vectorscan /opt/pcre
+          sudo chown -R $uid:$gid /opt/vectorscan /opt/pcre
+
+      - name: Restore build dependencies cache
+        if: startsWith(matrix.os, 'macos')
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ needs.build_environment.outputs.build-deps-cache-key }}
+          path: |
+            /opt/vectorscan
+            /opt/pcre
+
       - name: Restore build artifacts cache
         id: cache-wheels
         uses: actions/cache/restore@v4
@@ -247,8 +271,8 @@ jobs:
       - name: Build and test wheels
         if: steps.cache-wheels.outputs.cache-hit != 'true'
         env:
-          PCRE_VERSION: "${{env.PCRE_VERSION}}"
-          CIBW_ARCHS_MACOS: "${{ matrix.platform_id == 'macosx_arm64' && 'arm64' || 'x86_64' }}"
+          PCRE_VERSION: ${{env.PCRE_VERSION}}
+          CIBW_ARCHS_MACOS: ${{ matrix.platform_id == 'macosx_arm64' && 'arm64' || 'x86_64' }}
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: 1
