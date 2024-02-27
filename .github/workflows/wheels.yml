@@ -21,14 +21,14 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, macos-12-xl, macos-13-xl]
+        os: [ubuntu-22.04, macos-12-xl, flyci-macos-large-latest-m1]
 
     steps:
       - name: Checkout python-hyperscan
         uses: actions/checkout@v4
 
       - name: Setup macOS environment
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'flyci-macos')
         run: |
           gid=$(id -g)
           uid=$(id -u)
@@ -37,7 +37,7 @@ jobs:
 
       - name: Restore build dependencies cache (macOS)
         id: build-deps-macos
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'flyci-macos')
         uses: actions/cache/restore@v4
         with:
           key: build-deps-${{ runner.os }}-${{ matrix.os }}
@@ -46,12 +46,12 @@ jobs:
             /opt/pcre
 
       - name: Build Hyperscan (macOS)
-        if: startsWith(matrix.os, 'macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
+        if: startsWith(matrix.os, 'flyci-macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
         run: |
           ./build_tools/macos/build_hyperscan.sh
 
       - name: Upload build dependencies (macOS)
-        if: startsWith(matrix.os, 'macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
+        if: startsWith(matrix.os, 'flyci-macos') && steps.build-deps-macos.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.build-deps-macos.outputs.cache-primary-key }}
@@ -62,7 +62,7 @@ jobs:
       - name: Capture build dependencies cache key
         id: build-deps-cache-key
         run: |
-          echo "value=${{ startsWith(matrix.os, 'macos') && steps.build-deps-macos.outputs.cache-primary-key || '' }}" >> $GITHUB_OUTPUT
+          echo "value=${{ startsWith(matrix.os, 'flyci-macos') && steps.build-deps-macos.outputs.cache-primary-key || '' }}" >> $GITHUB_OUTPUT
 
   build_wheels:
     name: ${{ matrix.python_id }}-${{ matrix.platform_id }} wheel
@@ -188,22 +188,20 @@ jobs:
             platform_id: macosx_x86_64
 
           # 🍎 macOS arm64 (Apple silicon)
-          # see https://github.com/actions/runner-images/blob/main/README.md
-
           # XXX: ☠️ https://github.com/actions/setup-python/issues/696
-          # - os: macos-13-xl
+          # - os: flyci-macos-large-latest-m1
           #   python: "3.9"
           #   python_id: cp39
           #   platform_id: macosx_arm64
-          - os: macos-13-xl
+          - os: flyci-macos-large-latest-m1
             python: "3.10"
             python_id: cp310
             platform_id: macosx_arm64
-          - os: macos-13-xl
+          - os: flyci-macos-large-latest-m1
             python: "3.11"
             python_id: cp311
             platform_id: macosx_arm64
-          - os: macos-13-xl
+          - os: flyci-macos-large-latest-m1
             python: "3.12"
             python_id: cp312
             platform_id: macosx_arm64
@@ -244,7 +242,7 @@ jobs:
           echo "version=$(pdm run semantic-release version --no-commit 2>/dev/null)" >> "$GITHUB_OUTPUT"
 
       - name: Setup macOS environment
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'flyci-macos')
         run: |
           gid=$(id -g)
           uid=$(id -u)
@@ -252,7 +250,7 @@ jobs:
           sudo chown -R $uid:$gid /opt/vectorscan /opt/pcre
 
       - name: Restore build dependencies cache
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'flyci-macos')
         uses: actions/cache/restore@v4
         with:
           key: ${{ needs.build_environment.outputs.build-deps-cache-key }}
