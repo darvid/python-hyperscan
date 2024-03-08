@@ -19,12 +19,20 @@ jobs:
     env:
       PCRE_VERSION: "8.45"
 
-    outputs:
-      build-deps-cache-key: ${{ steps.build-deps-cache-key.outputs.value }}
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, macos-12-xl, flyci-macos-large-latest-m1]
+        include:
+          - os: ubuntu-22.04
+            platform_id: manylinux_x86_64
+          - os: ubuntu-22.04
+            platform_id: musllinux_x86_64
+          - os: ubicloud-standard-2-arm
+            platform_id: manylinux_aarch64
+          - os: macos-12-xl
+            platform_id: macosx_x86_64
+          - os: flyci-macos-large-latest-m1
+            platform_id: macosx_arm64
 
     steps:
       - name: Checkout python-hyperscan
@@ -43,7 +51,7 @@ jobs:
         if: contains(matrix.os, 'macos')
         uses: actions/cache/restore@v4
         with:
-          key: build-deps-${{ runner.os }}-${{ matrix.os }}
+          key: build-deps-${{ matrix.os }}-${{ matrix.platform_id }}
           path: |
             /opt/vectorscan
             /opt/pcre
@@ -61,11 +69,6 @@ jobs:
           path: |
             /opt/vectorscan
             /opt/pcre
-
-      - name: Capture build dependencies cache key
-        id: build-deps-cache-key
-        run: |
-          echo "value=${{ contains(matrix.os, 'macos') && steps.build-deps-macos.outputs.cache-primary-key || '' }}" >> $GITHUB_OUTPUT
 
   build_wheels:
     name: ${{ matrix.python_id }}-${{ matrix.platform_id }} wheel
@@ -256,7 +259,7 @@ jobs:
         if: contains(matrix.os, 'macos')
         uses: actions/cache/restore@v4
         with:
-          key: ${{ needs.build_environment.outputs.build-deps-cache-key }}
+          key: build-deps-${{ matrix.os }}-${{ matrix.platform_id }}
           path: |
             /opt/vectorscan
             /opt/pcre
