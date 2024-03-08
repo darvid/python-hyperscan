@@ -1,0 +1,58 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  build:
+    uses: ./.github/workflows/wheels.yml
+
+  release:
+    name: Publish package
+    runs-on: ubuntu-22.04
+    concurrency: release
+    if: github.repository == 'darvid/python-hyperscan'
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: write
+    env:
+      RELEASE_PR_BRANCH: create-pull-request/patch
+    steps:
+      - name: Checkout python-hyperscan
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: chainguard-dev/actions/setup-gitsign@main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+
+      - name: Prepare dist
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          mkdir dist
+          mv --backup=numbered ./wheel-*/*.whl -t dist/
+          mv --backup=numbered ./sdist/*.tar.gz -t dist/
+          ls -ahl dist/
+          rm -rf dist/*~
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: npx semantic-release

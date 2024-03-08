@@ -1,3 +1,6 @@
+pnpm-lock.yaml
+node_modules/
+
 .envrc
 
 *.whl
