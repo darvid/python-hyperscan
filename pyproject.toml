@@ -105,17 +105,14 @@ memprofile = [
     "scipy>=1.12.0",
 ]
 
-[tool.pdm.version]
-source = "file"
-path = "src/hyperscan/_version.py"
-
-[tool.setuptools.dynamic]
-version = { attr = "hyperscan._version.__version__" }
-
 [tool.semantic_release]
 commit_parser = "emoji"
+tag_format = "v{version}"
 version_variables = [
   "src/hyperscan/_version.py:__version__",
+]
+version_toml = [
+  "pyproject.toml:project.version",
 ]
 
 [tool.semantic_release.branches.release]
@@ -154,7 +151,7 @@ dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 
 [project]
 name = "hyperscan"
-dynamic = ["version"]
+version = "0.7.0"
 description = "Python bindings for Hyperscan."
 authors = [{ name = "David Gidwani", email = "david.gidwani@gmail.com" }]
 requires-python = ">=3.9,<4.0"
