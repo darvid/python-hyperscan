@@ -16,10 +16,9 @@ jobs:
     concurrency: release
     if: github.repository == 'darvid/python-hyperscan'
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
       id-token: write
+      pull-requests: write
+      contents: write
     env:
       RELEASE_PR_BRANCH: create-pull-request/patch
     steps:
@@ -31,20 +30,22 @@ jobs:
 
       - uses: chainguard-dev/actions/setup-gitsign@main
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Check if release needed
+        id: release
+        uses: python-semantic-release/python-semantic-release@v8.7.2
         with:
-          node-version: "lts/*"
-
-      - name: Install semantic-release dependencies
-        run: npm clean-install
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          root_options: "-vv --noop"
+          # python-semantic-release displays what it would have
+          # committed if commit is true and noop is set
+          commit: "true"
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
 
       - name: Prepare dist
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
         run: |
           mkdir dist
           mv --backup=numbered ./wheel-*/*.whl -t dist/
@@ -52,13 +53,38 @@ jobs:
           ls -ahl dist/
           rm -rf dist/*~
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.12
+      - name: Create release branch
+        if: steps.release.outputs.released == 'true'
+        run: |
+          # use the same default branch name that create-pull-request uses
+          git checkout -b ${RELEASE_PR_BRANCH}
+          git branch --set-upstream-to=${RELEASE_PR_BRANCH}
 
-      - name: Release
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: npx semantic-release
+      - name: Semantic release
+        uses: python-semantic-release/python-semantic-release@v8.7.2
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          root_options: "-vv"
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v4.0.2
+        if: steps.release.outputs.released == 'true'
+        with:
+          base: main
+          assignees: ${{ github.repository_owner }}
+          title: "Release ${{ steps.release.outputs.version }}"
+
+      - name: Publish package distributions to GitHub Releases
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
+        uses: python-semantic-release/upload-to-gh-release@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
+
+      - name: Publish package distributions to PyPI
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
