@@ -245,6 +245,7 @@ jobs:
       - name: Increment version
         id: semantic-version
         run: |
+          pdm run semantic-release --noop -v version --patch --no-commit
           version=$(pdm run semantic-release version --patch --no-commit 2>/dev/null)
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
