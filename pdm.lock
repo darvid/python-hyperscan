@@ -5,7 +5,7 @@
 groups = ["default", "dev", "lint", "test", "build", "memprofile"]
 strategy = ["cross_platform", "static_urls"]
 lock_version = "4.4.1"
-content_hash = "sha256:21498548560ed3de72ed97d655215991d231d9a13009c27a61291368c5940852"
+content_hash = "sha256:c70999367436413af5ac2eacf3aca2484f6343bac9b93bb058ef44d4113abd7a"
 
 [[package]]
 name = "asttokens"

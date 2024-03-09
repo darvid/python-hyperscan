@@ -242,12 +242,15 @@ jobs:
         run: |
           pdm install -G build -G release --no-self --no-lock -v
 
-      - name: Increment version
+      - name: Increment version if releasing
         id: semantic-version
         run: |
-          pdm run semantic-release --noop -v version --patch --no-commit
-          version=$(pdm run semantic-release version --patch --no-commit 2>/dev/null)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          current_version=$(grep '^version =' pyproject.toml | head -1 | cut -d '"' -f 2)
+          next_version=$(pdm run semantic-release version --patch --print 2>/dev/null)
+          echo "version=$next_version" >> "$GITHUB_OUTPUT"
+          if [ $next_version != $current_version ]; then
+            pdm run semantic-release version --patch --skip-build --no-commit --no-tag --no-vcs-release --no-changelog
+          fi
 
       - name: Setup macOS environment
         if: contains(matrix.os, 'macos')
