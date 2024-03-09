@@ -34,8 +34,9 @@ jobs:
         id: release
         uses: python-semantic-release/python-semantic-release@v8.7.2
         with:
+          force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          root_options: "-vv --noop"
+          root_options: "-v --noop"
           # python-semantic-release displays what it would have
           # committed if commit is true and noop is set
           commit: "true"
@@ -64,8 +65,9 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v8.7.2
         if: steps.release.outputs.released == 'true'
         with:
+          force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          root_options: "-vv"
+          root_options: "-v"
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v4.0.2
