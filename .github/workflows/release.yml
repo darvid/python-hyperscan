@@ -8,12 +8,14 @@ permissions:
   contents: read
 jobs:
   build:
+    name: Build source distribution and wheels
     uses: ./.github/workflows/wheels.yml
 
   release:
     name: Publish package
     runs-on: ubuntu-22.04
     concurrency: release
+    needs: build
     if: github.repository == 'darvid/python-hyperscan'
     permissions:
       id-token: write
