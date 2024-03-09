@@ -240,7 +240,7 @@ jobs:
 
       - name: Install Python deps
         run: |
-          pdm install -G build -G release --no-self --no-lock -v
+          pdm install -G build -G release --no-self --frozen-lockfile -v
 
       - name: Increment version if releasing
         id: semantic-version
