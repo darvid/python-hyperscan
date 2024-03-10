@@ -244,6 +244,7 @@ jobs:
 
       - name: Increment version if releasing
         id: semantic-version
+        if: github.event_name != 'workflow_call'
         run: |
           current_version=$(grep '^version =' pyproject.toml | head -1 | cut -d '"' -f 2)
           next_version=$(pdm run semantic-release version --patch --print 2>/dev/null)
