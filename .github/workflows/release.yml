@@ -9,6 +9,7 @@ permissions:
 jobs:
   build:
     name: Build source distribution and wheels
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
     uses: ./.github/workflows/wheels.yml
 
   release:
@@ -16,7 +17,7 @@ jobs:
     runs-on: ubuntu-22.04
     concurrency: release
     needs: build
-    if: github.repository == 'darvid/python-hyperscan'
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
     permissions:
       id-token: write
       pull-requests: write
@@ -75,7 +76,7 @@ jobs:
         if: steps.release.outputs.released == 'true'
         run: |
           gh pr create -B main -H $RELEASE_PR_BRANCH \
-            --title 'Merge $RELEASE_PR_BRANCH into main' \
+            --title "$PR_TITLE" \
             --body '🤖'
         env:
           PR_TITLE: "Release ${{ steps.release.outputs.version }}"

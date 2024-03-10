@@ -9,11 +9,12 @@ on:
 
 jobs:
   build:
-    name: Build source distribution and wheels
+    name: 🧱 Build source distribution and wheels
     uses: ./.github/workflows/wheels.yml
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
 
   publish:
+    name: 📦 Publish to GitHub Releases and PyPI
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
     concurrency: publish
@@ -29,14 +30,12 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Publish to GitHub Releases
-        if: github.event_name == 'workflow_dispatch'
         uses: python-semantic-release/upload-to-gh-release@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: latest
 
       - name: Publish to PyPI
-        if: github.event_name == 'workflow_dispatch'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
