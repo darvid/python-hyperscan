@@ -2,13 +2,188 @@
 
 
 
-## v0.6.0 (2023-08-09)
+## v0.7.1 (2024-03-10)
+
+### :bug:
+
+* fix: :bug: :ferris_wheel: go back to python-semantic-release (sigh) ([`8c15651`](https://github.com/darvid/python-hyperscan/commit/8c15651fe31fd25589e4040173baca7be5da66be))
+
+* fix: :bug: update docs, force release for macOS arm wheels ([`725a373`](https://github.com/darvid/python-hyperscan/commit/725a373247109a264e49a6656d55d5612cd15082))
+
+### :sparkles:
+
+* feat: :sparkles: support macOS arm64 ([`ba361e4`](https://github.com/darvid/python-hyperscan/commit/ba361e44d157d95050fba3f0d44656510f512371))
+
+* feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
+
+### Other
+
+* ci: :ferris_wheel: use gh cli for creating release PRs ([`f08c88e`](https://github.com/darvid/python-hyperscan/commit/f08c88e234d393e80680b09dca5432aed37c3948))
+
+* ci: :ferris_wheel: add checkout job and concurrency to publish workflow ([`7fa6034`](https://github.com/darvid/python-hyperscan/commit/7fa60345269c7e6ed638fd07171406c160788ce1))
+
+* ci: :ferris_wheel: set github pat in env as workaround ([`0d89e3d`](https://github.com/darvid/python-hyperscan/commit/0d89e3dd55c096f3b588883b09410033298d0c7d))
+
+* ci: :ferris_wheel: add github pat for create PR job ([`fb22f32`](https://github.com/darvid/python-hyperscan/commit/fb22f32ded9f9e6c2989a34c6d57048500d91d8e))
+
+* ci: :ferris_wheel: add publish workflow ([`a21f4c9`](https://github.com/darvid/python-hyperscan/commit/a21f4c9263649ec6ede6c36508ff0429105b350f))
+
+* ci: :ferris_wheel: update release workflow to depend on build ([`70ac166`](https://github.com/darvid/python-hyperscan/commit/70ac166a634e56d437cd1f8014fb90ec5ea32c50))
+
+* build: :package: update pdm.lock ([`ff0e52b`](https://github.com/darvid/python-hyperscan/commit/ff0e52bf6a9634be2cfa0076217cd600405fc34c))
+
+* ci: :ferris_wheel: refactor wheel build versioning ([`a7f19b8`](https://github.com/darvid/python-hyperscan/commit/a7f19b84e50744b0b3fd25925eeca2920960236c))
+
+* ci: :ferris_wheel: debug semantic-release ([`451d373`](https://github.com/darvid/python-hyperscan/commit/451d373a79b2e5a9d3328811b540fe3258ec1d6e))
+
+* ci: :ferris_wheel: add --patch to version bump in wheel build process ([`f1bec94`](https://github.com/darvid/python-hyperscan/commit/f1bec9440db075c6476f1a7debf054f4b8c56d7a))
+
+* ci: :ferris_wheel: force upload wheel and source artifacts in CI ([`e8732a2`](https://github.com/darvid/python-hyperscan/commit/e8732a238b68b32a14d5093bc08c50333dcd7bfd))
+
+* ci: :ferris_wheel: update python-semantic-release configuration ([`7ab3e8b`](https://github.com/darvid/python-hyperscan/commit/7ab3e8b025bc63bca07a91fa966728a698c11b49))
+
+* ci: :ferris_wheel: update node version for semantic-release ([`f9c8ae0`](https://github.com/darvid/python-hyperscan/commit/f9c8ae02e8b8243410344cee1cd6fc4c02dd419c))
+
+* ci: :ferris_wheel: refactor CI runner build deps caching ([`13e7430`](https://github.com/darvid/python-hyperscan/commit/13e7430107d037dd94a9edf2cab7e1b527ea5d56))
+
+* ci: :ferris_wheel: use semantic-release (node) [release:patch] ([`1a3b3a7`](https://github.com/darvid/python-hyperscan/commit/1a3b3a7b5be749c00d74beb20dd5605dd7290064))
+
+* ci: :ferris_wheel: fix macOS actions logic ([`e178849`](https://github.com/darvid/python-hyperscan/commit/e178849b918950650d5c283ff08771f9660506c4))
+
+* ci: :ferris_wheel: fix musllinux arm docker image in cibw ([`38f0f22`](https://github.com/darvid/python-hyperscan/commit/38f0f22ee8313df7871d25f8a534854ceaf52f5f))
+
+* ci: :ferris_wheel: fix macOS CI (restore build deps cache) ([`371fe0c`](https://github.com/darvid/python-hyperscan/commit/371fe0c3f983c0d3caa0bdec25f79d0b74a95945))
+
+* build: :package: add additional aarch64 builds and use ubicloud ([`68ea9ff`](https://github.com/darvid/python-hyperscan/commit/68ea9fffc6e28b5bf88ca1943053731a687a7a17))
+
+* ci: :ferris_wheel: more CI improvements ([`90f2c5f`](https://github.com/darvid/python-hyperscan/commit/90f2c5f02f54ec7f52a88ca2d39633427b3739e2))
+
+* ci: :ferris_wheel: create necessary hyperscan/pcre directories on macOS runners ([`68db2ad`](https://github.com/darvid/python-hyperscan/commit/68db2ad7bbd552aec05de1191691ce59de2b92f8))
+
+* build: :package: update dependencies (mostly for dev), fix macOS build caching ([`d375a04`](https://github.com/darvid/python-hyperscan/commit/d375a04eb5879ca35039a81eb705c16fcd749490))
+
+* build: :package: remove musllinux pypy ([`3a0aea6`](https://github.com/darvid/python-hyperscan/commit/3a0aea6c92a65b6299a106f117c83c76028a861d))
+
+* build: :package: fix dupe pypy builds, change to pypy musllinux ([`b8ec574`](https://github.com/darvid/python-hyperscan/commit/b8ec574e6403a769243be7e938f0d624bf8bd6c0))
+
+* build: :package: refactor macos cibuildwheel configuration ([`db7d729`](https://github.com/darvid/python-hyperscan/commit/db7d7299da4181be8ea8011e72fd6d182aad6e20))
+
+* build: :package: disable arm64 for macosx python 3.9 ([`1b2b662`](https://github.com/darvid/python-hyperscan/commit/1b2b662b92cb3a7cc6d3f94f1b4cf16bd11bbc66))
+
+* build: :package: update macos runner to Apple silicon, add aarch64 to CIBW archs ([`629074f`](https://github.com/darvid/python-hyperscan/commit/629074f235608bc9096892fe224aa22eddda09cf))
+
+* build: :package: add aarch64 to build_wheels matrix ([`693f803`](https://github.com/darvid/python-hyperscan/commit/693f803914d6eb8ae4d68b0cf53f5e60f7a016cf))
+
+* ci: :ferris_wheel: update checkout and setup-pdm actions to v4 ([`9189351`](https://github.com/darvid/python-hyperscan/commit/9189351249232c1d7bdda838f4ec28a9a1a4c846))
+
+* build: :package: reduce setuptools pinned version to 68 ([`dbf3062`](https://github.com/darvid/python-hyperscan/commit/dbf306290d63f7d6abed21f4199df1843ae1fda7))
+
+* build: :package: remove python 3.8 from build matrix ([`79105d3`](https://github.com/darvid/python-hyperscan/commit/79105d3154c9403870447b513f38155a23cc3139))
+
+* build: :package: update cibuildwheel configuration to support aarch64 ([`7e06101`](https://github.com/darvid/python-hyperscan/commit/7e0610123fb7d98423a8af8cbc17e268002df702))
+
+* create FUNDING.yml
+
+Signed-off-by: David Gidwani &lt;david.gidwani@atomweight.io&gt; ([`0228bb6`](https://github.com/darvid/python-hyperscan/commit/0228bb68d8849eb2d9f49f9da1840087ddf0f226))
+
+* build: :package: (hopefully) fix versioning with semantic-release and pdm/setuptools ([`a322379`](https://github.com/darvid/python-hyperscan/commit/a322379f226cd6ceb011a8024bb68513d991e1f1))
+
+* ci: :ferris_wheel: set upstream when creating local PR branch ([`615420b`](https://github.com/darvid/python-hyperscan/commit/615420b26d4dfbe5b55f69864df36a38c631cd50))
+
+* ci: :ferris_wheel: add create-pull-request branch to release group ([`12867df`](https://github.com/darvid/python-hyperscan/commit/12867df2eac284e562262ed1de314003a6dffd50))
+
+* ci: :ferris_wheel: set base branch and assignees for create-pull-request ([`ea2c582`](https://github.com/darvid/python-hyperscan/commit/ea2c58243f1e4f256361d10d9ac451e239d29bd6))
+
+* ci: :ferris_wheel: don&#39;t set upstream after creating PR branch ([`a6f0d3c`](https://github.com/darvid/python-hyperscan/commit/a6f0d3cd28e5cb687f7deb3554baff86a059cc7a))
+
+* ci: :ferris_wheel: fix release CI (again) ([`66626d4`](https://github.com/darvid/python-hyperscan/commit/66626d4f1ca908645fdac5f0d5581a21add58300))
+
+* build: :package: fix release CI ([`5a50cf3`](https://github.com/darvid/python-hyperscan/commit/5a50cf3fa1e5eb1bc11336174977587887a96db6))
+
+* build: :package: allow release on workflow_dispatch ([`a6b9152`](https://github.com/darvid/python-hyperscan/commit/a6b91522b420b1147aed5a7947ab5eb0c0c8f3ba))
+
+* build: :package: fix python-semantic-release release group ([`74801ac`](https://github.com/darvid/python-hyperscan/commit/74801ac86af462484133ff57e4587e53b92f55ae))
+
+* build: :package: improve release CI/CD ([`95a3c8e`](https://github.com/darvid/python-hyperscan/commit/95a3c8e3ab585c6be9ffb106d3d323b1c226874c))
+
+* ci: :ferris_wheel: remove PAT from checkout action ([`be00d52`](https://github.com/darvid/python-hyperscan/commit/be00d52096906e1e9c9151e149e5bed61a9123cb))
+
+* ci: :ferris_wheel: update lint CI ([`32920b1`](https://github.com/darvid/python-hyperscan/commit/32920b157e2f7620d7618ad67244d6228ec58552))
+
+* docs: :memo: update README ([`d58f4c6`](https://github.com/darvid/python-hyperscan/commit/d58f4c6746a7439c9816bd0edff24b69f6fcfd9c))
+
+* build: :package: update library paths to vectorscan in cibuildwheel config ([`24c7713`](https://github.com/darvid/python-hyperscan/commit/24c77135c58ccaa0c6d1c208489b96a6244cf34f))
+
+* build: :package: fix macos build ([`e72a700`](https://github.com/darvid/python-hyperscan/commit/e72a7003c21d46f1648ddf748d2f10edb608727f))
+
+* build: :package: update cibuildwheel configuration and corrected build_wheels.sh ([`7b5b507`](https://github.com/darvid/python-hyperscan/commit/7b5b507ffc34dabc7507408c0a988300f6b08d78))
+
+* build: :package: only release if github ref is main ([`7af840f`](https://github.com/darvid/python-hyperscan/commit/7af840f37a120990537f1aeeaf4fa63943ae3518))
+
+* build: :package: update build to switch to Vectorscan 5.4.11 ([`93e6fb7`](https://github.com/darvid/python-hyperscan/commit/93e6fb7e4f25f373fff587fdce47c43141b64805))
+
+* ci: 🎡 rename wheels action ([`c7493ce`](https://github.com/darvid/python-hyperscan/commit/c7493cef503ff3023a2e5bad2b2d63ba7980bb8e))
+
+* ci: 🎡 build sdist with setup.py instead of pdm ([`a3c3bdd`](https://github.com/darvid/python-hyperscan/commit/a3c3bddf9d18bf2ad1fa0f0da9e038529006e0c1))
+
+* ci: 🎡 pass required env vars for building macOS wheels ([`f9e503b`](https://github.com/darvid/python-hyperscan/commit/f9e503be9353077a805ab3694f624d440f050360))
+
+* ci: :ferris_wheel: use GNU tar on macOS (in build_hyperscan.sh) ([`20ad70d`](https://github.com/darvid/python-hyperscan/commit/20ad70d4ae922837c02bf658924960ce3e43bb2a))
+
+* ci: 🎡 update cibuildwheel version and pdm lockfile ([`180696b`](https://github.com/darvid/python-hyperscan/commit/180696b236b0fa47be6a7cedae6d54a2e0501c11))
+
+* ci: 🎡 update manylinux-hyperscan tag again ([`c516700`](https://github.com/darvid/python-hyperscan/commit/c516700abd9affaad05686295cd19c07059bf5d4))
+
+* ci: 🎡 update manylinux-hyperscan container tag to latest ([`8dad7a9`](https://github.com/darvid/python-hyperscan/commit/8dad7a9c64356f07acd2079a62b1dee43ff75d37))
+
+* ci: 🎡 add support for building 3.12 wheels ([`9d4c114`](https://github.com/darvid/python-hyperscan/commit/9d4c114c780a49780ec48bd19715da21c3abf8d8))
+
+* ci: :ferris_wheel: enable skip-existing for pypi publishing ([`47b68a7`](https://github.com/darvid/python-hyperscan/commit/47b68a74d18d660c6f12e036a0778b89a107606c))
+
+* ci: :ferris_wheel: add needs to release ([`d2ed026`](https://github.com/darvid/python-hyperscan/commit/d2ed026901291f8a610f735c437d7ca651188bb0))
+
+* ci: :ferris_wheel: only upload dist cache if cache miss ([`2d05b53`](https://github.com/darvid/python-hyperscan/commit/2d05b539f276aa3cf01828ea2e63028ab90527a7))
+
+* ci: :ferris_wheel: add contents permission and concurrency to release ([`89cfc80`](https://github.com/darvid/python-hyperscan/commit/89cfc80ebf586f0642d43695454e1f45bb195711))
+
+* ci: :ferris_wheel: add id-token permission to release job ([`584b635`](https://github.com/darvid/python-hyperscan/commit/584b63586fae2a0167be82dbb6e9a0f4e1416024))
+
+* ci: :ferris_wheel: create dist directory again ([`f2e6bca`](https://github.com/darvid/python-hyperscan/commit/f2e6bcad31a238bdc4c3da481032bb7aa6899dcb))
+
+* ci: :ferris_wheel: remove unnecessary tokens, force release for now ([`57ace96`](https://github.com/darvid/python-hyperscan/commit/57ace964a6b0ef38f728562166736dad74441706))
+
+
+## v0.6.0 (2023-08-10)
 
 ### :sparkles:
 
 * feat: :sparkles: manylinux_2_28 support and build improvements ([`c31c8cf`](https://github.com/darvid/python-hyperscan/commit/c31c8cfebeb2436013853ef773783fa4914841c3))
 
 ### Other
+
+* ci: :ferris_wheel: screams in CI/CD (move release to wheels workflow) ([`755b41c`](https://github.com/darvid/python-hyperscan/commit/755b41cd1f5f99f02f63ab071e6de9b1a543435a))
+
+* build: :package: fix versioning process for PDM build backend ([`564fd78`](https://github.com/darvid/python-hyperscan/commit/564fd78d3d740084833509c154a7186108311f4a))
+
+* ci: :ferris_wheel: fix pyproject.toml, remove readme from dynamic ([`951b119`](https://github.com/darvid/python-hyperscan/commit/951b119b9560452901ceb7ab1e72c5339278e264))
+
+* ci: :ferris_wheel: include semantic version in cache key ([`7ee92dc`](https://github.com/darvid/python-hyperscan/commit/7ee92dcaddb146599e6856d7564ac7145b3cdaba))
+
+* ci: :ferris_wheel: always run setup-pdm regardless of cache ([`a08f718`](https://github.com/darvid/python-hyperscan/commit/a08f718e97ceb2fd91197a4518125f41e03b02d8))
+
+* ci: :ferris_wheel: remove release trigger from wheels ([`c226d5f`](https://github.com/darvid/python-hyperscan/commit/c226d5faee5ee8253cf5b4216a8e41fb52a12474))
+
+* ci: :ferris_wheel: remove conditional pypi+github publishing ([`ead1d86`](https://github.com/darvid/python-hyperscan/commit/ead1d86ba766d77e20a7d784aad33c709807f5ae))
+
+* ci: :ferris_wheel: change release CI to run on pull_request_target ([`7e23067`](https://github.com/darvid/python-hyperscan/commit/7e23067e4d1378e5aa3856c194a11216ed379de3))
+
+* build: :package: revert to using semantic-release instead of setuptools-scm ([`93d6a9e`](https://github.com/darvid/python-hyperscan/commit/93d6a9eeb4ba1df4f84493a3dc8d00561c356de6))
+
+* ci: :ferris_wheel: remove branch param from download-artifact step in release ([`8225878`](https://github.com/darvid/python-hyperscan/commit/82258783eb790006b2e045a1018ff13b07738ccb))
+
+* ci: :ferris_wheel: remove unnecessary AUDITWHEEL_PLAT, fix CI ([`22b5676`](https://github.com/darvid/python-hyperscan/commit/22b5676bc887706b3666c62bf5f077b45656e7ae))
+
+* build: :package: run semantic-release with no-commit ([`4614285`](https://github.com/darvid/python-hyperscan/commit/4614285f6682da448bcab4b05e24a730c7682a7f))
 
 * ci: :ferris_wheel: add step to organize dist for pypi release ([`9921c97`](https://github.com/darvid/python-hyperscan/commit/9921c97232d50f7c4b49ecb3fa1b41142cfbcf1a))
 
