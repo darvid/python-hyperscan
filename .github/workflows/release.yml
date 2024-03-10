@@ -70,8 +70,10 @@ jobs:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           root_options: "-v"
+          push: "false"
 
       - name: Create PR
+        id: cpr
         uses: peter-evans/create-pull-request@v4.0.2
         if: steps.release.outputs.released == 'true'
         with:
@@ -79,16 +81,6 @@ jobs:
           assignees: ${{ github.repository_owner }}
           title: "Release ${{ steps.release.outputs.version }}"
 
-      - name: Publish package distributions to GitHub Releases
-        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
-        uses: python-semantic-release/upload-to-gh-release@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release.outputs.tag }}
-
-      - name: Publish package distributions to PyPI
-        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
-          verbose: true
+      - name: Finalize
+        run: |
+          echo 🪄✨ PR created at: ${{ steps.cpr.outputs.pull-request-url }}

@@ -1,0 +1,29 @@
+name: Publish
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  verify_branch:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
+    outputs:
+      should-publish:
+    steps:
+      - name: Publish to GitHub Releases
+        if: github.event_name == 'workflow_dispatch'
+        uses: python-semantic-release/upload-to-gh-release@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: latest
+
+      - name: Publish to PyPI
+        if: github.event_name == 'workflow_dispatch'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
