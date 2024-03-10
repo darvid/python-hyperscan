@@ -2,7 +2,7 @@
 
 
 
-## v0.7.1 (2024-03-10)
+## v0.7.3 (2024-03-10)
 
 ### :bug:
 
@@ -17,6 +17,8 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: more CI release fixes ([`5c3877a`](https://github.com/darvid/python-hyperscan/commit/5c3877a4dee425c8d0f60faa6714f43e95b0e845))
 
 * ci: :ferris_wheel: use gh cli for creating release PRs ([`f08c88e`](https://github.com/darvid/python-hyperscan/commit/f08c88e234d393e80680b09dca5432aed37c3948))
 
