@@ -74,13 +74,15 @@ jobs:
 
       - name: Create PR
         id: cpr
-        uses: peter-evans/create-pull-request@v4.0.2
+        uses: peter-evans/create-pull-request@v6
         if: steps.release.outputs.released == 'true'
         with:
           base: main
           assignees: ${{ github.repository_owner }}
           title: "Release ${{ steps.release.outputs.version }}"
-          token: ${{ secrets.GITHUB_PAT }}
+        env:
+          # ☠️ https://github.com/peter-evans/create-pull-request/issues/60#issuecomment-1923812338
+          GITHUB_TOKEN: ${{ secrets.GITHUB_PAT }}
 
       - name: Finalize
         run: |
