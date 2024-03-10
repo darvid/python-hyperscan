@@ -8,15 +8,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  build:
+    name: Build source distribution and wheels
+    uses: ./.github/workflows/wheels.yml
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
+
   publish:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
     concurrency: publish
-    outputs:
-      should-publish:
+    needs: [build]
+    permissions:
+      id-token: write
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
 
       - name: Publish to GitHub Releases
         if: github.event_name == 'workflow_dispatch'
