@@ -70,20 +70,13 @@ jobs:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           root_options: "-v"
-          push: "false"
 
       - name: Create PR
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
         if: steps.release.outputs.released == 'true'
-        with:
-          base: main
-          assignees: ${{ github.repository_owner }}
-          title: "Release ${{ steps.release.outputs.version }}"
-        env:
-          # ☠️ https://github.com/peter-evans/create-pull-request/issues/60#issuecomment-1923812338
-          GITHUB_TOKEN: ${{ secrets.GITHUB_PAT }}
-
-      - name: Finalize
         run: |
-          echo 🪄✨ PR created at: ${{ steps.cpr.outputs.pull-request-url }}
+          gh pr create -B main -H $RELEASE_PR_BRANCH \
+            --title 'Merge $RELEASE_PR_BRANCH into main' \
+            --body '🤖'
+        env:
+          PR_TITLE: "Release ${{ steps.release.outputs.version }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
