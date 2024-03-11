@@ -31,6 +31,14 @@ jobs:
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Setup directory structure for publishing
+        run: |
+          mv -v **/*.whl dist/
+          ls -R dist/
 
       - name: Publish to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
