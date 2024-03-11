@@ -263,7 +263,7 @@ jobs:
         id: cache-wheels
         uses: actions/cache/restore@v4
         with:
-          key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ steps.semantic-version.outputs.version }}-${{ hashFiles('./src', './build_tools/**/build_*.sh') }}
+          key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('src/**', 'build_tools/**/build_*.sh') }}
           path: |
             wheelhouse/*.whl
 
