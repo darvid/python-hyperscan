@@ -16,6 +16,7 @@ jobs:
   publish:
     name: 📦 Publish to GitHub Releases and PyPI
     runs-on: ubuntu-latest
+    environment: release
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
     concurrency: publish
     needs: [build]
