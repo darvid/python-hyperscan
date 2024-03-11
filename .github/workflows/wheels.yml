@@ -242,17 +242,6 @@ jobs:
         run: |
           pdm install -G build -G release --no-self --frozen-lockfile -v
 
-      - name: Increment version if releasing
-        id: semantic-version
-        if: github.event_name != 'workflow_call'
-        run: |
-          current_version=$(grep '^version =' pyproject.toml | head -1 | cut -d '"' -f 2)
-          next_version=$(pdm run semantic-release version --patch --print 2>/dev/null)
-          echo "version=$next_version" >> "$GITHUB_OUTPUT"
-          if [ $next_version != $current_version ]; then
-            pdm run semantic-release version --patch --skip-build --no-commit --no-tag --no-vcs-release --no-changelog
-          fi
-
       - name: Setup macOS environment
         if: contains(matrix.os, 'macos')
         run: |
@@ -312,7 +301,7 @@ jobs:
         id: cache-sdist
         uses: actions/cache/restore@v4
         with:
-          key: sdist-${{ hashFiles('./src', './README.md', 'LICENSE', '*.py') }}
+          key: sdist-${{ hashFiles('src/**', 'README.md', 'LICENSE', '*.py') }}
           path: |
             dist/*.tar.gz
 
