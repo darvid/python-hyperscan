@@ -2,7 +2,7 @@
 
 
 
-## v0.7.6 (2024-03-11)
+## v0.7.7 (2024-03-11)
 
 ### :bug:
 
@@ -17,6 +17,8 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: revert artifact moving ([`1588481`](https://github.com/darvid/python-hyperscan/commit/1588481eb4e6ecc2a179d4808b76f5db5e3b73e6))
 
 * ci: :ferris_wheel: restructure downloaded artifacts in publish workflow ([`c0b1e39`](https://github.com/darvid/python-hyperscan/commit/c0b1e394f99921e379884dac8b6f56f0ca7f3f59))
 
