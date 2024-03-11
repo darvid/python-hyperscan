@@ -2,7 +2,7 @@
 
 
 
-## v0.7.4 (2024-03-10)
+## v0.7.5 (2024-03-11)
 
 ### :bug:
 
@@ -17,6 +17,8 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: add release environment ([`3141a8a`](https://github.com/darvid/python-hyperscan/commit/3141a8a01bb1e84333b07f0a8eed6d186a6fc6af))
 
 * ci: :ferris_wheel: only incr version for wheel building on push ([`9f38e09`](https://github.com/darvid/python-hyperscan/commit/9f38e09975d78546b33e7ec3213a04a491e6db7d))
 
