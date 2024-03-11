@@ -35,10 +35,8 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Setup directory structure for publishing
-        run: |
-          mv -v **/*.whl dist/
-          ls -R dist/
+      - name: List artifacts
+        run: ls -R dist/
 
       - name: Publish to GitHub Releases
         uses: python-semantic-release/upload-to-gh-release@main
