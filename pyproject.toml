@@ -151,7 +151,7 @@ dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 
 [project]
 name = "hyperscan"
-version = "0.7.5"
+version = "0.7.6"
 description = "Python bindings for Hyperscan."
 authors = [{ name = "David Gidwani", email = "david.gidwani@gmail.com" }]
 requires-python = ">=3.9,<4.0"

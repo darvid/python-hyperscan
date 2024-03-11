@@ -2,7 +2,7 @@
 
 
 
-## v0.7.5 (2024-03-11)
+## v0.7.6 (2024-03-11)
 
 ### :bug:
 
@@ -17,6 +17,12 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: restructure downloaded artifacts in publish workflow ([`c0b1e39`](https://github.com/darvid/python-hyperscan/commit/c0b1e394f99921e379884dac8b6f56f0ca7f3f59))
+
+* ci: :ferris_wheel: fix wheels cache key ([`6c285dd`](https://github.com/darvid/python-hyperscan/commit/6c285dd42630f35a3218107e7c461f0fd087c0bf))
+
+* ci: :ferris_wheel: more CI fix spam, fix hashFiles glob and more ([`db862be`](https://github.com/darvid/python-hyperscan/commit/db862be182adb00700cbb6858dc76aff7d867d83))
 
 * ci: :ferris_wheel: add release environment ([`3141a8a`](https://github.com/darvid/python-hyperscan/commit/3141a8a01bb1e84333b07f0a8eed6d186a6fc6af))
 
