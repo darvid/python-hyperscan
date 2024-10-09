@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11
 
@@ -31,7 +31,7 @@ jobs:
         run: pip install pytest ruff black
 
       - name: Format with clang-format
-        uses: DoozyX/clang-format-lint-action@v0.11
+        uses: DoozyX/clang-format-lint-action@v0.18
         with:
           source: "./src"
           extensions: "c"
@@ -46,7 +46,7 @@ jobs:
           version: "~= 23.0"
 
       - name: Format with ruff
-        uses: chartboost/ruff-action@v1
+        uses: astral-sh/ruff-action@v1
         with:
           src: "./src"
           args: check --fix
