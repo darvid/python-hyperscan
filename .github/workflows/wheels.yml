@@ -100,6 +100,10 @@ jobs:
             python: "3.12"
             python_id: cp312
             platform_id: manylinux_x86_64
+          - os: ubuntu-22.04
+            python: "3.13"
+            python_id: cp313
+            platform_id: manylinux_x86_64
 
           # 🐧 manylinux aarch64
           - os: ubicloud-standard-2-arm
@@ -117,6 +121,10 @@ jobs:
           - os: ubicloud-standard-2-arm
             python: "3.12"
             python_id: cp312
+            platform_id: manylinux_aarch64
+          - os: ubicloud-standard-2-arm
+            python: "3.13"
+            python_id: cp313
             platform_id: manylinux_aarch64
 
           # 🐧 manylinux2014 PyPy x86_64
@@ -156,6 +164,10 @@ jobs:
             python: "3.12"
             python_id: cp312
             platform_id: musllinux_x86_64
+          - os: ubuntu-22.04
+            python: "3.13"
+            python_id: cp313
+            platform_id: musllinux_x86_64
 
           # 🦀 musllinux ARM
           - os: ubicloud-standard-2-arm
@@ -174,6 +186,10 @@ jobs:
             python: "3.12"
             python_id: cp312
             platform_id: musllinux_aarch64
+          - os: ubicloud-standard-2-arm
+            python: "3.13"
+            python_id: cp313
+            platform_id: musllinux_aarch64
 
           # 🍎 macOS x86_64
           - os: macos-12-xl
@@ -191,6 +207,10 @@ jobs:
           - os: macos-12-xl
             python: "3.12"
             python_id: cp312
+            platform_id: macosx_x86_64
+          - os: macos-12-xl
+            python: "3.13"
+            python_id: cp313
             platform_id: macosx_x86_64
 
           # 🍎 macOS arm64 (Apple silicon)
@@ -211,6 +231,10 @@ jobs:
             python: "3.12"
             python_id: cp312
             platform_id: macosx_arm64
+          - os: flyci-macos-large-latest-m1
+            python: "3.13"
+            python_id: cp313
+            platform_id: macosx_arm64
 
     steps:
       - name: Checkout python-hyperscan
@@ -229,7 +253,7 @@ jobs:
       # as it's already the default upstream version; so we only need to use
       # it for other versions, and only on ARM.
       - if: ${{ endsWith(matrix.os, '-arm') && !endsWith(matrix.python_id, '310') }}
-        uses: deadsnakes/action@v3.1.0
+        uses: deadsnakes/action@v3.2.0
         with:
           python-version: ${{ matrix.python }}
 

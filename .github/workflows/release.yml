@@ -35,7 +35,7 @@ jobs:
 
       - name: Check if release needed
         id: release
-        uses: python-semantic-release/python-semantic-release@v8.7.2
+        uses: python-semantic-release/python-semantic-release@v9.10.0
         with:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -65,7 +65,7 @@ jobs:
           git branch --set-upstream-to=${RELEASE_PR_BRANCH}
 
       - name: Semantic release
-        uses: python-semantic-release/python-semantic-release@v8.7.2
+        uses: python-semantic-release/python-semantic-release@v9.10.0
         if: steps.release.outputs.released == 'true'
         with:
           force: "patch"
