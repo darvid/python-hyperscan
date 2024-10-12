@@ -38,12 +38,12 @@ before-test = "bash {project}/build_tools/wheels/before_test.sh"
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
 
-manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-27-1e3cb40"
-manylinux-aarch64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_aarch64:2024-01-27-1e3cb40"
-manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-01-27-1e3cb40"
-manylinux-pypy_aarch64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_aarch64:2024-01-27-1e3cb40"
-musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2024-01-27-1e3cb40"
-musllinux-aarch64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_aarch64:2024-01-27-1e3cb40"
+manylinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-10-10-743e228"
+manylinux-aarch64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_aarch64:2024-10-10-743e228"
+manylinux-pypy_x86_64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_x86_64:2024-10-10-743e228"
+manylinux-pypy_aarch64-image = "ghcr.io/darvid/python_hyperscan_manylinux_2_28_aarch64:2024-10-10-743e228"
+musllinux-x86_64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_x86_64:2024-10-10-743e228"
+musllinux-aarch64-image = "ghcr.io/darvid/python_hyperscan_musllinux_1_1_aarch64:2024-10-10-743e228"
 
 # repair-wheel-command = [
 #   'pip install auditwheel-symbols',
@@ -70,50 +70,40 @@ is-purelib = false
 run-setuptools = true
 
 [tool.pdm.dev-dependencies]
-dev = [
-    "ipython>=8.18.1",
-    "rich>=13.7.0",
-]
+dev = ["ipython>=8.18.1", "rich>=13.7.0"]
 lint = [
-    "black>=24.1.1",
-    "isort>=5.13.2",
-    "ruff>=0.1.14",
-    "pre-commit>=3.6.0",
-    "clang-format>=17.0.6",
+  "isort>=5.13.2",
+  "ruff>=0.1.14",
+  "pre-commit>=3.6.0",
+  "clang-format>=17.0.6",
 ]
 test = [
-    "pytest>=8.0.0",
-    "pytest-mock>=3.12.0",
-    "requests>=2.31.0",
-    "urllib3>=2.1.0",
-    "tox>=4.12.1",
-    "memunit>=0.5.2",
-    "pytest-xdist>=3.5.0",
-    "joblib>=1.3.2",
+  "pytest>=8.0.0",
+  "pytest-mock>=3.12.0",
+  "requests>=2.31.0",
+  "urllib3>=2.1.0",
+  "tox>=4.12.1",
+  "pytest-xdist>=3.5.0",
+  "joblib>=1.3.2",
+  "psutil>=6.0.0",
 ]
 release = [
-    "python-semantic-release>=8.7.0",
-    "setuptools>=69.0.3",
+  "python-semantic-release>=8.7.0",
+  "setuptools>=69.0.3",
+  "pydantic>=2.9",
 ]
-build = [
-    "cibuildwheel>=2.16.4",
-    "build>=1.0.3",
-]
-memprofile = [
-    "matplotlib>=3.8.2",
-    "numpy>=1.26.3",
-    "scipy>=1.12.0",
-]
+build = ["cibuildwheel>=2.21.3", "build>=1.0.3"]
+# memprofile = [
+#     "matplotlib>=3.8.2",
+#     "numpy>=1.26.3",
+#     "scipy>=1.12.0",
+# ]
 
 [tool.semantic_release]
 commit_parser = "emoji"
 tag_format = "v{version}"
-version_variables = [
-  "src/hyperscan/_version.py:__version__",
-]
-version_toml = [
-  "pyproject.toml:project.version",
-]
+version_variables = ["src/hyperscan/_version.py:__version__"]
+version_toml = ["pyproject.toml:project.version"]
 
 [tool.semantic_release.branches.release]
 match = '(main|create-pull-request/patch|release/v?[\\d\\.\\-]+)'
@@ -123,7 +113,7 @@ prerelease = false
 major_tags = [":boom:"]
 minor_tags = [
   ":sparkles:",
-  ":children_crossing:",
+  ":children_`ing:",
   ":lipstick:",
   ":iphone:",
   ":egg:",

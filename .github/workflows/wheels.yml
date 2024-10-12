@@ -29,9 +29,9 @@ jobs:
             platform_id: musllinux_x86_64
           - os: ubicloud-standard-2-arm
             platform_id: manylinux_aarch64
-          - os: macos-12-xl
+          - os: macos-15-large
             platform_id: macosx_x86_64
-          - os: flyci-macos-large-latest-m1
+          - os: macos-15
             platform_id: macosx_arm64
 
     steps:
@@ -192,46 +192,45 @@ jobs:
             platform_id: musllinux_aarch64
 
           # 🍎 macOS x86_64
-          - os: macos-12-xl
+          - os: macos-15-large
             python: "3.9"
             python_id: cp39
             platform_id: macosx_x86_64
-          - os: macos-12-xl
+          - os: macos-15-large
             python: "3.10"
             python_id: cp310
             platform_id: macosx_x86_64
-          - os: macos-12-xl
+          - os: macos-15-large
             python: "3.11"
             python_id: cp311
             platform_id: macosx_x86_64
-          - os: macos-12-xl
+          - os: macos-15-large
             python: "3.12"
             python_id: cp312
             platform_id: macosx_x86_64
-          - os: macos-12-xl
+          - os: macos-15-large
             python: "3.13"
             python_id: cp313
             platform_id: macosx_x86_64
 
           # 🍎 macOS arm64 (Apple silicon)
-          # XXX: ☠️ https://github.com/actions/setup-python/issues/696
-          # - os: flyci-macos-large-latest-m1
-          #   python: "3.9"
-          #   python_id: cp39
-          #   platform_id: macosx_arm64
-          - os: flyci-macos-large-latest-m1
+          - os: macos-15
+            python: "3.9"
+            python_id: cp39
+            platform_id: macosx_arm64
+          - os: macos-15
             python: "3.10"
             python_id: cp310
             platform_id: macosx_arm64
-          - os: flyci-macos-large-latest-m1
+          - os: macos-15
             python: "3.11"
             python_id: cp311
             platform_id: macosx_arm64
-          - os: flyci-macos-large-latest-m1
+          - os: macos-15
             python: "3.12"
             python_id: cp312
             platform_id: macosx_arm64
-          - os: flyci-macos-large-latest-m1
+          - os: macos-15
             python: "3.13"
             python_id: cp313
             platform_id: macosx_arm64
