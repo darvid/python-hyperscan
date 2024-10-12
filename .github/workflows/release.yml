@@ -35,7 +35,7 @@ jobs:
 
       - name: Check if release needed
         id: release
-        uses: python-semantic-release/python-semantic-release@v9.10.0
+        uses: python-semantic-release/python-semantic-release@v9.10.1
         with:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +45,7 @@ jobs:
           commit: "true"
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.8
         if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
 
       - name: Prepare dist
@@ -64,8 +64,13 @@ jobs:
           git checkout -b ${RELEASE_PR_BRANCH}
           git branch --set-upstream-to=${RELEASE_PR_BRANCH}
 
+      - name: Pull and fast forward
+        if: steps.release.outputs.released == 'true'
+        run: |
+          git pull --ff origin ${RELEASE_PR_BRANCH}
+
       - name: Semantic release
-        uses: python-semantic-release/python-semantic-release@v9.10.0
+        uses: python-semantic-release/python-semantic-release@v9.10.1
         if: steps.release.outputs.released == 'true'
         with:
           force: "patch"
