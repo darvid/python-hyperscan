@@ -1,8 +1,7 @@
 # CHANGELOG
 
 
-
-## v0.7.7 (2024-03-11)
+## v0.7.8 (2024-10-12)
 
 ### :bug:
 
@@ -17,6 +16,12 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: update macos build process (#160) (#161) ([`fde63df`](https://github.com/darvid/python-hyperscan/commit/fde63df6cfcbca5640a350dda81961a32538bc7e))
+
+* feat: add support for Python 3.13 (#158) ([`684b308`](https://github.com/darvid/python-hyperscan/commit/684b308acd9008a42466a549495cd45ed40fa509))
+
+* Update lint actions ([`4ba746c`](https://github.com/darvid/python-hyperscan/commit/4ba746cf9d5f8b103b652671e4c0cef5a24e0d42))
 
 * ci: :ferris_wheel: revert artifact moving ([`1588481`](https://github.com/darvid/python-hyperscan/commit/1588481eb4e6ecc2a179d4808b76f5db5e3b73e6))
 
@@ -98,7 +103,7 @@
 
 * create FUNDING.yml
 
-Signed-off-by: David Gidwani &lt;david.gidwani@atomweight.io&gt; ([`0228bb6`](https://github.com/darvid/python-hyperscan/commit/0228bb68d8849eb2d9f49f9da1840087ddf0f226))
+Signed-off-by: David Gidwani <david.gidwani@atomweight.io> ([`0228bb6`](https://github.com/darvid/python-hyperscan/commit/0228bb68d8849eb2d9f49f9da1840087ddf0f226))
 
 * build: :package: (hopefully) fix versioning with semantic-release and pdm/setuptools ([`a322379`](https://github.com/darvid/python-hyperscan/commit/a322379f226cd6ceb011a8024bb68513d991e1f1))
 
@@ -108,7 +113,7 @@ Signed-off-by: David Gidwani &lt;david.gidwani@atomweight.io&gt; ([`0228bb6`](ht
 
 * ci: :ferris_wheel: set base branch and assignees for create-pull-request ([`ea2c582`](https://github.com/darvid/python-hyperscan/commit/ea2c58243f1e4f256361d10d9ac451e239d29bd6))
 
-* ci: :ferris_wheel: don&#39;t set upstream after creating PR branch ([`a6f0d3c`](https://github.com/darvid/python-hyperscan/commit/a6f0d3cd28e5cb687f7deb3554baff86a059cc7a))
+* ci: :ferris_wheel: don't set upstream after creating PR branch ([`a6f0d3c`](https://github.com/darvid/python-hyperscan/commit/a6f0d3cd28e5cb687f7deb3554baff86a059cc7a))
 
 * ci: :ferris_wheel: fix release CI (again) ([`66626d4`](https://github.com/darvid/python-hyperscan/commit/66626d4f1ca908645fdac5f0d5581a21add58300))
 
@@ -167,7 +172,7 @@ Signed-off-by: David Gidwani &lt;david.gidwani@atomweight.io&gt; ([`0228bb6`](ht
 * ci: :ferris_wheel: remove unnecessary tokens, force release for now ([`57ace96`](https://github.com/darvid/python-hyperscan/commit/57ace964a6b0ef38f728562166736dad74441706))
 
 
-## v0.6.0 (2023-08-10)
+## v0.6.0 (2023-08-09)
 
 ### :sparkles:
 
@@ -270,7 +275,7 @@ Signed-off-by: David Gidwani &lt;david.gidwani@atomweight.io&gt; ([`0228bb6`](ht
 
 * refactor: :recycle: tooling, packaging, and CI/CD overhaul, and update to Hyperscan 5.4.2 ([`1b823c9`](https://github.com/darvid/python-hyperscan/commit/1b823c9c99af672e5af23825849e8da8cc102101))
 
-* 🚧 build: rename build.py to avoid conflicts with python package &#39;build&#39; ([`056538c`](https://github.com/darvid/python-hyperscan/commit/056538c120e547afaa914404262e73c968bbe51e))
+* 🚧 build: rename build.py to avoid conflicts with python package 'build' ([`056538c`](https://github.com/darvid/python-hyperscan/commit/056538c120e547afaa914404262e73c968bbe51e))
 
 * Fix missing error constants
 
@@ -295,7 +300,7 @@ Duplicate the content of ADD_INT_CONSTANT() to fix this. ([`5eddcc9`](https://gi
 * 🐛 fix: fix memory leak in loadb (#46) and minor doc tweaks ([`71b6462`](https://github.com/darvid/python-hyperscan/commit/71b64627e940c1e34ad8dde18f7b5800c113c25a))
 
 
-## v0.3.3 (2023-01-07)
+## v0.3.3 (2023-01-06)
 
 ### :bug:
 
@@ -350,7 +355,7 @@ Duplicate the content of ADD_INT_CONSTANT() to fix this. ([`5eddcc9`](https://gi
 * 📜 docs: updated README for v0.3.0 ([`a7dff1d`](https://github.com/darvid/python-hyperscan/commit/a7dff1d9b53822d8cbe473839b5a86761e48f0ad))
 
 
-## v0.3.0 (2022-04-12)
+## v0.3.0 (2022-04-11)
 
 ### :sparkles:
 
@@ -387,7 +392,7 @@ Closes #32 ([`0527aac`](https://github.com/darvid/python-hyperscan/commit/0527aa
 
 * Update compile error message to include expression id
 
-Co-authored-by: Ken Shelton &lt;kshelton@randori.com&gt; ([`a8d926f`](https://github.com/darvid/python-hyperscan/commit/a8d926f58b3bb82dac8e49a5f08580c856c0a5cb))
+Co-authored-by: Ken Shelton <kshelton@randori.com> ([`a8d926f`](https://github.com/darvid/python-hyperscan/commit/a8d926f58b3bb82dac8e49a5f08580c856c0a5cb))
 
 * :green_heart:  fixed PCRE_PATH ([`a175f28`](https://github.com/darvid/python-hyperscan/commit/a175f289393aaf858751a4f02842d8b9f9dd9ef4))
 
@@ -395,7 +400,7 @@ Co-authored-by: Ken Shelton &lt;kshelton@randori.com&gt; ([`a8d926f`](https://gi
 
 * :green_heart:  reverted upgraded Python requirement in pyproject.toml ([`ae1e89d`](https://github.com/darvid/python-hyperscan/commit/ae1e89dbd594792e7822b343cd7190cac971513c))
 
-* :green_heart:  removed cp310, thought CI was using manylinux, d&#39;oh ([`7680840`](https://github.com/darvid/python-hyperscan/commit/768084059a897f8faf08360c94f04672b57a8739))
+* :green_heart:  removed cp310, thought CI was using manylinux, d'oh ([`7680840`](https://github.com/darvid/python-hyperscan/commit/768084059a897f8faf08360c94f04672b57a8739))
 
 * fix project homepage (#34) ([`1d95aea`](https://github.com/darvid/python-hyperscan/commit/1d95aeab4d467e99abf7172de83df710e9b8a868))
 
@@ -471,21 +476,13 @@ Co-authored-by: Ken Shelton &lt;kshelton@randori.com&gt; ([`a8d926f`](https://gi
 
 * handle zipp take two ([`d0d4b49`](https://github.com/darvid/python-hyperscan/commit/d0d4b49360908ce93b80d00a06a6a63bfbcf0f8f))
 
-* pinn zipp&lt;2 in test requirements to avoid pip install failures ([`981e962`](https://github.com/darvid/python-hyperscan/commit/981e962d11d4a6272117e477268c27039f95c95b))
+* pinn zipp<2 in test requirements to avoid pip install failures ([`981e962`](https://github.com/darvid/python-hyperscan/commit/981e962d11d4a6272117e477268c27039f95c95b))
 
 * fixed poetry build command in semaphore build script ([`97b09ee`](https://github.com/darvid/python-hyperscan/commit/97b09ee7dc44a2cebefc2876de9e0dfcd1deb805))
 
 * fixed merge fail artifact ([`57c898f`](https://github.com/darvid/python-hyperscan/commit/57c898f326175efe6d18ab19c84cca5c8c4bf02c))
 
-* Merge branch &#39;master&#39; of github.com:darvid/python-hyperscan into develop ([`62b32f6`](https://github.com/darvid/python-hyperscan/commit/62b32f6aa29c1906c9ef142392a58a6b233b1c4c))
-
-* updated CHANGELOG, bumped version to 0.1.5, drop Python 3.4 from classifiers and require 3.5 with poetry ([`75dd919`](https://github.com/darvid/python-hyperscan/commit/75dd919019ad6fd370c35a3b62b60dd51b2a3ef3))
-
-* added .markdownlint.json config file ([`73b3b72`](https://github.com/darvid/python-hyperscan/commit/73b3b7294564463db822dd876f15bbe5fe386b8d))
-
-* updated tox.ini to use poetry instead of pip ([`2a18328`](https://github.com/darvid/python-hyperscan/commit/2a18328b1abd77e47955b1e9c930328bba97eddc))
-
-* fixed reference leak (#18), and renamed loads/dumps to loadb/dumpb ([`8695500`](https://github.com/darvid/python-hyperscan/commit/86955004428889731a6eb24e27574ffa2857b8d4))
+* Merge branch 'master' of github.com:darvid/python-hyperscan into develop ([`62b32f6`](https://github.com/darvid/python-hyperscan/commit/62b32f6aa29c1906c9ef142392a58a6b233b1c4c))
 
 * Add missing tune families (#19)
 
@@ -497,8 +494,16 @@ https://intel.github.io/hyperscan/dev-reference/api_constants.html#cpu-tuning-fl
 
 * added Hyperscan 5.2.0 support and literal API (#16) ([`86a1b4e`](https://github.com/darvid/python-hyperscan/commit/86a1b4e83e80f14d87c97e66fdb1f3e8b4f57411))
 
+* updated CHANGELOG, bumped version to 0.1.5, drop Python 3.4 from classifiers and require 3.5 with poetry ([`75dd919`](https://github.com/darvid/python-hyperscan/commit/75dd919019ad6fd370c35a3b62b60dd51b2a3ef3))
 
-## v0.1.4 (2019-11-08)
+* added .markdownlint.json config file ([`73b3b72`](https://github.com/darvid/python-hyperscan/commit/73b3b7294564463db822dd876f15bbe5fe386b8d))
+
+* updated tox.ini to use poetry instead of pip ([`2a18328`](https://github.com/darvid/python-hyperscan/commit/2a18328b1abd77e47955b1e9c930328bba97eddc))
+
+* fixed reference leak (#18), and renamed loads/dumps to loadb/dumpb ([`8695500`](https://github.com/darvid/python-hyperscan/commit/86955004428889731a6eb24e27574ffa2857b8d4))
+
+
+## v0.1.4 (2019-11-07)
 
 ### Other
 
@@ -529,7 +534,7 @@ https://intel.github.io/hyperscan/dev-reference/api_constants.html#cpu-tuning-fl
 * added Hyperscan 5.2.0 support and literal API (#16) ([`4e02072`](https://github.com/darvid/python-hyperscan/commit/4e02072a33e7a3124e65cca650802541f13f3ff1))
 
 
-## v0.1.3 (2019-08-05)
+## v0.1.3 (2019-08-04)
 
 ### Other
 
@@ -538,7 +543,7 @@ https://intel.github.io/hyperscan/dev-reference/api_constants.html#cpu-tuning-fl
 * Handle exceptions in callback. (#15) ([`f1b92be`](https://github.com/darvid/python-hyperscan/commit/f1b92bedb751c4492d29a9e793a27c7941ff6f57))
 
 
-## v0.1.2 (2019-06-12)
+## v0.1.2 (2019-06-11)
 
 ### Other
 
@@ -556,7 +561,7 @@ patterns.
 Fixes #12. ([`e2e5b50`](https://github.com/darvid/python-hyperscan/commit/e2e5b506e6ea8c3736c4524868a829622369971b))
 
 
-## v0.1.1 (2019-05-03)
+## v0.1.1 (2019-05-02)
 
 ### Other
 
@@ -576,7 +581,7 @@ Fixes #12. ([`e2e5b50`](https://github.com/darvid/python-hyperscan/commit/e2e5b5
 
 * Update README.md, fixed docs URL (#9)
 
-Change documentation&#39;s URL to use readthedocs.io domain ([`d7e7572`](https://github.com/darvid/python-hyperscan/commit/d7e757258d3f9fe61d5b829f98544bd3db3efe5c))
+Change documentation's URL to use readthedocs.io domain ([`d7e7572`](https://github.com/darvid/python-hyperscan/commit/d7e757258d3f9fe61d5b829f98544bd3db3efe5c))
 
 * fixed docs link in README ([`c5ceea2`](https://github.com/darvid/python-hyperscan/commit/c5ceea28835f4aa2ce25da773dabc751f27e3ead))
 
@@ -633,7 +638,7 @@ Change documentation&#39;s URL to use readthedocs.io domain ([`d7e7572`](https:/
 * allow halting in stream scanning (#4) ([`9823622`](https://github.com/darvid/python-hyperscan/commit/98236220135a67c1ab494e4821638bf79cbe9658))
 
 
-## v0.0.2 (2018-05-27)
+## v0.0.2 (2018-05-26)
 
 ### Other
 
@@ -683,11 +688,11 @@ Change documentation&#39;s URL to use readthedocs.io domain ([`d7e7572`](https:/
 
 * disable boost python ([`6675d16`](https://github.com/darvid/python-hyperscan/commit/6675d16d3d23ed53ca54a2a1f30ed240349bf344))
 
-* Merge tag &#39;v0.0.2&#39; into develop
+* Merge tag 'v0.0.2' into develop
 
 Initial release. ([`25cb552`](https://github.com/darvid/python-hyperscan/commit/25cb55289d92a982b6e3bec26d888424596c9fff))
 
-* Merge branch &#39;release/0.0.2&#39; ([`3e9ba89`](https://github.com/darvid/python-hyperscan/commit/3e9ba8944eac5d9543c72acba63cfca3ea46c367))
+* Merge branch 'release/0.0.2' ([`3e9ba89`](https://github.com/darvid/python-hyperscan/commit/3e9ba8944eac5d9543c72acba63cfca3ea46c367))
 
 * use python-simplified-semver version scheme for setuptools_scm ([`5aaebf3`](https://github.com/darvid/python-hyperscan/commit/5aaebf3b110985039a2d06ef9e9a98a612afbb04))
 
@@ -697,7 +702,7 @@ Initial release. ([`25cb552`](https://github.com/darvid/python-hyperscan/commit/
 
 * removed pypy from CI matrix and added whl to gitignore ([`fcab64a`](https://github.com/darvid/python-hyperscan/commit/fcab64a3090811793d8c82452156801ec36202e4))
 
-* unfortunately Travis doesn&#39;t support per-stage matrix expansion yet ([`86801da`](https://github.com/darvid/python-hyperscan/commit/86801daea6a8d2d36d844002251504ddfc4d5302))
+* unfortunately Travis doesn't support per-stage matrix expansion yet ([`86801da`](https://github.com/darvid/python-hyperscan/commit/86801daea6a8d2d36d844002251504ddfc4d5302))
 
 * added PyPI deployment to Travis configuration ([`78224ce`](https://github.com/darvid/python-hyperscan/commit/78224cec1b2a8588b29d3e587920585f255d45ae))
 
