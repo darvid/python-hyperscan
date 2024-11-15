@@ -1,7 +1,7 @@
 include *.rst
 recursive-include docs *
 recursive-include examples *
-recursive-include src/hyperscan *.c *.cpp *.h *.pyx *.pxd *.pxi
+recursive-include src/hyperscan *.c *.cpp *.h *.pyx *.pxd *.pxi py.typed
 include COPYING
 include README.md
 include README.rst
