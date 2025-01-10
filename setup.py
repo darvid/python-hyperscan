@@ -20,15 +20,19 @@ if sys.platform == "win32":
         print(f"WARNING: Folder '{build_folder}' does not exist! Run 'build.sh' in 'build_tools\\windows\\' first")
         sys.exit(1)
     # Note: paths must be relative to the setup.py and not absolute.
-    Extension(
-        "hyperscan._ext",
-        include_dirs=['src/hyperscan', r'./build_tools/windows/hyperscan/src',
-                      r'./build_tools/windows/hyperscan/chimera',
-                      r'./build_tools/windows/hyperscan/pcre-8.41'],
-        sources=["src/hyperscan/hyperscanmodule.c"],
-        library_dirs=[r'./build_tools/windows/hyperscan/build/lib/x64.Release'],
-        libraries=['hs', 'hs_runtime', 'chimera', 'pcre', 'sqlite3_static'],
-        extra_compile_args=["/Od", "/Zi"]
+    setup(
+        ext_modules=[
+            Extension(
+                "hyperscan._ext",
+                include_dirs=['src/hyperscan', r'./build_tools/windows/hyperscan/src',
+                              r'./build_tools/windows/hyperscan/chimera',
+                              r'./build_tools/windows/hyperscan/pcre-8.41'],
+                sources=["src/hyperscan/hyperscanmodule.c"],
+                library_dirs=[r'./build_tools/windows/hyperscan/build/lib/x64.Release'],
+                libraries=['hs', 'hs_runtime', 'chimera', 'pcre', 'sqlite3_static'],
+                extra_compile_args=["/Od", "/Zi"]
+            )
+        ]
     )
 
 # Building on platform that is not Windows
