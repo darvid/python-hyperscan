@@ -1,0 +1,14 @@
+[tools]
+python = "3.13.1"
+shfmt = "latest"
+
+[env]
+_.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed"] }
+
+[tasks.sync]
+description = "Sync Python dependencies without building"
+run = "uv sync --no-editable"
+
+[tasks.sync-dev]
+description = "Sync development Python dependencies without building"
+run = "uv sync --only-dev --no-editable"

@@ -1,6 +1,6 @@
 import typing
 
-from hyperscan._ext import *  # noqa: F401, F403
+from hyperscan._hs_ext import *  # noqa: F403
 
 try:
     from hyperscan._version import __version__  # pyright: ignore
