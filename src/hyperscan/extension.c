@@ -1293,13 +1293,13 @@ static PyMethodDef HyperscanMethods[] = {
 
 static struct PyModuleDef hyperscanmodule = {
   PyModuleDef_HEAD_INIT,
-  "_ext",
+  "_hs_ext",
   "Hyperscan bindings for CPython.",
   -1,
   HyperscanMethods,
 };
 
-PyMODINIT_FUNC PyInit__ext(void)
+PyMODINIT_FUNC PyInit__hs_ext(void)
 {
   PyObject *m;
 
