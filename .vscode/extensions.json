@@ -4,6 +4,7 @@
     "elagil.pre-commit-helper",
     "xaver.clang-format",
     "ms-vscode.cmake-tools",
-    "charliermarsh.ruff"
+    "charliermarsh.ruff",
+    "github.vscode-github-actions"
   ]
 }

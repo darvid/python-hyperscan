@@ -1,0 +1,3 @@
+[submodule "cmake/ragel"]
+	path = cmake/ragel
+	url = git@github.com:gsauthof/cmake-ragel.git
