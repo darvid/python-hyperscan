@@ -1,14 +1,27 @@
+min_version = "2024.9.5"
+
 [tools]
-python = "3.13.1"
+python = "{{ get_env(name='PYTHON_VERSION', default='3.13') }}"
+ruff = "latest"
 shfmt = "latest"
+uv = "latest"
 
 [env]
+PROJECT_NAME = "{{ config_root | basename }}"
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed"] }
 
-[tasks.sync]
-description = "Sync Python dependencies without building"
-run = "uv sync --no-editable"
+[settings]
+python.uv_venv_auto = true
 
-[tasks.sync-dev]
-description = "Sync development Python dependencies without building"
-run = "uv sync --only-dev --no-editable"
+[tasks.install]
+alias = "i"
+description = "Install Python dependencies"
+run = "uv sync --no-editable --no-install-project"
+
+[tasks.install-dev]
+description = "Install development dependencies"
+run = "uv sync --only-dev --no-editable --no-install-project"
+
+[tasks.build-sdist]
+description = "Build source distribution"
+run = "uvx --from build pyproject-build --installer=uv --sdist --verbose"

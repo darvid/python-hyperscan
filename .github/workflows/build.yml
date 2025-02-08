@@ -1,0 +1,230 @@
+name: Build distributions
+on:
+  push:
+    branches-ignore:
+      - "dependabot/**"
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_UNBUFFERED: "1"
+
+jobs:
+  sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --group build --no-install-project
+
+      - name: Build source distribution
+        run: uvx --from build pyproject-build --installer=uv --sdist --verbose
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: "dist/*.tar.gz"
+          if-no-files-found: error
+
+  wheels:
+    name: Binary wheel (${{ matrix.python_id }}-${{ matrix.platform_id }})
+    runs-on: ${{ matrix.os }}
+    if: github.repository == 'darvid/python-hyperscan'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 🐧 manylinux x86_64
+          - os: ubuntu-24.04
+            python: "3.10"
+            python_id: cp310
+            platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.11"
+            python_id: cp311
+            platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.12"
+            python_id: cp312
+            platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.13"
+            python_id: cp313
+            platform_id: manylinux_x86_64
+
+          # 🐧 manylinux aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.10"
+            python_id: cp310
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.11"
+            python_id: cp311
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.12"
+            python_id: cp312
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.13"
+            python_id: cp313
+            platform_id: manylinux_aarch64
+
+          # 🐧 manylinux2014 PyPy x86_64
+          - os: ubuntu-24.04
+            python: "3.10"
+            python_id: pp310
+            platform_id: manylinux_x86_64
+
+          # 🐧 manylinux2014 PyPy ARM
+          - os: ubuntu-24.04-arm
+            python: "3.10"
+            python_id: pp310
+            platform_id: manylinux_aarch64
+
+          # 🦀 musllinux x86_64
+          - os: ubuntu-24.04
+            python: "3.10"
+            python_id: cp310
+            platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.11"
+            python_id: cp311
+            platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.12"
+            python_id: cp312
+            platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.13"
+            python_id: cp313
+            platform_id: musllinux_x86_64
+
+          # 🦀 musllinux ARM
+          - os: ubuntu-24.04-arm
+            python: "3.10"
+            python_id: cp310
+            platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.11"
+            python_id: cp311
+            platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.12"
+            python_id: cp312
+            platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.13"
+            python_id: cp313
+            platform_id: musllinux_aarch64
+
+          # 🍎 macOS x86_64
+          - os: macos-13
+            python: "3.10"
+            python_id: cp310
+            platform_id: macosx_x86_64
+          - os: macos-13
+            python: "3.11"
+            python_id: cp311
+            platform_id: macosx_x86_64
+          - os: macos-13
+            python: "3.12"
+            python_id: cp312
+            platform_id: macosx_x86_64
+          - os: macos-13
+            python: "3.13"
+            python_id: cp313
+            platform_id: macosx_x86_64
+
+          # 🍎 macOS arm64 (Apple silicon)
+          - os: macos-15
+            python: "3.10"
+            python_id: cp310
+            platform_id: macosx_arm64
+          - os: macos-15
+            python: "3.11"
+            python_id: cp311
+            platform_id: macosx_arm64
+          - os: macos-15
+            python: "3.12"
+            python_id: cp312
+            platform_id: macosx_arm64
+          - os: macos-15
+            python: "3.13"
+            python_id: cp313
+            platform_id: macosx_arm64
+
+          # 🪟 Windows x86_64
+          - os: windows-2025
+            python: "3.10"
+            python_id: cp310
+            platform_id: win_amd64
+          - os: windows-2025
+            python: "3.11"
+            python_id: cp311
+            platform_id: win_amd64
+          - os: windows-2025
+            python: "3.12"
+            python_id: cp312
+            platform_id: win_amd64
+          - os: windows-2025
+            python: "3.13"
+            python_id: cp313
+            platform_id: win_amd64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install build dependencies
+        run: uv sync --group build --no-install-project
+
+      - name: Build and test wheels
+        env:
+          CIBW_ARCHS_MACOS: ${{ matrix.platform_id == 'macosx_arm64' && 'arm64' || 'x86_64' }}
+          CIBW_ARCHS_LINUX: auto aarch64
+          CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
+          CIBW_BUILD_VERBOSITY: "1"
+        run: |
+          uv run --no-sync cibuildwheel --output-dir wheelhouse
+
+      - name: Save build artifacts
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ runner.os }}-${{ matrix.python_id }}-${{ matrix.platform_id }}-${{ hashFiles('src/**', 'CMakeLists.txt') }}
+          path: |
+            wheelhouse/*.whl
+
+      - name: Upload wheels to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.python_id }}-${{ matrix.platform_id }}
+          path: |
+            wheelhouse/*.whl

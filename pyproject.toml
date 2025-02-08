@@ -42,7 +42,8 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 build-dir = "build/{wheel_tag}"
-sdist.cmake = true
+sdist.cmake = false
+build.targets = ["hs_python_extension"]
 build.verbose = true
 logging.level = "DEBUG"
 wheel.expand-macos-universal-tags = true
@@ -52,7 +53,6 @@ install.components = ["hyperscan"]
 [tool.scikit-build.cmake]
 build-type = "MinSizeRel"
 version = ">=3.31"
-targets = ["hs_python_extension"]
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
@@ -62,7 +62,6 @@ test-requires = ["pytest>=7.0", "pytest-mock"]
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
 
-
 [tool.cibuildwheel.linux]
 before-all = ["yum -y update", """yum -y install \
   autoconf \
@@ -70,7 +69,6 @@ before-all = ["yum -y update", """yum -y install \
   gcc \
   gcc-c++ \
   glibc-static \
-  libsqlite3x-devel \
   libstdc++-static \
   ragel \
   zlib-devel \
@@ -93,15 +91,30 @@ before-all = """apk add -U \
   libstdc++-dev \
   cmake \
   autoconf \
+  ragel"""
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux_aarch64*"
+before-all = [
+  "yum -y update",
+  "yum install -y epel-release",
+  """yum -y install \
+  autoconf \
+  cmake \
+  gcc \
+  gcc-c++ \
+  glibc-static \
+  libstdc++-static \
   ragel \
-  sqlite-dev \
-  sqlite-libs \
-  sqlite-static"""
+  zlib-devel \
+  """,
+]
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_VERBOSE = "1"
 
 [tool.cibuildwheel.macos]
+before-all = "brew install ragel"
 repair-wheel-command = "delocate-wheel --sanitize-rpaths --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 
 [tool.cibuildwheel.macos.environment]

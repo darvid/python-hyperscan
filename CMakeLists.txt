@@ -191,10 +191,8 @@ if(HS_BUILD_REQUIRED)
     # Ensure consistent MSVC runtime flags
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 
-    # Remove /MP flag to avoid process creation issues
     set(HS_CMAKE_COMMON_FLAGS "/arch:SSE2 /FS /GS-")
 
-    # Set max jobs for MSVC to avoid overwhelming the system
     if(NOT CMAKE_BUILD_PARALLEL_LEVEL)
       set(CMAKE_BUILD_PARALLEL_LEVEL 2)
     endif()
@@ -213,16 +211,18 @@ if(HS_BUILD_REQUIRED)
     endif()
   else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-    set(HS_CMAKE_COMMON_FLAGS "-march=core2 -fPIC")
+
+    if(NOT USE_VECTORSCAN)
+      set(HS_CMAKE_COMMON_FLAGS "-march=core2 -fPIC")
+    else()
+      set(HS_CMAKE_COMMON_FLAGS "-fPIC")
+    endif()
+
     set(HS_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_COMMON_FLAGS}")
     set(HS_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_COMMON_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
     set(HS_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
     set(HS_GENERATOR "Unix Makefiles")
   endif()
-
-  message(STATUS "HS C FLAGS: ${HS_CMAKE_C_FLAGS}")
-  message(STATUS "HS CXX FLAGS: ${HS_CMAKE_CXX_FLAGS}")
-  message(STATUS "HS EXE LINKER FLAGS: ${HS_CMAKE_EXE_LINKER_FLAGS}")
 
   include_directories(${hyperscan_SOURCE_DIR}/src)
   include_directories(${hyperscan_SOURCE_DIR}/chimera)
@@ -233,8 +233,6 @@ if(HS_BUILD_REQUIRED)
 
   link_directories(${hyperscan_BINARY_DIR})
   link_directories(${hyperscan_BINARY_DIR}/lib)
-
-  message(STATUS "Downloading Boost ${BOOST_VERSION}")
   file(
     DOWNLOAD https://archives.boost.io/release/${BOOST_VERSION}/source/boost_${BOOST_FILENAME_VERSION}.tar.gz
     ${hyperscan_VENDOR_DIR}/boost.tar.gz
@@ -315,7 +313,16 @@ if(HS_BUILD_REQUIRED)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_CXX_FLAGS}")
 
   if(USE_VECTORSCAN)
-    list(APPEND HS_CMAKE_ARGS -DRAGEL_EXECUTABLE=${RAGEL_EXECUTABLE} -DPCRE_BUILD_SOURCE=ON -DBUILD_STATIC_LIBS=ON -DBUILD_EXAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost)
+    list(
+      APPEND HS_CMAKE_ARGS
+      -DRAGEL_EXECUTABLE=${RAGEL_EXECUTABLE}
+      -DPCRE_BUILD_SOURCE=ON
+      -DBUILD_STATIC_LIBS=ON
+      -DBUILD_EXAMPLES=OFF
+      -DBUILD_BENCHMARKS=OFF
+      -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost
+      -DUSE_CPU_NATIVE=OFF
+    )
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   else()
     list(APPEND HS_CMAKE_ARGS -DRAGEL=${RAGEL_EXECUTABLE} -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost)
@@ -338,8 +345,6 @@ if(HS_BUILD_REQUIRED)
     CMAKE_ARGS ${HS_CMAKE_ARGS}
     BUILD_BYPRODUCTS ${HS_BUILD_BYPRODUCTS}
     BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release --parallel 4 ${HS_TARGETS}
-
-    # BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release --parallel ${CMAKE_BUILD_PARALLEL_LEVEL}
   )
   add_dependencies(${HS_EXT_NAME} libhs)
 else()
