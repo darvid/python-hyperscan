@@ -1,6 +1,6 @@
 # Hyperscan/Vectorscan for Python
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/darvid/python-hyperscan/wheels.yml?style=plastic)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/darvid/python-hyperscan/build.yml?style=plastic)
 ![PyPI - Version](https://img.shields.io/pypi/v/hyperscan?style=plastic)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/hyperscan?style=plastic)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hyperscan.svg?style=plastic)
