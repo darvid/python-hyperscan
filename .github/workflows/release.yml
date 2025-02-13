@@ -1,16 +1,19 @@
 name: Release
+
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   build:
     name: Build source distribution and wheels
     if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
-    uses: ./.github/workflows/wheels.yml
+    uses: ./.github/workflows/build.yml
 
   release:
     name: Publish package
