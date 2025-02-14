@@ -64,13 +64,7 @@ jobs:
         if: steps.release.outputs.released == 'true'
         run: |
           # use the same default branch name that create-pull-request uses
-          git checkout -b ${RELEASE_PR_BRANCH}
-          git branch --set-upstream-to=${RELEASE_PR_BRANCH}
-
-      - name: Pull and fast forward
-        if: steps.release.outputs.released == 'true'
-        run: |
-          git pull --ff origin ${RELEASE_PR_BRANCH}
+          git switch -c ${RELEASE_PR_BRANCH}
 
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v9.10.1
