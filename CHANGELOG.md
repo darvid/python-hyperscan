@@ -3,66 +3,15 @@
 
 ## v0.7.9 (2025-02-14)
 
-### :bug:
-
-* fix: :bug: :ferris_wheel: go back to python-semantic-release (sigh) ([`8c15651`](https://github.com/darvid/python-hyperscan/commit/8c15651fe31fd25589e4040173baca7be5da66be))
-
-* fix: :bug: update docs, force release for macOS arm wheels ([`725a373`](https://github.com/darvid/python-hyperscan/commit/725a373247109a264e49a6656d55d5612cd15082))
 
 ### :sparkles:
 
 * feat: :sparkles: support macOS arm64 ([`ba361e4`](https://github.com/darvid/python-hyperscan/commit/ba361e44d157d95050fba3f0d44656510f512371))
-
-* feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
+* feat: :sparkles: Windows support thanks to assistance from [steven-t-murphy](https://github.com/steven-t-murphy)
 
 ### Other
 
-* ci: :ferris_wheel: use git switch in release PR ([`ae42c00`](https://github.com/darvid/python-hyperscan/commit/ae42c007d0eb6953a202e79d9b6476c6267d9c5a))
-
-* ci: :ferris_wheel: fix refs to 'wheels' workflow (now 'build') ([`1a8029b`](https://github.com/darvid/python-hyperscan/commit/1a8029b3cb35ab77cdd9ffff8edea4fbbd5afcb4))
-
-* ci: :ferris_wheel: initial wheels CI refactor with new build system ([`68404cd`](https://github.com/darvid/python-hyperscan/commit/68404cd72a5573a85d563fd6aff644d776ed63d9))
-
 * build: :package: use scikit-build-core, revamp build process ([`07d33b8`](https://github.com/darvid/python-hyperscan/commit/07d33b83465537c570aaa3803a7f4a5d69dc59e4))
-
-* Call setup function for win32.
-
-This was missing functionality noted in the original PR.
-
-Issue 156 ([`62c5e37`](https://github.com/darvid/python-hyperscan/commit/62c5e37cd75a8f74bea2b4ff80d58fcd68f835f3))
-
-* Update setup.py for Windows.
-
-Adding new logic to handle a Windows build and point to the compilations built using `build_tools/windows/build.sh`.
-
-ISSUE-156 ([`0e64255`](https://github.com/darvid/python-hyperscan/commit/0e64255101a8e694d34b8963ec52e7ccee14d5b0))
-
-* Update gitignore
-
-This now includes the artifacts from the Windows build so they don't ever accidentally get recorded in version control.
-
-ISSUE-156
-
-ISSUE-156 ([`14b49fa`](https://github.com/darvid/python-hyperscan/commit/14b49fabf79ee37a1d410dda503a112e140fe57d))
-
-* Adding an instructions
-
- Adding an instruction manual for using the Windows build tools. This details the prerequisites and detailed instructions on how to build and install for Windows.
-
-ISSUE-156 ([`1779367`](https://github.com/darvid/python-hyperscan/commit/17793679f23ae1e8afbb4fdb77cd8a216e9cb242))
-
-* Created a build script for windows
-
-In order to enable building and compiling for windows I have constructed a bash script(will require cygwin or similar to run on Windows). This script downloads and compiles all of the required libraries in the appropriate way and enable the next step which is pip installing the package on Windows.
-
-ISSUE-156 ([`e8350c8`](https://github.com/darvid/python-hyperscan/commit/e8350c8c6fb0b1489c33de9d0c2806f711122680))
-
-* feat: add py.typed marker for static type analyzers (#165) ([`45e2ed2`](https://github.com/darvid/python-hyperscan/commit/45e2ed25f72580dbc11c7d5a38eb81ecf8c09c81))
-
-* release 0.7.8 (#162)
-
-Co-authored-by: semantic-release <semantic-release>
-Co-authored-by: David Gidwani <david.gidwani@atomweight.io> ([`f1d0ea4`](https://github.com/darvid/python-hyperscan/commit/f1d0ea45fa36a601a353c640bbda352431018e8d))
 
 * ci: :ferris_wheel: update macos build process (#160) (#161) ([`fde63df`](https://github.com/darvid/python-hyperscan/commit/fde63df6cfcbca5640a350dda81961a32538bc7e))
 
@@ -149,8 +98,6 @@ Co-authored-by: David Gidwani <david.gidwani@atomweight.io> ([`f1d0ea4`](https:/
 * build: :package: update cibuildwheel configuration to support aarch64 ([`7e06101`](https://github.com/darvid/python-hyperscan/commit/7e0610123fb7d98423a8af8cbc17e268002df702))
 
 * create FUNDING.yml
-
-Signed-off-by: David Gidwani <david.gidwani@atomweight.io> ([`0228bb6`](https://github.com/darvid/python-hyperscan/commit/0228bb68d8849eb2d9f49f9da1840087ddf0f226))
 
 * build: :package: (hopefully) fix versioning with semantic-release and pdm/setuptools ([`a322379`](https://github.com/darvid/python-hyperscan/commit/a322379f226cd6ceb011a8024bb68513d991e1f1))
 
