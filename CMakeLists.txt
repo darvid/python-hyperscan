@@ -1,7 +1,4 @@
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-cmake_policy(SET CMP0079 NEW)
-cmake_policy(SET CMP0048 NEW)
-cmake_policy(SET CMP0026 NEW)
+cmake_minimum_required(VERSION 3.15...3.26)
 project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION})
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 

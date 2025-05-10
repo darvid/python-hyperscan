@@ -1,5 +1,5 @@
 [project]
-name = "python-hyperscan"
+name = "hyperscan"
 version = "0.7.9"
 description = "Python bindings for Hyperscan."
 readme = "README.md"
