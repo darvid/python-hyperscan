@@ -39,8 +39,9 @@ jobs:
         run: ls -R dist/
 
       - name: Publish to GitHub Releases
-        uses: python-semantic-release/upload-to-gh-release@main
+        uses: python-semantic-release/publish-action@v9.21.1
         with:
+          inputs: ./dist
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: latest
 
