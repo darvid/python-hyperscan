@@ -7,6 +7,12 @@ on:
     branches:
       - main
   workflow_call:
+    inputs:
+      force_build:
+        description: 'Force build regardless of file changes'
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
 
 concurrency:
@@ -17,8 +23,86 @@ env:
   PYTHON_UNBUFFERED: "1"
 
 jobs:
+  check_changes:
+    name: Check if build needed
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit message or file changes
+        id: check
+        run: |
+          if [[ "${{ inputs.force_build || false }}" == "true" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Running build because force_build is true"
+            exit 0
+          fi
+
+          # Check for [build] tag in commit messages or PR title
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # For PRs, check if PR title contains [build]
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            if [[ "$PR_TITLE" == *"[build]"* ]]; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "Running build because PR title contains [build]"
+              exit 0
+            fi
+
+            # Also check all commits in the PR for [build]
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            COMMIT_MSGS=$(git log --format=%B $BASE_SHA..$HEAD_SHA)
+            if echo "$COMMIT_MSGS" | grep -q "\[build\]"; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "Running build because a commit in the PR contains [build]"
+              exit 0
+            fi
+          else
+            # For pushes, check if the head commit message contains [build]
+            if [[ "${{ contains(github.event.head_commit.message, '[build]') }}" == "true" ]]; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "Running build because commit message contains [build]"
+              exit 0
+            fi
+          fi
+
+          # For PRs, compare the PR base with the head
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
+          else
+            # For pushes, use the before/after SHAs or fallback to comparing with parent
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.event.after }}"
+
+            # Sometimes github.event.before is not available or is all zeros in the first push to a new branch
+            if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+              CHANGED_FILES=$(git diff --name-only HEAD^)
+            else
+              CHANGED_FILES=$(git diff --name-only $BEFORE_SHA $AFTER_SHA)
+            fi
+          fi
+
+          # Check if any of the changed files match our patterns
+          echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
+
+          if [[ $RESULT -eq 0 ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Running build because relevant files were changed"
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "Skipping build because no relevant files were changed and commit doesn't have [build] tag"
+          fi
+
   sdist:
     name: Source distribution
+    needs: check_changes
+    if: needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +132,8 @@ jobs:
   wheels:
     name: Binary wheel (${{ matrix.python_id }}-${{ matrix.platform_id }})
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'darvid/python-hyperscan'
-
+    needs: check_changes
+    if: (needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') && github.repository == 'darvid/python-hyperscan'
     strategy:
       fail-fast: false
       matrix:
