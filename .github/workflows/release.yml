@@ -10,10 +10,45 @@ permissions:
   contents: read
 
 jobs:
+  check_build_needed:
+    name: Check if build is needed
+    runs-on: ubuntu-latest
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
+    outputs:
+      force_build: ${{ steps.check.outputs.force_build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for recent build artifacts
+        id: check
+        run: |
+          # For releases, we're always on a merge to main
+          # Check if head commit modified files that would trigger a build
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          CHANGES=$(echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)')
+
+          if [[ "$CHANGES" -gt 0 ]]; then
+            # The last commit already triggered a build, no need to force
+            echo "force_build=false" >> $GITHUB_OUTPUT
+            echo "Last commit already triggered a build"
+          else
+            # The last commit didn't trigger a build, we need to force it
+            echo "force_build=true" >> $GITHUB_OUTPUT
+            echo "Last commit didn't trigger a build, forcing build"
+          fi
+
   build:
     name: Build source distribution and wheels
+    needs: check_build_needed
     if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
     uses: ./.github/workflows/build.yml
+    with:
+      force_build: ${{ needs.check_build_needed.outputs.force_build }}
 
   release:
     name: Publish package
@@ -63,7 +98,11 @@ jobs:
       - name: Create release branch
         if: steps.release.outputs.released == 'true'
         run: |
-          # use the same default branch name that create-pull-request uses
+          # Check if branch exists on remote and delete it if it does
+          if git ls-remote --heads origin ${RELEASE_PR_BRANCH} | grep -q ${RELEASE_PR_BRANCH}; then
+            git push origin --delete ${RELEASE_PR_BRANCH}
+          fi
+          # Create new branch
           git switch -c ${RELEASE_PR_BRANCH}
 
       - name: Semantic release
