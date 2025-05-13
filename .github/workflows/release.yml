@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-22.04
     concurrency: release
     needs: [check_build, check_release, build]
-    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && needs.check_release.outputs.is_release_needed == 'true'
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && needs.check_release.outputs.is_release_needed == 'true' && needs.build.outputs.valid_event == 'true' && needs.build.outputs.should_build == 'true'
     permissions:
       id-token: write
       pull-requests: write
