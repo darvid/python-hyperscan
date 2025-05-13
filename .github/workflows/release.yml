@@ -63,7 +63,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Check if release needed
+      - name: Check if release needed with python-semantic-release
         id: release
         uses: python-semantic-release/python-semantic-release@v9.10.1
         with:
@@ -83,11 +83,11 @@ jobs:
       force_build: "${{ needs.check_release.outputs.is_release_needed == 'true' || fromJSON(needs.check_build.outputs.is_build_needed) }}"
 
   release:
-    name: Publish package
+    name: Create release
     runs-on: ubuntu-22.04
     concurrency: release
     needs: [check_build, check_release, build]
-    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && needs.build.outputs.is_build_needed == 'true' && needs.check_release.outputs.is_release_needed == 'true'
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && needs.check_release.outputs.is_release_needed == 'true'
     permissions:
       id-token: write
       pull-requests: write
