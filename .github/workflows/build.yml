@@ -13,6 +13,13 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      valid_event:
+        description: 'Whether the build is allowed to run'
+        value: ${{ jobs.check_event.outputs.valid_event }}
+      should_build:
+        description: 'Whether the build meets the pre-conditions'
+        value: ${{ jobs.check_changes.outputs.should_build }}
   workflow_dispatch:
 
 concurrency:
