@@ -1,6 +1,6 @@
 [project]
 name = "hyperscan"
-version = "0.7.9"
+version = "0.7.10"
 description = "Python bindings for Hyperscan."
 readme = "README.md"
 authors = [{ name = "David Gidwani", email = "david.gidwani@atomweight.io" }]
