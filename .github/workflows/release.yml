@@ -20,17 +20,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Check for recent build artifacts
         id: check
         run: |
           # For releases, we're always on a merge to main
           # Check if head commit modified files that would trigger a build
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          # Try to use HEAD^ but fall back gracefully if it fails
+          if git rev-parse HEAD^ &>/dev/null; then
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD || echo "")
+          else
+            echo "Cannot find parent commit, assuming no changes"
+            CHANGED_FILES=""
+          fi
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          CHANGES=$(echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)')
+          CHANGES=0
+          echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
 
           if [[ "$CHANGES" -gt 0 ]]; then
             # The last commit already triggered a build, no need to force
@@ -68,6 +76,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          fetch-tags: true
 
       - uses: chainguard-dev/actions/setup-gitsign@main
 

@@ -26,6 +26,11 @@ jobs:
   check_changes:
     name: Check if build needed
     runs-on: ubuntu-latest
+    # Only run on push if it's the original repo, not forks
+    # For PRs, don't run if the PR is from the same repo (avoids double runs with push)
+    if: >
+      (github.event_name != 'push' || github.repository == 'darvid/python-hyperscan') &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
     outputs:
       should_build: ${{ steps.check.outputs.should_build }}
     steps:
@@ -83,9 +88,20 @@ jobs:
 
             # Sometimes github.event.before is not available or is all zeros in the first push to a new branch
             if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-              CHANGED_FILES=$(git diff --name-only HEAD^)
+              CHANGED_FILES=$(git diff --name-only HEAD^ || echo "")
             else
-              CHANGED_FILES=$(git diff --name-only $BEFORE_SHA $AFTER_SHA)
+              # Try to fetch the commits first to make sure they exist
+              git fetch --depth=1 origin $BEFORE_SHA || true
+              git fetch --depth=1 origin $AFTER_SHA || true
+
+              # Check if both SHAs exist in the repository
+              if git cat-file -e $BEFORE_SHA 2>/dev/null && git cat-file -e $AFTER_SHA 2>/dev/null; then
+                CHANGED_FILES=$(git diff --name-only $BEFORE_SHA $AFTER_SHA || echo "")
+              else
+                # Fallback to comparing with parent commit
+                echo "Cannot find one of the SHAs, falling back to HEAD^"
+                CHANGED_FILES=$(git diff --name-only HEAD^ || echo "")
+              fi
             fi
           fi
 
@@ -104,7 +120,10 @@ jobs:
   sdist:
     name: Source distribution
     needs: check_changes
-    if: needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
+    if: >
+      (needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') &&
+      (github.event_name != 'push' || github.repository == 'darvid/python-hyperscan') &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -135,7 +154,10 @@ jobs:
     name: Binary wheel (${{ matrix.python_id }}-${{ matrix.platform_id }})
     runs-on: ${{ matrix.os }}
     needs: check_changes
-    if: (needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') && github.repository == 'darvid/python-hyperscan'
+    if: >
+      (needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') &&
+      github.repository == 'darvid/python-hyperscan' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
     strategy:
       fail-fast: false
       matrix:
