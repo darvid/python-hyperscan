@@ -133,6 +133,8 @@ jobs:
         with:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          ssh_public_signing_key: ${{ secrets.CI_SSH_PUBLIC_KEY }}
+          ssh_private_signing_key: ${{ secrets.CI_SSH_PRIVATE_KEY }}
           root_options: "-v"
 
       - name: Create PR

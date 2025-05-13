@@ -23,14 +23,38 @@ env:
   PYTHON_UNBUFFERED: "1"
 
 jobs:
-  check_changes:
-    name: Check if build needed
+  check_event:
+    name: Repo and event checks
     runs-on: ubuntu-latest
-    # Only run on push if it's the original repo, not forks
-    # For PRs, don't run if the PR is from the same repo (avoids double runs with push)
-    if: >
-      (github.event_name != 'push' || github.repository == 'darvid/python-hyperscan') &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
+    outputs:
+      valid_event: ${{ steps.check.outputs.valid_event }}
+    steps:
+      - name: Check if build is allowed
+        id: check
+        # This condition determines if a build should run.
+        # The build proceeds if ANY of the following are true:
+        #
+        # 1. The event is a push to the 'darvid/python-hyperscan'
+        #    (main) repository.
+        # 2. The event is a pull request from a fork
+        #    (i.e., not from 'darvid/python-hyperscan').
+        # 3. The event is a pull request that has been merged
+        #    AND the head ref starts with the release branch prefix
+        #    (e.g., 'create-pull-request/...').
+        # 4. The event is specifically on the 'darvid/python-hyperscan'
+        #    repository AND the commit message contains '[build]'.
+        if: >
+          (github.event_name != 'push' || github.repository == 'darvid/python-hyperscan') &&
+          ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) || (github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request'))) ||
+          (github.repository == 'darvid/python-hyperscan' && contains(github.event.head_commit.message, '[build]'))
+        run: |
+          echo "valid_event=true" >> $GITHUB_OUTPUT
+
+  check_changes:
+    name: Build pre-conditions check
+    runs-on: ubuntu-latest
+    needs: check_event
+    if: needs.check_event.outputs.valid_event == 'true'
     outputs:
       should_build: ${{ steps.check.outputs.should_build }}
     steps:
@@ -39,7 +63,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Check commit message or file changes
+      - name: Check if build is needed
         id: check
         run: |
           if [[ "${{ inputs.force_build || false }}" == "true" ]]; then
@@ -119,11 +143,8 @@ jobs:
 
   sdist:
     name: Source distribution
-    needs: check_changes
-    if: >
-      (needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') &&
-      (github.event_name != 'push' || github.repository == 'darvid/python-hyperscan') &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
+    needs: [check_changes, check_event]
+    if: needs.check_event.outputs.valid_event == 'true' && needs.check_changes.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -153,11 +174,8 @@ jobs:
   wheels:
     name: Binary wheel (${{ matrix.python_id }}-${{ matrix.platform_id }})
     runs-on: ${{ matrix.os }}
-    needs: check_changes
-    if: >
-      (needs.check_changes.outputs.should_build == 'true' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') &&
-      github.repository == 'darvid/python-hyperscan' &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
+    needs: [check_changes, check_event]
+    if: needs.check_event.outputs.valid_event == 'true' && needs.check_changes.outputs.should_build == 'true'
     strategy:
       fail-fast: false
       matrix:

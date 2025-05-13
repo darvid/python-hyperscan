@@ -175,3 +175,5 @@ cython_debug/
 /build_tools/windows/*.zip
 /build_tools/windows/*.tar.*
 /build_tools/windows/hyperscan
+
+github_ci_*
