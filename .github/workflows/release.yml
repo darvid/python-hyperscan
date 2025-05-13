@@ -10,27 +10,35 @@ permissions:
   contents: read
 
 jobs:
-  check_build_needed:
+  check_build:
     name: Check if build is needed
     runs-on: ubuntu-latest
     if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
     outputs:
-      force_build: ${{ steps.check.outputs.force_build }}
+      is_build_needed: ${{ steps.check.outputs.force_build }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Check for recent build artifacts
         id: check
         run: |
           # For releases, we're always on a merge to main
           # Check if head commit modified files that would trigger a build
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          # Try to use HEAD^ but fall back gracefully if it fails
+          if git rev-parse HEAD^ &>/dev/null; then
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD || echo "")
+          else
+            echo "Cannot find parent commit, assuming no changes"
+            CHANGED_FILES=""
+          fi
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          CHANGES=$(echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)')
+          CHANGES=0
+          echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
 
           if [[ "$CHANGES" -gt 0 ]]; then
             # The last commit already triggered a build, no need to force
@@ -42,34 +50,18 @@ jobs:
             echo "Last commit didn't trigger a build, forcing build"
           fi
 
-  build:
-    name: Build source distribution and wheels
-    needs: check_build_needed
+  check_release:
+    name: Check if release is needed
+    runs-on: ubuntu-latest
     if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
-    uses: ./.github/workflows/build.yml
-    with:
-      force_build: ${{ needs.check_build_needed.outputs.force_build }}
-
-  release:
-    name: Publish package
-    runs-on: ubuntu-22.04
-    concurrency: release
-    needs: build
-    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release')
-    permissions:
-      id-token: write
-      pull-requests: write
-      contents: write
-    env:
-      RELEASE_PR_BRANCH: create-pull-request/patch
+    outputs:
+      is_release_needed: ${{steps.release.outputs.released }}
+      release_version: ${{steps.release.outputs.version }}
     steps:
-      - name: Checkout python-hyperscan
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
-
-      - uses: chainguard-dev/actions/setup-gitsign@main
+          fetch-tags: true
 
       - name: Check if release needed
         id: release
@@ -82,12 +74,42 @@ jobs:
           # committed if commit is true and noop is set
           commit: "true"
 
+  build:
+    name: Build source distribution and wheels
+    needs: [check_build, check_release]
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && (needs.check_build.outputs.is_build_needed == 'true' || needs.check_release.outputs.is_release_needed == 'true')
+    uses: ./.github/workflows/build.yml
+    with:
+      force_build: "${{ needs.check_release.outputs.is_release_needed == 'true' || fromJSON(needs.check_build.outputs.is_build_needed) }}"
+
+  release:
+    name: Publish package
+    runs-on: ubuntu-22.04
+    concurrency: release
+    needs: [check_build, check_release, build]
+    if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && needs.build.outputs.is_build_needed == 'true' && needs.check_release.outputs.is_release_needed == 'true'
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: write
+    env:
+      RELEASE_PR_BRANCH: create-pull-request/patch
+    steps:
+      - name: Checkout python-hyperscan
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: chainguard-dev/actions/setup-gitsign@main
+
       - name: Download artifacts
         uses: actions/download-artifact@v4.1.8
-        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
+        if: github.event_name == 'workflow_dispatch' || needs.build.outputs.is_release_needed == 'true'
 
       - name: Prepare dist
-        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.released == 'true'
+        if: github.event_name == 'workflow_dispatch' || needs.build.outputs.is_release_needed == 'true'
         run: |
           mkdir dist
           mv --backup=numbered ./wheel-*/*.whl -t dist/
@@ -96,7 +118,7 @@ jobs:
           rm -rf dist/*~
 
       - name: Create release branch
-        if: steps.release.outputs.released == 'true'
+        if: needs.build.outputs.is_release_needed == 'true'
         run: |
           # Check if branch exists on remote and delete it if it does
           if git ls-remote --heads origin ${RELEASE_PR_BRANCH} | grep -q ${RELEASE_PR_BRANCH}; then
@@ -107,18 +129,18 @@ jobs:
 
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v9.10.1
-        if: steps.release.outputs.released == 'true'
+        if: needs.build.outputs.is_release_needed == 'true'
         with:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           root_options: "-v"
 
       - name: Create PR
-        if: steps.release.outputs.released == 'true'
+        if: needs.build.outputs.is_release_needed == 'true'
         run: |
           gh pr create -B main -H $RELEASE_PR_BRANCH \
             --title "$PR_TITLE" \
             --body '🤖'
         env:
-          PR_TITLE: "Release ${{ steps.release.outputs.version }}"
+          PR_TITLE: "Release ${{ needs.build.outputs.release_version }}"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
