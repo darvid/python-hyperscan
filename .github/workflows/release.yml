@@ -135,6 +135,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ssh_public_signing_key: ${{ secrets.CI_SSH_PUBLIC_KEY }}
           ssh_private_signing_key: ${{ secrets.CI_SSH_PRIVATE_KEY }}
+          git_committer_name: github-actions
+          git_committer_email: ${{ secrets.CI_GIT_COMMITTER_EMAIL }}
           root_options: "-v"
 
       - name: Create PR
