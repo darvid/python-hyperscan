@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.10 (2025-05-13)
+## v0.7.11 (2025-05-14)
 
 ### :bug:
 
@@ -16,6 +16,12 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: add required git_committer_email ([`a41b829`](https://github.com/darvid/python-hyperscan/commit/a41b829871fc3f66db2b0c0b37ced68ae690747b))
+
+* ci: :ferris_wheel: add outputs to re-usable build workflow ([`49d2617`](https://github.com/darvid/python-hyperscan/commit/49d2617f47560527ee25cd4894c8cac23749cf85))
+
+* ci: :ferris_wheel: more pain (robust build action checks) ([`af15ff9`](https://github.com/darvid/python-hyperscan/commit/af15ff9adea927100dbced897a70d72db7cb1c1e))
 
 * ci: :ferris_wheel: use correct job outputs for release ([`bd066b1`](https://github.com/darvid/python-hyperscan/commit/bd066b1e8de0abe6cf93cbc030a0f599285d6ed5))
 
