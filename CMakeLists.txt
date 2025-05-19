@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.26)
+cmake_policy(SET CMP0144 NEW)
+cmake_policy(SET CMP0167 NEW)
 project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION})
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
@@ -284,6 +286,56 @@ if(HS_BUILD_REQUIRED)
   )
   file(RENAME ${hyperscan_VENDOR_DIR}/pcre-${PCRE_VERSION} ${hyperscan_VENDOR_DIR}/pcre)
   message(STATUS "PCRE downloaded to ${hyperscan_VENDOR_DIR}/pcre")
+
+  # Patch PCRE CMakeLists.txt to update CMAKE_MINIMUM_REQUIRED
+  set(PCRE_CMAKE_FILE ${hyperscan_VENDOR_DIR}/pcre/CMakeLists.txt)
+
+  if(EXISTS ${PCRE_CMAKE_FILE})
+    file(READ ${PCRE_CMAKE_FILE} _pcre_cmake_content_orig)
+    set(_pcre_cmake_content_current "${_pcre_cmake_content_orig}")
+    set(_any_patch_applied FALSE)
+
+    # --- Patch 1: CMAKE_MINIMUM_REQUIRED ---
+    message(STATUS "Attempting PCRE Patch 1: CMAKE_MINIMUM_REQUIRED")
+    set(MIN_REQ_REGEX_TO_MATCH "(cmake_minimum_required|CMAKE_MINIMUM_REQUIRED)[^\n]*")
+    set(MIN_REQ_REPLACEMENT_LINE "CMAKE_MINIMUM_REQUIRED(VERSION 3.15)")
+    set(_pcre_content_before_patch1 "${_pcre_cmake_content_current}")
+    string(REGEX REPLACE "${MIN_REQ_REGEX_TO_MATCH}" "${MIN_REQ_REPLACEMENT_LINE}" _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+
+    if(NOT "${_pcre_cmake_content_current}" STREQUAL "${_pcre_content_before_patch1}")
+      set(_any_patch_applied TRUE)
+    endif()
+
+    # --- Patch 2: CMAKE_POLICY CMP0026 ---
+    set(CMP0026_REGEX_TO_MATCH "(cmake_policy|CMAKE_POLICY)\\s*\\([^\\n]*CMP0026[^\\n]*OLD[^\\n]*\\)")
+    set(CMP0026_REPLACEMENT "CMAKE_POLICY(SET CMP0026 NEW)")
+    set(_pcre_content_before_patch2 "${_pcre_cmake_content_current}")
+    string(REGEX REPLACE "${CMP0026_REGEX_TO_MATCH}" "${CMP0026_REPLACEMENT}" _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+
+    if(NOT "${_pcre_cmake_content_current}" STREQUAL "${_pcre_content_before_patch2}")
+      set(_any_patch_applied TRUE)
+    endif()
+
+    # --- Patch 3: GET_TARGET_PROPERTY pcretest DEBUG_LOCATION ---
+    set(GTP_REGEX_TO_MATCH "GET_TARGET_PROPERTY\\(PCRETEST_EXE pcretest DEBUG_LOCATION\\)")
+    set(GTP_REPLACEMENT "set(PCRETEST_EXE $<TARGET_FILE:pcretest>)")
+    set(_pcre_content_before_patch3 "${_pcre_cmake_content_current}")
+    string(REGEX REPLACE "${GTP_REGEX_TO_MATCH}" "${GTP_REPLACEMENT}" _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+
+    if(NOT "${_pcre_cmake_content_current}" STREQUAL "${_pcre_content_before_patch3}")
+      set(_any_patch_applied TRUE)
+    endif()
+
+    if(_any_patch_applied)
+      file(WRITE ${PCRE_CMAKE_FILE} "${_pcre_cmake_content_current}")
+      message(STATUS "Final patched PCRE CMakeLists.txt written to ${PCRE_CMAKE_FILE} as changes were applied.")
+    else()
+      message(STATUS "No changes made to PCRE CMakeLists.txt after attempting all patches, file not rewritten.")
+    endif()
+  else()
+    message(WARNING "PCRE CMakeLists.txt not found at ${PCRE_CMAKE_FILE}, skipping all patches.")
+  endif()
+
   set(
     HS_CMAKE_ARGS
     -DBOOST_USE_STATIC_LIBS=ON
@@ -312,7 +364,7 @@ if(HS_BUILD_REQUIRED)
   if(USE_VECTORSCAN)
     list(
       APPEND HS_CMAKE_ARGS
-      -DRAGEL_EXECUTABLE=${RAGEL_EXECUTABLE}
+      -DRAGEL=${RAGEL_EXECUTABLE}
       -DPCRE_BUILD_SOURCE=ON
       -DBUILD_STATIC_LIBS=ON
       -DBUILD_EXAMPLES=OFF
