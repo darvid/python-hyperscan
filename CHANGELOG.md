@@ -1,9 +1,11 @@
 # CHANGELOG
 
 
-## v0.7.12 (2025-05-14)
+## v0.7.13 (2025-05-18)
 
 ### :bug:
+
+* fix: :bug: fix type stubs ([`a92f921`](https://github.com/darvid/python-hyperscan/commit/a92f921f0a317d96a5c942459185fe13876868d0))
 
 * fix: :bug: :ferris_wheel: go back to python-semantic-release (sigh) ([`8c15651`](https://github.com/darvid/python-hyperscan/commit/8c15651fe31fd25589e4040173baca7be5da66be))
 
