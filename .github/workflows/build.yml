@@ -136,16 +136,21 @@ jobs:
             fi
           fi
 
-          # Check if any of the changed files match our patterns
-          RESULT=1
-          echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            RESULT=1
+            echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
 
-          if [[ $RESULT -eq 0 ]]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "Running build because relevant files were changed"
+            if [[ $RESULT -eq 0 ]]; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "Running build because relevant files were changed"
+            else
+              echo "should_build=false" >> $GITHUB_OUTPUT
+              echo "Skipping build because no relevant files were changed and commit doesn't have [build] tag"
+            fi
           else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-            echo "Skipping build because no relevant files were changed and commit doesn't have [build] tag"
+            # For pull requests, always build (after checking for [build] tag above)
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Running build for pull request"
           fi
 
   sdist:
