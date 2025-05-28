@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.13 (2025-05-18)
+## v0.7.15 (2025-05-28)
 
 ### :bug:
 
@@ -18,6 +18,10 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* ci: :ferris_wheel: remove changed files check for PRs for build ([`d8acaf0`](https://github.com/darvid/python-hyperscan/commit/d8acaf0e61e15f59148ac855a92dc418089a6df2))
+
+* build: :package: improve cmake + support cmake 4.x [build] ([`2ff5c2e`](https://github.com/darvid/python-hyperscan/commit/2ff5c2eb1b05165822e708e64d5438927038dc91))
 
 * ci: :ferris_wheel: fix publish action conditions ([`5ed5c12`](https://github.com/darvid/python-hyperscan/commit/5ed5c122ec829175bb2b2281342c2a4740c5f2e6))
 
