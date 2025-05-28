@@ -151,14 +151,18 @@ static void Database_dealloc(Database *self)
 {
   if (self->chimera) {
     ch_free_database(self->ch_db);
-    ch_scratch_t *scratch = ((Scratch *)self->scratch)->ch_scratch;
-    if (scratch != NULL)
-      ch_free_scratch(scratch);
+    if (self->scratch != Py_None && self->scratch != NULL) {
+      ch_scratch_t *scratch = ((Scratch *)self->scratch)->ch_scratch;
+      if (scratch)
+        ch_free_scratch(scratch);
+    }
   } else {
     hs_free_database(self->hs_db);
-    hs_scratch_t *scratch = ((Scratch *)self->scratch)->hs_scratch;
-    if (scratch != NULL)
-      hs_free_scratch(scratch);
+    if (self->scratch != Py_None && self->scratch != NULL) {
+      hs_scratch_t *scratch = ((Scratch *)self->scratch)->hs_scratch;
+      if (scratch)
+        hs_free_scratch(scratch);
+    }
   }
 
   Py_TYPE(self)->tp_free((PyObject *)self);
