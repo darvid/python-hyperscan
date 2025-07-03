@@ -143,6 +143,7 @@ static int ch_match_handler(
     cctx->success = 1;
   }
   Py_XDECREF(rv);
+  Py_XDECREF(ocaptured);
   PyGILState_Release(gstate);
   return halt;
 }
