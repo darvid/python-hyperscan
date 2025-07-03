@@ -101,8 +101,8 @@ static int hs_match_handler(
     halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
     cctx->success = 1;
   }
-  PyGILState_Release(gstate);
   Py_XDECREF(rv);
+  PyGILState_Release(gstate);
   return halt;
 }
 
@@ -142,8 +142,8 @@ static int ch_match_handler(
     halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
     cctx->success = 1;
   }
-  PyGILState_Release(gstate);
   Py_XDECREF(rv);
+  PyGILState_Release(gstate);
   return halt;
 }
 
