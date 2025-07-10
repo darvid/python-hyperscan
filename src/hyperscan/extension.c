@@ -278,7 +278,7 @@ static PyObject *Database_compile(
     uint32_t expr_id;
 
     oexpr = PySequence_ITEM(oexpressions, i);
-    
+
     // Handle both bytes and unicode strings
     if (PyBytes_Check(oexpr)) {
       expression = PyBytes_AsString(oexpr);
