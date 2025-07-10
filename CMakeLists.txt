@@ -340,6 +340,10 @@ if(HS_BUILD_REQUIRED)
     message(WARNING "PCRE CMakeLists.txt not found at ${PCRE_CMAKE_FILE}, skipping all patches.")
   endif()
 
+  # Force PCRE UTF-8 settings globally for all platforms
+  set(PCRE_SUPPORT_UTF8 ON CACHE BOOL "Enable UTF-8 support in PCRE" FORCE)
+  set(PCRE_SUPPORT_UNICODE_PROPERTIES ON CACHE BOOL "Enable Unicode properties support in PCRE" FORCE)
+  
   set(
     HS_CMAKE_ARGS
     -DBOOST_USE_STATIC_LIBS=ON
@@ -348,8 +352,8 @@ if(HS_BUILD_REQUIRED)
     -DFAT_RUNTIME=OFF
     -DCORRECT_PCRE_VERSION=YES
     -DPCRE_SOURCE=${hyperscan_VENDOR_DIR}/pcre
-    -DPCRE_SUPPORT_UTF8=TRUE
-    -DPCRE_SUPPORT_UNICODE_PROPERTIES=TRUE
+    -DPCRE_SUPPORT_UTF8=ON
+    -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON
     -DPCRE_VERSION=${PCRE_VERSION}
     -DPCRE_STATIC=ON
     -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
@@ -376,10 +380,20 @@ if(HS_BUILD_REQUIRED)
       -DBUILD_BENCHMARKS=OFF
       -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost
       -DUSE_CPU_NATIVE=OFF
+      # Explicitly ensure PCRE UTF-8 support in vectorscan builds
+      -DPCRE_SUPPORT_UTF8=ON
+      -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON
     )
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   else()
-    list(APPEND HS_CMAKE_ARGS -DRAGEL=${RAGEL_EXECUTABLE} -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost)
+    list(
+      APPEND HS_CMAKE_ARGS 
+      -DRAGEL=${RAGEL_EXECUTABLE} 
+      -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost
+      # Explicitly ensure PCRE UTF-8 support in hyperscan builds
+      -DPCRE_SUPPORT_UTF8=ON
+      -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON
+    )
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   endif()
 
