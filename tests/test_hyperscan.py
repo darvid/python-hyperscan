@@ -321,3 +321,31 @@ def test_literal_expressions(mocker):
         db.scan(expression, match_event_handler=callback, context=expression)
         expected.append(mocker.call(ids[i], 0, len(expression), 0, expression))
     assert callback.mock_calls == expected
+
+
+def test_unicode_expressions():
+    """Test unicode pattern compilation and scanning (issue #207)."""
+    # Arabic and Hebrew patterns from GitHub issue #207
+    unicode_patterns = [
+        r'<span\s+.*>السلام عليكم\s<\/span>',
+        r'<span\s+.*>ועליכום הסלאם\s<\/span>'
+    ]
+    
+    # Test with unicode strings (auto-converted to UTF-8)
+    db = hyperscan.Database()
+    db.compile(
+        expressions=unicode_patterns,
+        flags=hyperscan.HS_FLAG_UTF8 | hyperscan.HS_FLAG_UCP
+    )
+    
+    # Test with bytes (explicit UTF-8 encoding)
+    bytes_patterns = [p.encode('utf-8') for p in unicode_patterns]
+    db2 = hyperscan.Database()
+    db2.compile(
+        expressions=bytes_patterns,
+        flags=hyperscan.HS_FLAG_UTF8 | hyperscan.HS_FLAG_UCP
+    )
+    
+    # Test without UTF8/UCP flags
+    db3 = hyperscan.Database()
+    db3.compile(expressions=bytes_patterns)

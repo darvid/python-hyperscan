@@ -11,6 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ragel")
 set(BUILD_PCRE_INTERNAL ON CACHE BOOL "Use internal PCRE" FORCE)
 set(PCRE_BUILD_TESTS OFF CACHE BOOL "Build PCRE tests" FORCE)
 set(PCRE_BUILD_PCREGREP OFF CACHE BOOL "Build pcregrep" FORCE)
+set(PCRE_SUPPORT_UTF8 ON CACHE BOOL "Enable UTF-8 support in PCRE" FORCE)
 set(PCRE_SUPPORT_UNICODE_PROPERTIES ON CACHE BOOL "Enable Unicode properties support in PCRE")
 
 include(GNUInstallDirs)
@@ -62,6 +63,9 @@ find_package(
 python_add_library(
   ${HS_EXT_NAME} MODULE src/hyperscan/extension.c WITH_SOABI
 )
+
+# Force C++ linker for the extension since we link against C++ libraries
+set_target_properties(${HS_EXT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 if(NOT HS_BUILD_LIB_ROOT OR NOT HS_SRC_ROOT)
   message(STATUS "Building Hyperscan from source")
@@ -344,6 +348,7 @@ if(HS_BUILD_REQUIRED)
     -DFAT_RUNTIME=OFF
     -DCORRECT_PCRE_VERSION=YES
     -DPCRE_SOURCE=${hyperscan_VENDOR_DIR}/pcre
+    -DPCRE_SUPPORT_UTF8=TRUE
     -DPCRE_SUPPORT_UNICODE_PROPERTIES=TRUE
     -DPCRE_VERSION=${PCRE_VERSION}
     -DPCRE_STATIC=ON
@@ -445,8 +450,9 @@ elseif(NOT WIN32)
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
     target_link_libraries(${HS_EXT_NAME} PRIVATE -Wl,--push-state -Wl,-Bstatic -lstdc++ -Wl,--pop-state)
   else()
-    target_link_libraries(${HS_EXT_NAME} PRIVATE stdc++)
+    target_link_options(${HS_EXT_NAME} PRIVATE -Wl,--no-as-needed)
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
+    target_link_libraries(${HS_EXT_NAME} PRIVATE stdc++)
   endif()
 else()
   target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
