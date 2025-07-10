@@ -1,7 +1,7 @@
 name: Lint
 
 on:
-  - pull_request_target
+  - pull_request
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,14 +13,17 @@ jobs:
 
     # setting any permission will set everything else to none for GITHUB_TOKEN
     permissions:
-      pull-requests: none
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -51,7 +54,17 @@ jobs:
           src: "./src"
           args: check --fix
 
+      - name: Debug refs
+        run: |
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.head_ref: ${{ github.head_ref }}"
+          echo "github.sha: ${{ github.sha }}"
+
       - name: Commit formatting changes
-        uses: EndBug/add-and-commit@v9
+        uses: iarekylew00t/verified-bot-commit@v1
         with:
           message: "style: autoformatting"
+          ref: refs/heads/${{ github.head_ref }}
+          files: |
+            src/**/*.c
+            src/**/*.py
