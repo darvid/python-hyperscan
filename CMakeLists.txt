@@ -330,6 +330,21 @@ if(HS_BUILD_REQUIRED)
       set(_any_patch_applied TRUE)
     endif()
 
+    # --- Patch 4: Force PCRE UTF-8 Support ---
+    message(STATUS "Attempting PCRE Patch 4: Force UTF-8 Support")
+    # Find the OPTION commands and force UTF-8 to ON
+    string(REGEX REPLACE "OPTION\\(PCRE_SUPPORT_UTF \"Enable support for the Unicode UTF-8 encoding\\.\" OFF\\)" 
+                         "OPTION(PCRE_SUPPORT_UTF \"Enable support for the Unicode UTF-8 encoding.\" ON)" 
+                         _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+    string(REGEX REPLACE "OPTION\\(PCRE_SUPPORT_UNICODE_PROPERTIES \"Enable support for Unicode properties\\.\" OFF\\)"
+                         "OPTION(PCRE_SUPPORT_UNICODE_PROPERTIES \"Enable support for Unicode properties.\" ON)"
+                         _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+    # Also handle cases where it might be PCRE_SUPPORT_UTF8
+    string(REGEX REPLACE "OPTION\\(PCRE_SUPPORT_UTF8 \"Enable support for the Unicode UTF-8 encoding\\.\" OFF\\)" 
+                         "OPTION(PCRE_SUPPORT_UTF8 \"Enable support for the Unicode UTF-8 encoding.\" ON)" 
+                         _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+    set(_any_patch_applied TRUE)
+
     if(_any_patch_applied)
       file(WRITE ${PCRE_CMAKE_FILE} "${_pcre_cmake_content_current}")
       message(STATUS "Final patched PCRE CMakeLists.txt written to ${PCRE_CMAKE_FILE} as changes were applied.")
