@@ -278,7 +278,24 @@ static PyObject *Database_compile(
     uint32_t expr_id;
 
     oexpr = PySequence_ITEM(oexpressions, i);
-    expression = PyBytes_AsString(oexpr);
+
+    // Handle both bytes and unicode strings
+    if (PyBytes_Check(oexpr)) {
+      expression = PyBytes_AsString(oexpr);
+    } else if (PyUnicode_Check(oexpr)) {
+      // Convert unicode to UTF-8 bytes
+      PyObject *temp_bytes = PyUnicode_AsUTF8String(oexpr);
+      if (temp_bytes == NULL) {
+        break;
+      }
+      expression = PyBytes_AsString(temp_bytes);
+      // Replace the original object with the encoded version
+      Py_DECREF(oexpr);
+      oexpr = temp_bytes;
+    } else {
+      PyErr_SetString(PyExc_TypeError, "expressions must be bytes or str");
+      break;
+    }
 
     if (PyErr_Occurred())
       break;

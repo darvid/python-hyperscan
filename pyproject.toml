@@ -110,12 +110,24 @@ before-all = [
   """,
 ]
 
+[tool.cibuildwheel.linux.config-settings]
+# Force PCRE UTF-8 support via scikit-build-core
+"cmake.define.PCRE_SUPPORT_UTF8" = "ON"
+"cmake.define.PCRE_SUPPORT_UNICODE_PROPERTIES" = "ON"
+
 [tool.cibuildwheel.linux.environment]
 SKBUILD_VERBOSE = "1"
+# Force PCRE UTF-8 support in cibuildwheel builds
+CMAKE_ARGS = "-DPCRE_SUPPORT_UTF8=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON"
 
 [tool.cibuildwheel.macos]
 before-all = "brew install ragel"
 repair-wheel-command = "delocate-wheel --sanitize-rpaths --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+
+[tool.cibuildwheel.macos.config-settings]
+# Force PCRE UTF-8 support via scikit-build-core
+"cmake.define.PCRE_SUPPORT_UTF8" = "ON"
+"cmake.define.PCRE_SUPPORT_UNICODE_PROPERTIES" = "ON"
 
 [tool.cibuildwheel.macos.environment]
 LD_LIBRARY_PATH = "/opt/vectorscan/lib:/usr/local/lib"
@@ -123,6 +135,8 @@ LIBRARY_PATH = "/opt/vectorscan/lib:/usr/local/lib"
 DYLD_LIBRARY_PATH = "/opt/vectorscan/lib:/usr/local/lib"
 PKG_CONFIG_PATH = "/opt/vectorscan/lib/pkgconfig:/opt/pcre/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 PDM_HOME = "/tmp/pdm"
+# Force PCRE UTF-8 support in cibuildwheel builds
+CMAKE_ARGS = "-DPCRE_SUPPORT_UTF8=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]

@@ -11,6 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ragel")
 set(BUILD_PCRE_INTERNAL ON CACHE BOOL "Use internal PCRE" FORCE)
 set(PCRE_BUILD_TESTS OFF CACHE BOOL "Build PCRE tests" FORCE)
 set(PCRE_BUILD_PCREGREP OFF CACHE BOOL "Build pcregrep" FORCE)
+set(PCRE_SUPPORT_UTF8 ON CACHE BOOL "Enable UTF-8 support in PCRE" FORCE)
 set(PCRE_SUPPORT_UNICODE_PROPERTIES ON CACHE BOOL "Enable Unicode properties support in PCRE")
 
 include(GNUInstallDirs)
@@ -62,6 +63,9 @@ find_package(
 python_add_library(
   ${HS_EXT_NAME} MODULE src/hyperscan/extension.c WITH_SOABI
 )
+
+# Force C++ linker for the extension since we link against C++ libraries
+set_target_properties(${HS_EXT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 if(NOT HS_BUILD_LIB_ROOT OR NOT HS_SRC_ROOT)
   message(STATUS "Building Hyperscan from source")
@@ -326,6 +330,21 @@ if(HS_BUILD_REQUIRED)
       set(_any_patch_applied TRUE)
     endif()
 
+    # --- Patch 4: Force PCRE UTF-8 Support ---
+    message(STATUS "Attempting PCRE Patch 4: Force UTF-8 Support")
+    # Find the OPTION commands and force UTF-8 to ON
+    string(REGEX REPLACE "OPTION\\(PCRE_SUPPORT_UTF \"Enable support for the Unicode UTF-8 encoding\\.\" OFF\\)" 
+                         "OPTION(PCRE_SUPPORT_UTF \"Enable support for the Unicode UTF-8 encoding.\" ON)" 
+                         _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+    string(REGEX REPLACE "OPTION\\(PCRE_SUPPORT_UNICODE_PROPERTIES \"Enable support for Unicode properties\\.\" OFF\\)"
+                         "OPTION(PCRE_SUPPORT_UNICODE_PROPERTIES \"Enable support for Unicode properties.\" ON)"
+                         _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+    # Also handle cases where it might be PCRE_SUPPORT_UTF8
+    string(REGEX REPLACE "OPTION\\(PCRE_SUPPORT_UTF8 \"Enable support for the Unicode UTF-8 encoding\\.\" OFF\\)" 
+                         "OPTION(PCRE_SUPPORT_UTF8 \"Enable support for the Unicode UTF-8 encoding.\" ON)" 
+                         _pcre_cmake_content_current "${_pcre_cmake_content_current}")
+    set(_any_patch_applied TRUE)
+
     if(_any_patch_applied)
       file(WRITE ${PCRE_CMAKE_FILE} "${_pcre_cmake_content_current}")
       message(STATUS "Final patched PCRE CMakeLists.txt written to ${PCRE_CMAKE_FILE} as changes were applied.")
@@ -336,6 +355,10 @@ if(HS_BUILD_REQUIRED)
     message(WARNING "PCRE CMakeLists.txt not found at ${PCRE_CMAKE_FILE}, skipping all patches.")
   endif()
 
+  # Force PCRE UTF-8 settings globally for all platforms
+  set(PCRE_SUPPORT_UTF8 ON CACHE BOOL "Enable UTF-8 support in PCRE" FORCE)
+  set(PCRE_SUPPORT_UNICODE_PROPERTIES ON CACHE BOOL "Enable Unicode properties support in PCRE" FORCE)
+  
   set(
     HS_CMAKE_ARGS
     -DBOOST_USE_STATIC_LIBS=ON
@@ -344,7 +367,8 @@ if(HS_BUILD_REQUIRED)
     -DFAT_RUNTIME=OFF
     -DCORRECT_PCRE_VERSION=YES
     -DPCRE_SOURCE=${hyperscan_VENDOR_DIR}/pcre
-    -DPCRE_SUPPORT_UNICODE_PROPERTIES=TRUE
+    -DPCRE_SUPPORT_UTF8=ON
+    -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON
     -DPCRE_VERSION=${PCRE_VERSION}
     -DPCRE_STATIC=ON
     -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
@@ -371,10 +395,20 @@ if(HS_BUILD_REQUIRED)
       -DBUILD_BENCHMARKS=OFF
       -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost
       -DUSE_CPU_NATIVE=OFF
+      # Explicitly ensure PCRE UTF-8 support in vectorscan builds
+      -DPCRE_SUPPORT_UTF8=ON
+      -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON
     )
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   else()
-    list(APPEND HS_CMAKE_ARGS -DRAGEL=${RAGEL_EXECUTABLE} -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost)
+    list(
+      APPEND HS_CMAKE_ARGS 
+      -DRAGEL=${RAGEL_EXECUTABLE} 
+      -DBOOST_ROOT=${hyperscan_VENDOR_DIR}/boost
+      # Explicitly ensure PCRE UTF-8 support in hyperscan builds
+      -DPCRE_SUPPORT_UTF8=ON
+      -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON
+    )
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   endif()
 
@@ -435,7 +469,12 @@ if("$ENV{AUDITWHEEL_PLAT}" MATCHES "musllinux")
   )
   target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
   target_compile_options(${HS_EXT_NAME} PRIVATE -fPIC)
+elseif(APPLE)
+  # macOS specific linking
+  target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
+  target_link_libraries(${HS_EXT_NAME} PRIVATE c++)
 elseif(NOT WIN32)
+  # Linux specific linking
   if("$ENV{AUDITWHEEL_PLAT}" MATCHES "manylinux2014")
     target_link_options(${HS_EXT_NAME} PRIVATE
       -Wl,--no-as-needed
@@ -445,10 +484,13 @@ elseif(NOT WIN32)
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
     target_link_libraries(${HS_EXT_NAME} PRIVATE -Wl,--push-state -Wl,-Bstatic -lstdc++ -Wl,--pop-state)
   else()
-    target_link_libraries(${HS_EXT_NAME} PRIVATE stdc++)
+    # Other Linux platforms
+    target_link_options(${HS_EXT_NAME} PRIVATE -Wl,--no-as-needed)
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
+    target_link_libraries(${HS_EXT_NAME} PRIVATE stdc++)
   endif()
 else()
+  # Windows
   target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
 endif()
 
