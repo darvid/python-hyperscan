@@ -454,7 +454,12 @@ if("$ENV{AUDITWHEEL_PLAT}" MATCHES "musllinux")
   )
   target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
   target_compile_options(${HS_EXT_NAME} PRIVATE -fPIC)
+elseif(APPLE)
+  # macOS specific linking
+  target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
+  target_link_libraries(${HS_EXT_NAME} PRIVATE c++)
 elseif(NOT WIN32)
+  # Linux specific linking
   if("$ENV{AUDITWHEEL_PLAT}" MATCHES "manylinux2014")
     target_link_options(${HS_EXT_NAME} PRIVATE
       -Wl,--no-as-needed
@@ -464,11 +469,13 @@ elseif(NOT WIN32)
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
     target_link_libraries(${HS_EXT_NAME} PRIVATE -Wl,--push-state -Wl,-Bstatic -lstdc++ -Wl,--pop-state)
   else()
+    # Other Linux platforms
     target_link_options(${HS_EXT_NAME} PRIVATE -Wl,--no-as-needed)
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
     target_link_libraries(${HS_EXT_NAME} PRIVATE stdc++)
   endif()
 else()
+  # Windows
   target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
 endif()
 
