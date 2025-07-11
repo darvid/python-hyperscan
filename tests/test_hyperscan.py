@@ -337,7 +337,7 @@ def test_unicode_expressions():
     Note on HS_FLAG_UTF8:
     We avoid using HS_FLAG_UTF8 by default due to known Hyperscan/Vectorscan
     limitations and bugs:
-    - intel/hyperscan#57: UTF-8 match failures with \Q...\E patterns  
+    - intel/hyperscan#57: UTF-8 match failures with \\Q...\\E patterns  
     - intel/hyperscan#133: Parser bug with Ragel v7 incorrectly rejecting valid UTF-8
     - intel/hyperscan#163: Performance issues with UTF-8 + case-insensitive flags
     
