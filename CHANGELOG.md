@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.16 (2025-05-28)
+## v0.7.19 (2025-07-11)
 
 ### :bug:
 
@@ -18,6 +18,14 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* fix: resolve unicode pattern compilation error (closes #207) (#208)
+
+Co-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com> ([`bd34105`](https://github.com/darvid/python-hyperscan/commit/bd341050ced6e2be1a0582b895fe0f1cad7ee355))
+
+* call Py_XDECREF on matches list in ch_match_handler to prevent a memory leak ([`3c47872`](https://github.com/darvid/python-hyperscan/commit/3c47872a9278f7f65ecf29665a3b75f4f31d8872))
+
+* Py_DECREF & Py_XDECREF calls must hold the GIL ([`fd0fa26`](https://github.com/darvid/python-hyperscan/commit/fd0fa266e80460df69d908d41eb4118fda07c006))
 
 * extension: guard against NULL / PyNone scratch in Database_dealloc
 
