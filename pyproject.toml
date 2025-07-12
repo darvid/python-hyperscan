@@ -117,8 +117,6 @@ before-all = [
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_VERBOSE = "1"
-# Force PCRE UTF-8 support in cibuildwheel builds
-CMAKE_ARGS = "-DPCRE_SUPPORT_UTF8=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON"
 
 [tool.cibuildwheel.macos]
 before-all = "brew install ragel"
