@@ -323,6 +323,20 @@ def test_literal_expressions(mocker):
     assert callback.mock_calls == expected
 
 
+def test_loadb_backward_compatibility():
+    """Test that loadb works without mode parameter (issue #152)."""
+    db = hyperscan.Database()
+    db.compile(expressions=[b"test"], ids=[0])
+    
+    serialized = hyperscan.dumpb(db)
+    
+    db_loaded = hyperscan.loadb(serialized)
+    assert db_loaded.mode == hyperscan.HS_MODE_BLOCK
+    
+    db_loaded_explicit = hyperscan.loadb(serialized, mode=hyperscan.HS_MODE_BLOCK)
+    assert db_loaded_explicit.mode == hyperscan.HS_MODE_BLOCK
+
+
 def test_unicode_expressions():
     """Test unicode pattern compilation and scanning (issue #207).
     
