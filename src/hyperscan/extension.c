@@ -1274,8 +1274,11 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
   odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
   Database *db = (Database *)odb;
 
+  // Default to HS_MODE_BLOCK for backward compatibility
+  db->mode = HS_MODE_BLOCK;
+
   static char *kwlist[] = {"buf", "mode", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OI", kwlist, &obuf, &db->mode))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|I", kwlist, &obuf, &db->mode))
     return NULL;
   if (!PyBytes_Check(obuf)) {
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
@@ -1304,11 +1307,12 @@ static PyMethodDef HyperscanMethods[] = {
   {"loadb",
    (PyCFunction)loadb,
    METH_VARARGS | METH_KEYWORDS,
-   "loadb(buf, mode)\n"
+   "loadb(buf, mode=HS_MODE_BLOCK)\n"
    "    Deserializes a Hyperscan database.\n\n"
    "    Args:\n"
    "        buf (:obj:`bytearray`): A serialized Hyperscan database.\n"
-   "        mode (int): The expected mode of the database.\n\n"
+   "        mode (int, optional): The expected mode of the database.\n"
+   "            Defaults to :const:`HS_MODE_BLOCK` for backward compatibility.\n\n"
    "    Returns:\n"
    "        :class:`Database`: The deserialized database instance.\n\n"},
   {NULL}};
