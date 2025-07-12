@@ -1312,7 +1312,8 @@ static PyMethodDef HyperscanMethods[] = {
    "    Args:\n"
    "        buf (:obj:`bytearray`): A serialized Hyperscan database.\n"
    "        mode (int, optional): The expected mode of the database.\n"
-   "            Defaults to :const:`HS_MODE_BLOCK` for backward compatibility.\n\n"
+   "            Defaults to :const:`HS_MODE_BLOCK` for backward "
+   "compatibility.\n\n"
    "    Returns:\n"
    "        :class:`Database`: The deserialized database instance.\n\n"},
   {NULL}};
