@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.19 (2025-07-11)
+## v0.7.21 (2025-07-12)
 
 ### :bug:
 
@@ -18,6 +18,12 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* chore: clean up config files after unicode fix merge (#211) ([`abf808e`](https://github.com/darvid/python-hyperscan/commit/abf808e13f19fd03897f43518f06ea423fd20c3c))
+
+* Release 0.7.19 (#209)
+
+Co-authored-by: github-actions <david+hyperscan-ci@d10i.dev> ([`c785d33`](https://github.com/darvid/python-hyperscan/commit/c785d33a38a680d92776a275990a22e09f94d8a4))
 
 * fix: resolve unicode pattern compilation error (closes #207) (#208)
 
