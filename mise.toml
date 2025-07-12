@@ -2,12 +2,12 @@ min_version = "2024.9.5"
 
 [tools]
 python = "{{ get_env(name='PYTHON_VERSION', default='3.13') }}"
-ruff = "latest"
 shfmt = "latest"
 uv = "latest"
 
 [env]
 PROJECT_NAME = "{{ config_root | basename }}"
+_.file = '.env'
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed"] }
 
 [settings]
