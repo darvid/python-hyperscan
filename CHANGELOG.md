@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.21 (2025-07-12)
+## v0.7.22 (2025-07-13)
 
 ### :bug:
 
@@ -18,6 +18,10 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* Release 0.7.21 (#213)
+
+Co-authored-by: github-actions <david+hyperscan-ci@d10i.dev> ([`960877c`](https://github.com/darvid/python-hyperscan/commit/960877c5c3f5c9a7f6c4da9c50b866b5ffa3e45f))
 
 * chore: clean up config files after unicode fix merge (#211) ([`abf808e`](https://github.com/darvid/python-hyperscan/commit/abf808e13f19fd03897f43518f06ea423fd20c3c))
 
