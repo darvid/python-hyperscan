@@ -227,6 +227,11 @@ if(HS_BUILD_REQUIRED)
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
     endif()
     
+    # Suppress newer clang warnings that break vectorscan builds
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      set(HS_CMAKE_COMMON_FLAGS "${HS_CMAKE_COMMON_FLAGS} -Wno-unqualified-std-cast-call")
+    endif()
+    
     set(HS_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_COMMON_FLAGS}")
     set(HS_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_COMMON_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
     set(HS_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
