@@ -214,7 +214,19 @@ if(HS_BUILD_REQUIRED)
     endif()
   else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-    set(HS_CMAKE_COMMON_FLAGS "-march=core2 -fPIC")
+    
+    # Architecture-specific compiler flags
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64|arm64)")
+      # ARM architecture - use conservative flags with SIMDE_BACKEND
+      set(HS_CMAKE_COMMON_FLAGS "-fPIC")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86|X86|amd64|AMD64|x86_64|i[3-6]86)")
+      # x86/x86_64 architecture - use compatible x86-64 baseline
+      set(HS_CMAKE_COMMON_FLAGS "-march=x86-64 -fPIC")
+    else()
+      # Other architectures - rely on SIMDE_BACKEND for portability
+      set(HS_CMAKE_COMMON_FLAGS "-fPIC")
+    endif()
+    
     set(HS_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_COMMON_FLAGS}")
     set(HS_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_COMMON_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
     set(HS_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
