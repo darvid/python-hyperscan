@@ -227,8 +227,15 @@ if(HS_BUILD_REQUIRED)
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
     endif()
     
+    
     set(HS_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_COMMON_FLAGS}")
     set(HS_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_COMMON_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
+    
+    # Add clang warning suppression for vectorscan builds
+    if(USE_VECTORSCAN AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER MATCHES "[Cc]lang.*"))
+      set(HS_CMAKE_CXX_FLAGS "${HS_CMAKE_CXX_FLAGS} -Wno-unqualified-std-cast-call")
+    endif()
+    
     set(HS_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
     set(HS_GENERATOR "Unix Makefiles")
   endif()
@@ -432,7 +439,7 @@ if(HS_BUILD_REQUIRED)
     STAMP_DIR ${hyperscan_STAMP_DIR}
     INSTALL_COMMAND ""
     CMAKE_GENERATOR ${HS_GENERATOR}
-    CMAKE_ARGS ${HS_CMAKE_ARGS}
+    CMAKE_ARGS ${HS_CMAKE_ARGS} -Wno-dev
     BUILD_BYPRODUCTS ${HS_BUILD_BYPRODUCTS}
     BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release --parallel 4 ${HS_TARGETS}
   )

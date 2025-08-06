@@ -194,7 +194,7 @@ jobs:
         include:
           # 🐧 manylinux x86_64
           - os: ubuntu-24.04
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: manylinux_x86_64
           - os: ubuntu-24.04
@@ -212,7 +212,7 @@ jobs:
 
           # 🐧 manylinux aarch64
           - os: ubuntu-24.04-arm
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: manylinux_aarch64
           - os: ubuntu-24.04-arm
@@ -230,19 +230,19 @@ jobs:
 
           # 🐧 manylinux2014 PyPy x86_64
           - os: ubuntu-24.04
-            python: "3.10"
+            python: "3.11"
             python_id: pp310
             platform_id: manylinux_x86_64
 
           # 🐧 manylinux2014 PyPy ARM
           - os: ubuntu-24.04-arm
-            python: "3.10"
+            python: "3.11"
             python_id: pp310
             platform_id: manylinux_aarch64
 
           # 🦀 musllinux x86_64
           - os: ubuntu-24.04
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: musllinux_x86_64
           - os: ubuntu-24.04
@@ -260,7 +260,7 @@ jobs:
 
           # 🦀 musllinux ARM
           - os: ubuntu-24.04-arm
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: musllinux_aarch64
           - os: ubuntu-24.04-arm
@@ -278,7 +278,7 @@ jobs:
 
           # 🍎 macOS x86_64
           - os: macos-13
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: macosx_x86_64
           - os: macos-13
@@ -296,7 +296,7 @@ jobs:
 
           # 🍎 macOS arm64 (Apple silicon)
           - os: macos-15
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: macosx_arm64
           - os: macos-15
@@ -314,7 +314,7 @@ jobs:
 
           # 🪟 Windows x86_64
           - os: windows-2025
-            python: "3.10"
+            python: "3.11"
             python_id: cp310
             platform_id: win_amd64
           - os: windows-2025

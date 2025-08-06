@@ -61,6 +61,7 @@ test-command = "pytest --pyargs {package}/tests -vvv"
 test-requires = ["pytest>=7.0", "pytest-mock"]
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
+enable = ["pypy"]
 
 [tool.cibuildwheel.linux]
 before-all = ["yum -y update", """yum -y install \
