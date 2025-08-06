@@ -86,8 +86,8 @@ if(NOT HS_BUILD_LIB_ROOT OR NOT HS_SRC_ROOT)
     set(HYPERSCAN_REPO https://github.com/intel/hyperscan.git)
     message(STATUS "Using Hyperscan ${HYPERSCAN_VERSION} from ${HYPERSCAN_REPO}")
   else()
-    set(HYPERSCAN_VERSION 5.4.11)
-    set(HYPERSCAN_TAG vectorscan/5.4.11)
+    set(HYPERSCAN_VERSION 5.4.12)
+    set(HYPERSCAN_TAG vectorscan/5.4.12)
     set(HYPERSCAN_REPO https://github.com/VectorCamp/vectorscan.git)
     message(STATUS "Using VectorScan ${HYPERSCAN_VERSION} from ${HYPERSCAN_REPO}")
   endif()
@@ -214,13 +214,7 @@ if(HS_BUILD_REQUIRED)
     endif()
   else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-
-    if(NOT USE_VECTORSCAN)
-      set(HS_CMAKE_COMMON_FLAGS "-march=core2 -fPIC")
-    else()
-      set(HS_CMAKE_COMMON_FLAGS "-fPIC")
-    endif()
-
+    set(HS_CMAKE_COMMON_FLAGS "-march=core2 -fPIC")
     set(HS_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_COMMON_FLAGS}")
     set(HS_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_COMMON_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
     set(HS_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
@@ -388,6 +382,7 @@ if(HS_BUILD_REQUIRED)
   if(USE_VECTORSCAN)
     list(
       APPEND HS_CMAKE_ARGS
+      -DSIMDE_BACKEND=ON
       -DRAGEL=${RAGEL_EXECUTABLE}
       -DPCRE_BUILD_SOURCE=ON
       -DBUILD_STATIC_LIBS=ON
