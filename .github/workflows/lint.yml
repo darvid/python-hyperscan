@@ -55,9 +55,7 @@ jobs:
           args: check --fix
 
       - name: Validate GitHub workflows
-        uses: rhysd/actionlint-action@v1
-        with:
-          fail-on-error: true
+        uses: raven-actions/actionlint@v2
 
       - name: Debug refs
         run: |
