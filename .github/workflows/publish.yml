@@ -12,6 +12,9 @@ jobs:
     name: Build source distribution and wheels
     uses: ./.github/workflows/build.yml
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request' }}) && github.repository == 'darvid/python-hyperscan'
+    permissions:
+      contents: read
+      actions: write
     with:
       force_build: true
 
