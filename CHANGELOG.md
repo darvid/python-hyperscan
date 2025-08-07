@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.21 (2025-07-12)
+## v0.7.23 (2025-08-07)
 
 ### :bug:
 
@@ -18,6 +18,16 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* fix: suppress clang unqualified-std-cast-call warning (#217) ([`a3ebaf8`](https://github.com/darvid/python-hyperscan/commit/a3ebaf879c5a61de2d29336333d3899277012f67))
+
+* fix: replace hardcoded -march=core2 with architecture detection for ARM builds (#216) ([`e8ad199`](https://github.com/darvid/python-hyperscan/commit/e8ad199e50da37362795d44950667a36d965a156))
+
+* build: :package: update vectorscan to 5.4.12, enable SIMDE_BACKEND (#215) ([`8df0fcd`](https://github.com/darvid/python-hyperscan/commit/8df0fcdcea6a9d52f4050f5c8004bc1325b0df6f))
+
+* Release 0.7.21 (#213)
+
+Co-authored-by: github-actions <david+hyperscan-ci@d10i.dev> ([`960877c`](https://github.com/darvid/python-hyperscan/commit/960877c5c3f5c9a7f6c4da9c50b866b5ffa3e45f))
 
 * chore: clean up config files after unicode fix merge (#211) ([`abf808e`](https://github.com/darvid/python-hyperscan/commit/abf808e13f19fd03897f43518f06ea423fd20c3c))
 
