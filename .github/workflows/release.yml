@@ -79,6 +79,9 @@ jobs:
     needs: [check_build, check_release]
     if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && (needs.check_build.outputs.is_build_needed == 'true' || needs.check_release.outputs.is_release_needed == 'true')
     uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      actions: write
     with:
       force_build: "${{ needs.check_release.outputs.is_release_needed == 'true' || fromJSON(needs.check_build.outputs.is_build_needed) }}"
 
