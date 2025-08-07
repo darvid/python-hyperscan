@@ -124,11 +124,11 @@ jobs:
         if: needs.check_release.outputs.is_release_needed == 'true'
         run: |
           # Check if branch exists on remote and delete it if it does
-          if git ls-remote --heads origin ${RELEASE_PR_BRANCH} | grep -q ${RELEASE_PR_BRANCH}; then
-            git push origin --delete ${RELEASE_PR_BRANCH}
+          if git ls-remote --heads origin "${RELEASE_PR_BRANCH}" | grep -q "${RELEASE_PR_BRANCH}"; then
+            git push origin --delete "${RELEASE_PR_BRANCH}"
           fi
           # Create new branch
-          git switch -c ${RELEASE_PR_BRANCH}
+          git switch -c "${RELEASE_PR_BRANCH}"
 
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v9.10.1
@@ -145,7 +145,7 @@ jobs:
       - name: Create PR
         if: needs.check_release.outputs.is_release_needed == 'true'
         run: |
-          gh pr create -B main -H $RELEASE_PR_BRANCH \
+          gh pr create -B main -H "$RELEASE_PR_BRANCH" \
             --title "$PR_TITLE" \
             --body '🤖'
         env:

@@ -1,0 +1,10 @@
+hyperscan-0.7.19.dist-info/METADATA,sha256=6NsPEGGFUJdhx_ulIMD4Ff-cgw4FlNm1rgaFDQ7yI2Q,4299
+hyperscan-0.7.19.dist-info/RECORD,,
+hyperscan-0.7.19.dist-info/WHEEL,sha256=6Dxtid-NXEnR7jvm4_GvErwSb88e3UzL8AWq9MWuAAE,156
+hyperscan-0.7.19.dist-info/licenses/LICENSE,sha256=yvm4yRI_IxT-4iZOEl1Nx9I0Dm0JbAbmHt8OmKopiUA,1070
+hyperscan/__init__.py,sha256=ImBXLA9RN8dJIx94n6R3iRUOBO7v1-q8vImzzKPVLbU,367
+hyperscan/extension.c,sha256=xcYkpNIuIIYNGFWKC46lp9YYbOABu5EpDpSeW09AFgQ,47700
+hyperscan/_version.py,sha256=-_OxJPv2D0J4Tap1QJZo4Z4XyBYoG9M_2-0CsJ35W-I,23
+hyperscan/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+hyperscan/__init__.pyi,sha256=oRU1eShJUV5-mQheZfDCbZYTpVWPyS0dHrhmbT0ewiI,10768
+hyperscan/_hs_ext.cpython-311-x86_64-linux-gnu.so,sha256=KIaQV29IP80Ed1uJgU38d8nX4nBhDvzbugfr5fX2XnE,7051104

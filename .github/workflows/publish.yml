@@ -55,7 +55,7 @@ jobs:
             # Check if there are commits since last release
             LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
             if [[ -n "$LATEST_TAG" ]]; then
-              COMMITS_COUNT=$(git rev-list ${LATEST_TAG}..HEAD --count 2>/dev/null || echo "1")
+              COMMITS_COUNT=$(git rev-list "${LATEST_TAG}"..HEAD --count 2>/dev/null || echo "1")
               if [[ "$COMMITS_COUNT" -eq 0 ]]; then
                 echo "No commits since last release $LATEST_TAG, no new content to release"
                 echo "should_release=false" >> $GITHUB_OUTPUT

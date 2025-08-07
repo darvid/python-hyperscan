@@ -96,7 +96,7 @@ jobs:
             # Also check all commits in the PR for [build]
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            COMMIT_MSGS=$(git fetch origin $BASE_SHA $HEAD_SHA && git log --format=%B $BASE_SHA..$HEAD_SHA || echo "")
+            COMMIT_MSGS=$(git fetch origin "$BASE_SHA" "$HEAD_SHA" && git log --format=%B "$BASE_SHA".."$HEAD_SHA" || echo "")
             if echo "$COMMIT_MSGS" | grep -q "\[build\]"; then
               echo "should_build=true" >> $GITHUB_OUTPUT
               echo "Running build because a commit in the PR contains [build]"
@@ -115,7 +115,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            CHANGED_FILES=$(git fetch origin $BASE_SHA $HEAD_SHA && git diff --name-only $BASE_SHA $HEAD_SHA || echo "")
+            CHANGED_FILES=$(git fetch origin "$BASE_SHA" "$HEAD_SHA" && git diff --name-only "$BASE_SHA" "$HEAD_SHA" || echo "")
           else
             # For pushes, use the before/after SHAs or fallback to comparing with parent
             BEFORE_SHA="${{ github.event.before }}"
@@ -126,12 +126,12 @@ jobs:
               CHANGED_FILES=$(git diff --name-only HEAD^ || echo "")
             else
               # Try to fetch the commits first to make sure they exist
-              git fetch --depth=1 origin $BEFORE_SHA || true
-              git fetch --depth=1 origin $AFTER_SHA || true
+              git fetch --depth=1 origin "$BEFORE_SHA" || true
+              git fetch --depth=1 origin "$AFTER_SHA" || true
 
               # Check if both SHAs exist in the repository
-              if git cat-file -e $BEFORE_SHA 2>/dev/null && git cat-file -e $AFTER_SHA 2>/dev/null; then
-                CHANGED_FILES=$(git diff --name-only $BEFORE_SHA $AFTER_SHA || echo "")
+              if git cat-file -e "$BEFORE_SHA" 2>/dev/null && git cat-file -e "$AFTER_SHA" 2>/dev/null; then
+                CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" || echo "")
               else
                 # Fallback to comparing with parent commit
                 echo "Cannot find one of the SHAs, falling back to HEAD^"
@@ -144,7 +144,7 @@ jobs:
             RESULT=1
             echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
 
-            if [[ $RESULT -eq 0 ]]; then
+            if [[ "$RESULT" -eq 0 ]]; then
               echo "should_build=true" >> $GITHUB_OUTPUT
               echo "Running build because relevant files were changed"
             else
