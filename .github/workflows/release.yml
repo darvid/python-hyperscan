@@ -35,18 +35,18 @@ jobs:
             CHANGED_FILES=""
           fi
           echo "Changed files:"
-          echo "$CHANGED_FILES"
+          echo "${CHANGED_FILES}"
 
           CHANGES=0
-          echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
+          echo "${CHANGED_FILES}" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
 
           if [[ "$CHANGES" -gt 0 ]]; then
             # The last commit already triggered a build, no need to force
-            echo "force_build=false" >> $GITHUB_OUTPUT
+            echo "force_build=false" >> "$GITHUB_OUTPUT"
             echo "Last commit already triggered a build"
           else
             # The last commit didn't trigger a build, we need to force it
-            echo "force_build=true" >> $GITHUB_OUTPUT
+            echo "force_build=true" >> "$GITHUB_OUTPUT"
             echo "Last commit didn't trigger a build, forcing build"
           fi
 
