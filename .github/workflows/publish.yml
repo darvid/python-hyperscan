@@ -43,7 +43,34 @@ jobs:
       - name: List artifacts
         run: ls -R dist/
 
+      - name: Check if release is needed
+        id: release_check
+        run: |
+          # Check if HEAD already has a release version tag (prevents redundant releases)
+          if git describe --exact-match --tags HEAD --match "v*" 2>/dev/null; then
+            EXISTING_TAG=$(git describe --exact-match --tags HEAD --match "v*" 2>/dev/null)
+            echo "HEAD already tagged with release version $EXISTING_TAG, no release needed"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          else
+            # Check if there are commits since last release
+            LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
+            if [[ -n "$LATEST_TAG" ]]; then
+              COMMITS_COUNT=$(git rev-list ${LATEST_TAG}..HEAD --count 2>/dev/null || echo "1")
+              if [[ "$COMMITS_COUNT" -eq 0 ]]; then
+                echo "No commits since last release $LATEST_TAG, no new content to release"
+                echo "should_release=false" >> $GITHUB_OUTPUT
+              else
+                echo "Found $COMMITS_COUNT commits since $LATEST_TAG, proceeding with release"
+                echo "should_release=true" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "No previous release found, proceeding with initial release"
+              echo "should_release=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+
       - name: Publish to GitHub Releases
+        if: steps.release_check.outputs.should_release == 'true'
         uses: python-semantic-release/publish-action@v9.21.1
         with:
           inputs: ./dist
@@ -51,6 +78,7 @@ jobs:
           tag: latest
 
       - name: Publish to PyPI
+        if: steps.release_check.outputs.should_release == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
