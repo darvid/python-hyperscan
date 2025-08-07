@@ -54,6 +54,11 @@ jobs:
           src: "./src"
           args: check --fix
 
+      - name: Validate GitHub workflows
+        uses: rhysd/actionlint-action@v1
+        with:
+          fail-on-error: true
+
       - name: Debug refs
         run: |
           echo "github.ref: ${{ github.ref }}"
