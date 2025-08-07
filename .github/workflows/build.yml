@@ -33,6 +33,8 @@ jobs:
   check_event:
     name: Repo and event checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       valid_event: ${{ steps.check.outputs.valid_event }}
     steps:
@@ -62,6 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: check_event
     if: needs.check_event.outputs.valid_event == 'true'
+    permissions:
+      contents: read
     outputs:
       should_build: ${{ steps.check.outputs.should_build }}
     steps:
@@ -158,6 +162,9 @@ jobs:
     needs: [check_changes, check_event]
     if: needs.check_event.outputs.valid_event == 'true' && needs.check_changes.outputs.should_build == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -188,6 +195,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [check_changes, check_event]
     if: needs.check_event.outputs.valid_event == 'true' && needs.check_changes.outputs.should_build == 'true'
+    permissions:
+      contents: read
+      actions: write
     strategy:
       fail-fast: false
       matrix:
