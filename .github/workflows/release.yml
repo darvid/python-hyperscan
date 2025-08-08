@@ -35,18 +35,18 @@ jobs:
             CHANGED_FILES=""
           fi
           echo "Changed files:"
-          echo "$CHANGED_FILES"
+          echo "${CHANGED_FILES}"
 
           CHANGES=0
-          echo "$CHANGED_FILES" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
+          echo "${CHANGED_FILES}" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
 
           if [[ "$CHANGES" -gt 0 ]]; then
             # The last commit already triggered a build, no need to force
-            echo "force_build=false" >> $GITHUB_OUTPUT
+            echo "force_build=false" >> "$GITHUB_OUTPUT"
             echo "Last commit already triggered a build"
           else
             # The last commit didn't trigger a build, we need to force it
-            echo "force_build=true" >> $GITHUB_OUTPUT
+            echo "force_build=true" >> "$GITHUB_OUTPUT"
             echo "Last commit didn't trigger a build, forcing build"
           fi
 
@@ -79,6 +79,9 @@ jobs:
     needs: [check_build, check_release]
     if: github.repository == 'darvid/python-hyperscan' && !contains(github.event.head_commit.message, 'python-semantic-release') && (needs.check_build.outputs.is_build_needed == 'true' || needs.check_release.outputs.is_release_needed == 'true')
     uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      actions: write
     with:
       force_build: "${{ needs.check_release.outputs.is_release_needed == 'true' || fromJSON(needs.check_build.outputs.is_build_needed) }}"
 
@@ -121,11 +124,11 @@ jobs:
         if: needs.check_release.outputs.is_release_needed == 'true'
         run: |
           # Check if branch exists on remote and delete it if it does
-          if git ls-remote --heads origin ${RELEASE_PR_BRANCH} | grep -q ${RELEASE_PR_BRANCH}; then
-            git push origin --delete ${RELEASE_PR_BRANCH}
+          if git ls-remote --heads origin "${RELEASE_PR_BRANCH}" | grep -q "${RELEASE_PR_BRANCH}"; then
+            git push origin --delete "${RELEASE_PR_BRANCH}"
           fi
           # Create new branch
-          git switch -c ${RELEASE_PR_BRANCH}
+          git switch -c "${RELEASE_PR_BRANCH}"
 
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v9.10.1
@@ -142,7 +145,7 @@ jobs:
       - name: Create PR
         if: needs.check_release.outputs.is_release_needed == 'true'
         run: |
-          gh pr create -B main -H $RELEASE_PR_BRANCH \
+          gh pr create -B main -H "$RELEASE_PR_BRANCH" \
             --title "$PR_TITLE" \
             --body '🤖'
         env:

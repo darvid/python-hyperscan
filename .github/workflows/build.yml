@@ -57,7 +57,7 @@ jobs:
           ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) || (github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request'))) ||
           (github.repository == 'darvid/python-hyperscan' && contains(github.event.head_commit.message, '[build]'))
         run: |
-          echo "valid_event=true" >> $GITHUB_OUTPUT
+          echo "valid_event=true" >> "$GITHUB_OUTPUT"
 
   check_changes:
     name: Build pre-conditions check
@@ -76,9 +76,11 @@ jobs:
 
       - name: Check if build is needed
         id: check
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           if [[ "${{ inputs.force_build || false }}" == "true" ]]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
             echo "Running build because force_build is true"
             exit 0
           fi
@@ -86,9 +88,8 @@ jobs:
           # Check for [build] tag in commit messages or PR title
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             # For PRs, check if PR title contains [build]
-            PR_TITLE="${{ github.event.pull_request.title }}"
             if [[ "$PR_TITLE" == *"[build]"* ]]; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
               echo "Running build because PR title contains [build]"
               exit 0
             fi
@@ -96,16 +97,16 @@ jobs:
             # Also check all commits in the PR for [build]
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            COMMIT_MSGS=$(git fetch origin $BASE_SHA $HEAD_SHA && git log --format=%B $BASE_SHA..$HEAD_SHA || echo "")
+            COMMIT_MSGS=$(git fetch origin "$BASE_SHA" "$HEAD_SHA" && git log --format=%B "${BASE_SHA}..${HEAD_SHA}" || echo "")
             if echo "$COMMIT_MSGS" | grep -q "\[build\]"; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
               echo "Running build because a commit in the PR contains [build]"
               exit 0
             fi
           else
             # For pushes, check if the head commit message contains [build]
             if [[ "${{ contains(github.event.head_commit.message, '[build]') }}" == "true" ]]; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
               echo "Running build because commit message contains [build]"
               exit 0
             fi
@@ -115,7 +116,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            CHANGED_FILES=$(git fetch origin $BASE_SHA $HEAD_SHA && git diff --name-only $BASE_SHA $HEAD_SHA || echo "")
+            CHANGED_FILES=$(git fetch origin "$BASE_SHA" "$HEAD_SHA" && git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" || echo "")
           else
             # For pushes, use the before/after SHAs or fallback to comparing with parent
             BEFORE_SHA="${{ github.event.before }}"
@@ -126,12 +127,12 @@ jobs:
               CHANGED_FILES=$(git diff --name-only HEAD^ || echo "")
             else
               # Try to fetch the commits first to make sure they exist
-              git fetch --depth=1 origin $BEFORE_SHA || true
-              git fetch --depth=1 origin $AFTER_SHA || true
+              git fetch --depth=1 origin "${BEFORE_SHA}" || true
+              git fetch --depth=1 origin "${AFTER_SHA}" || true
 
               # Check if both SHAs exist in the repository
-              if git cat-file -e $BEFORE_SHA 2>/dev/null && git cat-file -e $AFTER_SHA 2>/dev/null; then
-                CHANGED_FILES=$(git diff --name-only $BEFORE_SHA $AFTER_SHA || echo "")
+              if git cat-file -e "${BEFORE_SHA}" 2>/dev/null && git cat-file -e "${AFTER_SHA}" 2>/dev/null; then
+                CHANGED_FILES=$(git diff --name-only "${BEFORE_SHA}" "${AFTER_SHA}" || echo "")
               else
                 # Fallback to comparing with parent commit
                 echo "Cannot find one of the SHAs, falling back to HEAD^"
@@ -144,16 +145,16 @@ jobs:
             RESULT=1
             echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
 
-            if [[ $RESULT -eq 0 ]]; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
+            if [[ "$RESULT" -eq 0 ]]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
               echo "Running build because relevant files were changed"
             else
-              echo "should_build=false" >> $GITHUB_OUTPUT
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
               echo "Skipping build because no relevant files were changed and commit doesn't have [build] tag"
             fi
           else
             # For pull requests, always build (after checking for [build] tag above)
-            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
             echo "Running build for pull request"
           fi
 

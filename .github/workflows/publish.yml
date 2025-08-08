@@ -11,7 +11,7 @@ jobs:
   build:
     name: Build source distribution and wheels
     uses: ./.github/workflows/build.yml
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request' }}) && github.repository == 'darvid/python-hyperscan'
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request') && github.repository == 'darvid/python-hyperscan'
     permissions:
       contents: read
       actions: write
@@ -49,23 +49,23 @@ jobs:
           # Check if HEAD already has a release version tag (prevents redundant releases)
           if git describe --exact-match --tags HEAD --match "v*" 2>/dev/null; then
             EXISTING_TAG=$(git describe --exact-match --tags HEAD --match "v*" 2>/dev/null)
-            echo "HEAD already tagged with release version $EXISTING_TAG, no release needed"
-            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "HEAD already tagged with release version ${EXISTING_TAG}, no release needed"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
           else
             # Check if there are commits since last release
             LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
             if [[ -n "$LATEST_TAG" ]]; then
-              COMMITS_COUNT=$(git rev-list ${LATEST_TAG}..HEAD --count 2>/dev/null || echo "1")
+              COMMITS_COUNT=$(git rev-list "${LATEST_TAG}"..HEAD --count 2>/dev/null || echo "1")
               if [[ "$COMMITS_COUNT" -eq 0 ]]; then
-                echo "No commits since last release $LATEST_TAG, no new content to release"
-                echo "should_release=false" >> $GITHUB_OUTPUT
+                echo "No commits since last release ${LATEST_TAG}, no new content to release"
+                echo "should_release=false" >> "$GITHUB_OUTPUT"
               else
-                echo "Found $COMMITS_COUNT commits since $LATEST_TAG, proceeding with release"
-                echo "should_release=true" >> $GITHUB_OUTPUT
+                echo "Found ${COMMITS_COUNT} commits since ${LATEST_TAG}, proceeding with release"
+                echo "should_release=true" >> "$GITHUB_OUTPUT"
               fi
             else
               echo "No previous release found, proceeding with initial release"
-              echo "should_release=true" >> $GITHUB_OUTPUT
+              echo "should_release=true" >> "$GITHUB_OUTPUT"
             fi
           fi
 
