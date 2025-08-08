@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.7.23 (2025-08-07)
+## v0.7.25 (2025-08-08)
 
 ### :bug:
 
@@ -18,6 +18,14 @@
 * feat: :sparkles: switch to Vectorscan (v5.4.11) ([`9c94b2d`](https://github.com/darvid/python-hyperscan/commit/9c94b2da85a0d085488a2498aa9545023f5b3b0e))
 
 ### Other
+
+* fix: add missing permissions to release workflow (#221) ([`7a4b410`](https://github.com/darvid/python-hyperscan/commit/7a4b41030c3cfb32d797c5e718e4f68a754c79c1))
+
+* ci: add explicit workflow permissions (#220) ([`ae157f2`](https://github.com/darvid/python-hyperscan/commit/ae157f2f34174e40929212e2848167a530022110))
+
+* Release 0.7.23 (#218)
+
+Co-authored-by: github-actions <david+hyperscan-ci@d10i.dev> ([`d80aaec`](https://github.com/darvid/python-hyperscan/commit/d80aaecb3f9465dca2909c0e5d76b46abe410015))
 
 * fix: suppress clang unqualified-std-cast-call warning (#217) ([`a3ebaf8`](https://github.com/darvid/python-hyperscan/commit/a3ebaf879c5a61de2d29336333d3899277012f67))
 
