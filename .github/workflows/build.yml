@@ -176,11 +176,16 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Remove project venv
+        run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
+
       - name: Set up Python
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group build --no-install-project
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv --group build --quiet
 
       - name: Build source distribution
         run: uvx --from build pyproject-build --installer=uv --sdist --verbose
@@ -408,11 +413,16 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Remove project venv
+        run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
+
       - name: Install host Python
         run: uv python install ${{ matrix.host_python }}
 
       - name: Install build dependencies
-        run: uv sync --group build --no-install-project
+        run: |
+          uv venv --python ${{ matrix.host_python }} .venv
+          uv pip install --python .venv --group build --quiet
 
       - name: Build and test wheels
         env:
@@ -421,7 +431,7 @@ jobs:
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: "1"
         run: |
-          uv run --no-sync cibuildwheel --output-dir wheelhouse
+          uv run --python ${{ matrix.host_python }} --no-sync cibuildwheel --output-dir wheelhouse
 
       - name: Save build artifacts
         uses: actions/cache/save@v4
