@@ -417,6 +417,7 @@ jobs:
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
 
       - name: Install host Python
+        shell: bash
         run: |
           PY_VERSION="${{ matrix.host_python }}"
           if [ -z "$PY_VERSION" ]; then
@@ -428,6 +429,7 @@ jobs:
           uv python install "$PY_VERSION"
 
       - name: Install build dependencies
+        shell: bash
         run: |
           PY_VERSION="${{ matrix.host_python }}"
           if [ -z "$PY_VERSION" ]; then
@@ -445,6 +447,7 @@ jobs:
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: "1"
+        shell: bash
         run: |
           PY_VERSION="${{ matrix.host_python }}"
           if [ -z "$PY_VERSION" ]; then
