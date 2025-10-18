@@ -67,7 +67,6 @@ jobs:
         id: release
         uses: python-semantic-release/python-semantic-release@v9.10.1
         with:
-          force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           changelog: "false"
           root_options: "-v --noop"
@@ -131,11 +130,61 @@ jobs:
           # Create new branch
           git switch -c "${RELEASE_PR_BRANCH}"
 
+      - name: Install git-cliff
+        if: needs.check_release.outputs.is_release_needed == 'true'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate changelog entry
+        if: needs.check_release.outputs.is_release_needed == 'true'
+        env:
+          RELEASE_VERSION: ${{ needs.check_release.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${RELEASE_VERSION}" ]]; then
+            echo "Release version was not detected" >&2
+            exit 1
+          fi
+
+          last_release_commit="$(git rev-list HEAD --grep '^Release ' --max-count=1 || true)"
+          if [[ -n "${last_release_commit}" ]]; then
+            if [[ "${last_release_commit}" == "$(git rev-parse HEAD)" ]]; then
+              parent_commit="$(git rev-parse "${last_release_commit}"^ 2>/dev/null || true)"
+              if [[ -n "${parent_commit}" ]]; then
+                range="${parent_commit}..HEAD"
+              else
+                root_commit="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+                range="${root_commit}..HEAD"
+              fi
+            else
+              range="${last_release_commit}..HEAD"
+            fi
+          else
+            root_commit="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+            range="${root_commit}..HEAD"
+          fi
+
+          git cliff "${range}" --config cliff.toml --tag "v${RELEASE_VERSION}" --output release-notes.md
+
+          if ! grep -q '^- ' release-notes.md; then
+            echo "No user-facing changes detected; release notes will remain empty."
+          fi
+
+          echo "Generated release notes:"
+          cat release-notes.md
+
+          tmp_file="$(mktemp)"
+          cat release-notes.md CHANGELOG.md > "${tmp_file}"
+          mv "${tmp_file}" CHANGELOG.md
+
+          git add CHANGELOG.md
+          rm release-notes.md
+
       - name: Semantic release
         uses: python-semantic-release/python-semantic-release@v9.10.1
         if: needs.check_release.outputs.is_release_needed == 'true'
         with:
-          force: "patch"
           changelog: "false"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ssh_public_signing_key: ${{ secrets.CI_SSH_PUBLIC_KEY }}
