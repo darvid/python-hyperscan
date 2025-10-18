@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Environment :: Console",
   "Intended Audience :: Developers",
@@ -37,7 +38,7 @@ Repository = "https://github.com/darvid/python-hyperscan"
 Documentation = "https://python-hyperscan.readthedocs.io/en/latest/"
 
 [build-system]
-requires = ["scikit-build-core"]
+requires = ["scikit-build-core", "cmake>=3.31"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
@@ -61,7 +62,7 @@ test-command = "pytest --pyargs {package}/tests -vvv"
 test-requires = ["pytest>=7.0", "pytest-mock"]
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
-enable = ["pypy"]
+enable = ["pypy", "pypy-eol", "cpython-freethreading"]
 
 [tool.cibuildwheel.linux]
 before-all = ["yum -y update", """yum -y install \
@@ -192,7 +193,8 @@ dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 [dependency-groups]
 release = ["python-semantic-release>=9.16.0"]
 dev = [
-  "cibuildwheel>=2.22.0",
+  "cibuildwheel>=3.2.1 ; python_version >= '3.11'",
+  "cmake>=3.31 ; python_version >= '3.11'",
   "isort>=5.13.2",
   "pytest>=7.0",
   "python-semantic-release>=9.16.0",
@@ -201,7 +203,8 @@ dev = [
 test = ["pytest>=8.3.4", "pytest-mock>=3.14.0"]
 build = [
   "auditwheel>=6.2.0",
-  "cibuildwheel>=2.22.0",
+  "cibuildwheel>=3.2.1 ; python_version >= '3.11'",
+  "cmake>=3.31 ; python_version >= '3.11'",
   "delocate>=0.12.0 ; sys_platform == 'darwin'",
   "delvewheel>=1.10.0 ; sys_platform == 'win32'",
 ]

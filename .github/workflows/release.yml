@@ -69,6 +69,7 @@ jobs:
         with:
           force: "patch"
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          changelog: "false"
           root_options: "-v --noop"
           # python-semantic-release displays what it would have
           # committed if commit is true and noop is set
@@ -135,6 +136,7 @@ jobs:
         if: needs.check_release.outputs.is_release_needed == 'true'
         with:
           force: "patch"
+          changelog: "false"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ssh_public_signing_key: ${{ secrets.CI_SSH_PUBLIC_KEY }}
           ssh_private_signing_key: ${{ secrets.CI_SSH_PRIVATE_KEY }}

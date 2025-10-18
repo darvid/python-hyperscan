@@ -3,9 +3,154 @@
 #include <bytesobject.h>
 #include <ch.h>
 #include <hs.h>
+#include <pythread.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <structmember.h>
+
+#ifdef Py_GIL_DISABLED
+typedef struct {
+  PyThread_type_lock lock;
+  unsigned long owner;
+  unsigned int depth;
+} hs_global_lock_t;
+
+static hs_global_lock_t g_hs_lock = {NULL, 0, 0};
+
+static int hs_global_lock_init(void)
+{
+  if (g_hs_lock.lock != NULL)
+    return 0;
+  g_hs_lock.lock = PyThread_allocate_lock();
+  if (g_hs_lock.lock == NULL) {
+    PyErr_NoMemory();
+    return -1;
+  }
+  g_hs_lock.owner = 0;
+  g_hs_lock.depth = 0;
+  return 0;
+}
+
+static int hs_global_lock_acquire(void)
+{
+  unsigned long tid = PyThread_get_thread_ident();
+  if (g_hs_lock.lock == NULL) {
+    PyErr_SetString(
+      PyExc_RuntimeError, "hyperscan global lock not initialized");
+    return -1;
+  }
+  if (g_hs_lock.owner == tid) {
+    g_hs_lock.depth += 1;
+    return 0;
+  }
+  if (!PyThread_acquire_lock(g_hs_lock.lock, WAIT_LOCK)) {
+    PyErr_SetString(
+      PyExc_RuntimeError, "failed to acquire hyperscan global lock");
+    return -1;
+  }
+  g_hs_lock.owner = tid;
+  g_hs_lock.depth = 1;
+  return 0;
+}
+
+static void hs_global_lock_release(void)
+{
+  if (g_hs_lock.lock == NULL)
+    return;
+  unsigned long tid = PyThread_get_thread_ident();
+  if (g_hs_lock.owner != tid) {
+    /* Unexpected state; release underlying lock to avoid deadlock */
+    PyThread_release_lock(g_hs_lock.lock);
+    return;
+  }
+  if (g_hs_lock.depth > 1) {
+    g_hs_lock.depth -= 1;
+    return;
+  }
+  g_hs_lock.owner = 0;
+  g_hs_lock.depth = 0;
+  PyThread_release_lock(g_hs_lock.lock);
+}
+
+static void hs_global_lock_fini(void)
+{
+  if (g_hs_lock.lock != NULL) {
+    PyThread_free_lock(g_hs_lock.lock);
+    g_hs_lock.lock = NULL;
+  }
+  g_hs_lock.owner = 0;
+  g_hs_lock.depth = 0;
+}
+#endif
+
+#ifdef Py_GIL_DISABLED
+#define HS_LOCK_DECLARE() int __hs_lock_acquired = 0
+#define HS_LOCK_ACQUIRE_OR_RETURN_NULL() \
+  do {                                   \
+    if (hs_global_lock_acquire() < 0) {  \
+      return NULL;                       \
+    }                                    \
+    __hs_lock_acquired = 1;              \
+  } while (0)
+#define HS_LOCK_ACQUIRE_OR_RETURN_NEG1() \
+  do {                                   \
+    if (hs_global_lock_acquire() < 0) {  \
+      return -1;                         \
+    }                                    \
+    __hs_lock_acquired = 1;              \
+  } while (0)
+#define HS_LOCK_RELEASE_IF_HELD() \
+  do {                            \
+    if (__hs_lock_acquired) {     \
+      hs_global_lock_release();   \
+      __hs_lock_acquired = 0;     \
+    }                             \
+  } while (0)
+#else
+#define HS_LOCK_DECLARE() int __hs_lock_acquired = 0
+#define HS_LOCK_ACQUIRE_OR_RETURN_NULL() \
+  do {                                   \
+  } while (0)
+#define HS_LOCK_ACQUIRE_OR_RETURN_NEG1() \
+  do {                                   \
+  } while (0)
+#define HS_LOCK_RELEASE_IF_HELD() \
+  do {                            \
+    (void)__hs_lock_acquired;     \
+  } while (0)
+#endif
+
+#ifdef Py_GIL_DISABLED
+#define HS_LOCK_RETURN(obj)     \
+  do {                          \
+    if (__hs_lock_acquired) {   \
+      hs_global_lock_release(); \
+      __hs_lock_acquired = 0;   \
+    }                           \
+    return (obj);               \
+  } while (0)
+#define HS_LOCK_RETURN_NULL()   \
+  do {                          \
+    if (__hs_lock_acquired) {   \
+      hs_global_lock_release(); \
+      __hs_lock_acquired = 0;   \
+    }                           \
+    return NULL;                \
+  } while (0)
+#define HS_LOCK_RETURN_INT(val) \
+  do {                          \
+    if (__hs_lock_acquired) {   \
+      hs_global_lock_release(); \
+      __hs_lock_acquired = 0;   \
+    }                           \
+    return (val);               \
+  } while (0)
+#else
+#define HS_LOCK_RETURN(obj) return (obj)
+#define HS_LOCK_RETURN_NULL() return NULL
+#define HS_LOCK_RETURN_INT(val) return (val)
+#endif
 
 #define ADD_INT_CONSTANT(module, name)                    \
   if (PyModule_AddIntConstant(module, #name, name) < 0) { \
@@ -19,7 +164,7 @@
     PyGILState_STATE gstate = PyGILState_Ensure();    \
     PyErr_SetString(HyperscanErrors[abs(err)], serr); \
     PyGILState_Release(gstate);                       \
-    return rv;                                        \
+    HS_LOCK_RETURN(rv);                               \
   }
 #define HANDLE_HYPERSCAN_ERR(err, rv)                 \
   if (err != HS_SUCCESS) {                            \
@@ -28,7 +173,7 @@
     PyGILState_STATE gstate = PyGILState_Ensure();    \
     PyErr_SetString(HyperscanErrors[abs(err)], serr); \
     PyGILState_Release(gstate);                       \
-    return rv;                                        \
+    HS_LOCK_RETURN(rv);                               \
   }
 #define ADD_HYPERSCAN_ERROR(module, errors, base, name, hs_err, doc) \
   if (PyModule_AddIntConstant(module, #hs_err, hs_err) < 0) {        \
@@ -202,6 +347,9 @@ static int Database_init(Database *self, PyObject *args, PyObject *kwds)
 static PyObject *Database_compile(
   Database *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   PyObject *oexpressions;
   PyObject *oflags = Py_None;
   PyObject *oflag = Py_None;
@@ -230,13 +378,13 @@ static PyObject *Database_compile(
         &oflags,
         &literal,
         &oext))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
 
   if (elements == 0) {
     Py_ssize_t expressions_size = PySequence_Size(oexpressions);
     if (expressions_size == -1) {
       PyErr_SetString(PyExc_TypeError, "expressions must be a sequence");
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     } else {
       elements = (uint64_t)expressions_size;
     }
@@ -378,7 +526,7 @@ static PyObject *Database_compile(
         hs_compile_err->message,
         hs_compile_err->expression);
       hs_free_compile_error(hs_compile_err);
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     }
   } else {
     if (self->chimera) {
@@ -447,7 +595,7 @@ static PyObject *Database_compile(
       if (hs_err != HS_SUCCESS) {
         PyErr_SetString(HyperscanError, hs_compile_err->message);
         hs_free_compile_error(hs_compile_err);
-        return NULL;
+        HS_LOCK_RETURN_NULL();
       }
     }
     free(ext);
@@ -480,20 +628,24 @@ static PyObject *Database_compile(
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 
-  Py_RETURN_NONE;
+  HS_LOCK_RETURN(Py_NewRef(Py_None));
 
 memory_error:
-  return PyErr_NoMemory();
+  PyErr_NoMemory();
+  HS_LOCK_RETURN_NULL();
 
 python_error:
   free(expressions);
   free(flags);
   free(ids);
-  return NULL;
+  HS_LOCK_RETURN_NULL();
 }
 
 static PyObject *Database_info(Database *self, PyObject *args)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   char *info;
   if (self->chimera) {
     ch_error_t ch_err = ch_database_info(self->ch_db, &info);
@@ -506,11 +658,14 @@ static PyObject *Database_info(Database *self, PyObject *args)
   PyObject *oinfo = PyBytes_FromString(info);
   Py_INCREF(oinfo);
   free(info);
-  return oinfo;
+  HS_LOCK_RETURN(oinfo);
 }
 
 static PyObject *Database_size(Database *self, PyObject *args)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   size_t database_size;
   if (self->chimera) {
     ch_error_t ch_err = ch_database_size(self->ch_db, &database_size);
@@ -522,11 +677,14 @@ static PyObject *Database_size(Database *self, PyObject *args)
 
   PyObject *odatabase_size = PyLong_FromSize_t(database_size);
   Py_INCREF(odatabase_size);
-  return odatabase_size;
+  HS_LOCK_RETURN(odatabase_size);
 }
 
 static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   uint32_t flags = 0;
 
   PyObject *odata;
@@ -552,7 +710,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
         &flags,
         &octx,
         &oscratch))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   py_scan_callback_ctx cctx = {ocallback, octx, 1};
 
   if (self->mode == HS_MODE_VECTORED) {
@@ -589,13 +747,13 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
       PyMem_RawFree(data);
       PyMem_RawFree(lengths);
       Py_XDECREF(fast_seq);
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     }
 
     if (self->chimera) {
       PyErr_SetString(
         PyExc_RuntimeError, "chimera does not support vectored scanning");
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     }
 
     hs_error_t hs_err;
@@ -618,12 +776,12 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
   } else {
     if (!PyBytes_CheckExact(odata)) {
       PyErr_SetString(PyExc_TypeError, "a bytes-like object is required");
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     }
 
     char *data = PyBytes_AsString(odata);
     if (data == NULL)
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     Py_ssize_t length = PyBytes_Size(odata);
 
     if (self->chimera) {
@@ -641,7 +799,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
         ocallback == Py_None ? NULL : (void *)&cctx);
       Py_END_ALLOW_THREADS;
       if (PyErr_Occurred()) {
-        return NULL;
+        HS_LOCK_RETURN_NULL();
       }
       HANDLE_CHIMERA_ERR(ch_err, NULL);
     } else {
@@ -658,19 +816,22 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
         ocallback == Py_None ? NULL : (void *)&cctx);
       Py_END_ALLOW_THREADS;
       if (PyErr_Occurred()) {
-        return NULL;
+        HS_LOCK_RETURN_NULL();
       }
       HANDLE_HYPERSCAN_ERR(hs_err, NULL);
     }
   }
   if (!cctx.success) {
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   }
-  Py_RETURN_NONE;
+  HS_LOCK_RETURN(Py_NewRef(Py_None));
 }
 
 static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   uint32_t flags = 0;
   PyObject *ocallback = Py_None;
   PyObject *octx = Py_None;
@@ -682,13 +843,13 @@ static PyObject *Database_stream(Database *self, PyObject *args, PyObject *kwds)
   };
   if (!PyArg_ParseTupleAndKeywords(
         args, kwds, "O|IO", kwlist, &ocallback, &flags, &octx))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   PyObject *stream = PyObject_CallFunction(
     (PyObject *)&StreamType, "OIOO", (PyObject *)self, flags, ocallback, octx);
   if (PyErr_Occurred())
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   Py_INCREF(stream);
-  return stream;
+  HS_LOCK_RETURN(stream);
 }
 
 static PyMemberDef Database_members[] = {
@@ -874,6 +1035,9 @@ static int Stream_init(Stream *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   py_scan_callback_ctx cctx;
   PyObject *oscratch = Py_None, *ocallback = Py_None, *octx = Py_None;
   static char *kwlist[] = {"scratch", "match_event_handler", "context", NULL};
@@ -886,7 +1050,7 @@ static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
         &ScratchType,
         &ocallback,
         &octx))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   Database *db = (Database *)self->database;
   Scratch *scratch;
   if (PyObject_Not(oscratch))
@@ -903,46 +1067,58 @@ static PyObject *Stream_close(Stream *self, PyObject *args, PyObject *kwds)
     self->identifier, hs_scratch, hs_match_handler, (void *)&cctx);
   HANDLE_HYPERSCAN_ERR(hs_err, NULL);
 
-  Py_RETURN_NONE;
+  HS_LOCK_RETURN(Py_NewRef(Py_None));
 }
 
 static long Stream_len(PyObject *self)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NEG1();
+
   size_t stream_size;
   Stream *stream = (Stream *)self;
   Database *db = (Database *)stream->database;
   if (db->chimera) {
     PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
-    return 0;
+    HS_LOCK_RETURN_INT(0);
   }
   hs_error_t err = hs_stream_size(db->hs_db, &stream_size);
   HANDLE_HYPERSCAN_ERR(err, 0);
-  return stream_size;
+  HS_LOCK_RETURN_INT((long)stream_size);
 }
 
 static PyObject *Stream_enter(Stream *self)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   Stream *stream = (Stream *)self;
   Database *db = (Database *)stream->database;
   if (db->chimera) {
     PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   }
   hs_error_t err = hs_open_stream(db->hs_db, 0, &self->identifier);
   HANDLE_HYPERSCAN_ERR(err, NULL);
-  return (PyObject *)self;
+  HS_LOCK_RETURN((PyObject *)self);
 }
 
 static PyObject *Stream_exit(Stream *self)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   PyObject_CallMethod((PyObject *)self, "close", NULL);
   if (PyErr_Occurred())
-    return NULL;
-  Py_RETURN_NONE;
+    HS_LOCK_RETURN_NULL();
+  HS_LOCK_RETURN(Py_NewRef(Py_None));
 }
 
 static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   char *data;
   Py_ssize_t length;
   uint32_t flags;
@@ -961,7 +1137,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
         &oscratch,
         &ocallback,
         &octx))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
 
   if (PyObject_Not(ocallback))
     ocallback = self->cctx->callback;
@@ -977,7 +1153,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
     if (!PyObject_IsInstance(oscratch, (PyObject *)&ScratchType)) {
       PyErr_SetString(
         PyExc_TypeError, "scratch must be a hyperscan.Scratch instance");
-      return NULL;
+      HS_LOCK_RETURN_NULL();
     }
     scratch = (Scratch *)oscratch;
   }
@@ -986,7 +1162,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
 
   if (db->chimera) {
     PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   } else {
     hs_error_t hs_err;
     Py_BEGIN_ALLOW_THREADS;
@@ -1002,7 +1178,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 
-  Py_RETURN_NONE;
+  HS_LOCK_RETURN(Py_NewRef(Py_None));
 }
 
 static PyMemberDef Stream_members[] = {
@@ -1121,12 +1297,15 @@ static void Scratch_dealloc(Scratch *self)
 static PyObject *Scratch_set_database(
   Scratch *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   static char *kwlist[] = {"database", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &self->database))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   if (self->hs_scratch != NULL || self->ch_scratch != NULL) {
     PyErr_SetString(HyperscanError, "scratch objects cannot be re-allocated");
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   }
   Database *db = (Database *)self->database;
   if (db->chimera) {
@@ -1138,7 +1317,7 @@ static PyObject *Scratch_set_database(
     hs_error_t hs_err = hs_alloc_scratch(hs_db, &self->hs_scratch);
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
-  Py_RETURN_NONE;
+  HS_LOCK_RETURN(Py_NewRef(Py_None));
 }
 
 static int Scratch_init(Scratch *self, PyObject *args, PyObject *kwds)
@@ -1154,6 +1333,9 @@ static int Scratch_init(Scratch *self, PyObject *args, PyObject *kwds)
 
 static PyObject *Scratch_clone(Scratch *self)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   PyObject *odest = PyObject_CallFunction((PyObject *)&ScratchType, NULL);
   Scratch *dest = (Scratch *)odest;
   bool chimera;
@@ -1172,7 +1354,7 @@ static PyObject *Scratch_clone(Scratch *self)
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 
-  return odest;
+  HS_LOCK_RETURN(odest);
 }
 
 static PyMemberDef Scratch_members[] = {
@@ -1242,6 +1424,9 @@ static PyTypeObject ScratchType = {
 
 static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   Database *db;
   char *buf;
   size_t length;
@@ -1249,25 +1434,28 @@ static PyObject *dumpb(PyObject *self, PyObject *args, PyObject *kwds)
 
   if (!PyArg_ParseTupleAndKeywords(
         args, kwds, "O!", kwlist, &DatabaseType, &db))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   if (db->chimera) {
     PyErr_SetString(
       PyExc_RuntimeError, "chimera does not support serialization");
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   }
   hs_error_t err = hs_serialize_database(db->hs_db, &buf, &length);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   PyObject *bytes = PyBytes_FromStringAndSize(buf, length);
   if (!bytes) {
     PyErr_SetString(HyperscanError, "failed to serialize database");
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   }
-  PyMem_Free(buf);
-  return bytes;
+  free(buf);
+  HS_LOCK_RETURN(bytes);
 }
 
 static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
 {
+  HS_LOCK_DECLARE();
+  HS_LOCK_ACQUIRE_OR_RETURN_NULL();
+
   char *buf;
   PyObject *obuf = Py_None;
   PyObject *odb;
@@ -1276,10 +1464,10 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
 
   static char *kwlist[] = {"buf", "mode", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "OI", kwlist, &obuf, &db->mode))
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   if (!PyBytes_Check(obuf)) {
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
-    return NULL;
+    HS_LOCK_RETURN_NULL();
   }
 
   Py_ssize_t length = PyBytes_Size(obuf);
@@ -1287,8 +1475,8 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
   hs_error_t err = hs_deserialize_database(buf, length, &db->hs_db);
   HANDLE_HYPERSCAN_ERR(err, NULL);
   if (PyErr_Occurred())
-    return NULL;
-  return odb;
+    HS_LOCK_RETURN_NULL();
+  HS_LOCK_RETURN(odb);
 }
 
 static PyMethodDef HyperscanMethods[] = {
@@ -1328,6 +1516,18 @@ PyMODINIT_FUNC PyInit__hs_ext(void)
   m = PyModule_Create(&hyperscanmodule);
   if (m == NULL)
     return NULL;
+
+#ifdef Py_GIL_DISABLED
+  if (hs_global_lock_init() < 0) {
+    Py_DECREF(m);
+    return NULL;
+  }
+  if (PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED) < 0) {
+    hs_global_lock_fini();
+    Py_DECREF(m);
+    return NULL;
+  }
+#endif
 
   ADD_INT_CONSTANT(m, CH_BAD_ALIGN);
   ADD_INT_CONSTANT(m, CH_BAD_ALLOC);
@@ -1537,6 +1737,9 @@ PyMODINIT_FUNC PyInit__hs_ext(void)
   return m;
 
 cleanup_module:
+#ifdef Py_GIL_DISABLED
+  hs_global_lock_fini();
+#endif
   Py_DECREF(m);
   return NULL;
 }

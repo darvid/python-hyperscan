@@ -5,8 +5,6 @@ project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION})
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
 # Set module path before any find_package calls
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ragel")
-
 # Turn off PCRE tests and utilities to avoid conflicts
 set(BUILD_PCRE_INTERNAL ON CACHE BOOL "Use internal PCRE" FORCE)
 set(PCRE_BUILD_TESTS OFF CACHE BOOL "Build PCRE tests" FORCE)
@@ -124,8 +122,48 @@ foreach(lib ${HS_LIBS})
     IMPORTED_LOCATION "${object_path}")
 endforeach()
 
+function(hs_locate_ragel)
+  set(options)
+  set(oneValueArgs VERSION)
+  set(multiValueArgs)
+  cmake_parse_arguments(HS_R "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  find_program(_ragel_executable NAMES ragel)
+
+  if(NOT _ragel_executable)
+    set(RAGEL_FOUND FALSE PARENT_SCOPE)
+    return()
+  endif()
+
+  set(_ragel_version "")
+  execute_process(
+    COMMAND ${_ragel_executable} --version
+    OUTPUT_VARIABLE _ragel_stdout
+    ERROR_VARIABLE _ragel_stderr
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _ragel_result)
+
+  if(_ragel_result EQUAL 0)
+    string(REGEX MATCH "([0-9]+\\.[0-9]+(\\.[0-9]+)?)" _ragel_version "${_ragel_stdout}")
+  endif()
+
+  if(NOT _ragel_version)
+    set(_ragel_version "0.0")
+  endif()
+
+  if(HS_R_VERSION AND _ragel_version VERSION_LESS HS_R_VERSION)
+    message(STATUS "Found ragel ${_ragel_version} at ${_ragel_executable} but ${HS_R_VERSION}+ is required")
+    set(RAGEL_FOUND FALSE PARENT_SCOPE)
+    return()
+  endif()
+
+  set(RAGEL_EXECUTABLE "${_ragel_executable}" PARENT_SCOPE)
+  set(RAGEL_VERSION "${_ragel_version}" PARENT_SCOPE)
+  set(RAGEL_FOUND TRUE PARENT_SCOPE)
+endfunction()
+
 if(HS_BUILD_REQUIRED)
-  find_package(RAGEL 6.9 MODULE)
+  hs_locate_ragel(VERSION "6.9")
 
   if(NOT RAGEL_FOUND)
     # Build and install Ragel if necessary
@@ -159,6 +197,7 @@ if(HS_BUILD_REQUIRED)
 
       set(RAGEL_EXECUTABLE C:/msys64/mingw64/bin/ragel.exe CACHE PATH "Ragel executable" FORCE)
       set(RAGEL ${RAGEL_EXECUTABLE})
+      set(RAGEL_FOUND TRUE)
       message(STATUS "Ragel executable: ${RAGEL_EXECUTABLE}")
     else()
       # prerequisites (in addition to a build toolchain): autoconf, kelbt
@@ -175,19 +214,26 @@ if(HS_BUILD_REQUIRED)
         INSTALL_COMMAND ""
       )
       set(RAGEL_EXECUTABLE ${ragel_BINARY_DIR}/bin/ragel CACHE PATH "Ragel executable" FORCE)
+      set(RAGEL_VERSION ${RAGEL_VERSION})
+      set(RAGEL_FOUND TRUE)
+      set(RAGEL_FOUND TRUE)
       message(STATUS "Ragel executable: ${RAGEL_EXECUTABLE}")
       add_custom_target(ragel COMMAND ${RAGEL_EXECUTABLE} -V)
     endif()
   else()
-    set(RAGEL_EXECUTABLE ${RAGEL_LIBRARIES})
+    set(RAGEL_EXECUTABLE ${RAGEL_EXECUTABLE})
     add_custom_target(ragel COMMAND ${RAGEL_EXECUTABLE} -V)
     message(STATUS "Ragel executable: ${RAGEL_EXECUTABLE}")
   endif()
 
-  # ensure Ragel built/found
-  find_package(RAGEL 6.9 MODULE REQUIRED)
-
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+  # Ensure downstream projects opt into modern policy behavior with new CMake
+  set(_cmake_policy_version "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
+  set(HS_CMAKE_CACHE_ARGS
+    -DCMAKE_POLICY_VERSION:STRING=${_cmake_policy_version}
+    -DCMAKE_POLICY_VERSION_MINIMUM:STRING=3.5
+  )
 
   # Hyperscan/Vectorscan platform-specific build configuration
   if(WIN32)
@@ -440,6 +486,7 @@ if(HS_BUILD_REQUIRED)
     INSTALL_COMMAND ""
     CMAKE_GENERATOR ${HS_GENERATOR}
     CMAKE_ARGS ${HS_CMAKE_ARGS} -Wno-dev
+    CMAKE_CACHE_ARGS ${HS_CMAKE_CACHE_ARGS}
     BUILD_BYPRODUCTS ${HS_BUILD_BYPRODUCTS}
     BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release --parallel 4 ${HS_TARGETS}
   )

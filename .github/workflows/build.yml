@@ -176,11 +176,16 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Remove project venv
+        run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
+
       - name: Set up Python
-        run: uv python install
+        run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group build --no-install-project
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv --group build --quiet
 
       - name: Build source distribution
         run: uvx --from build pyproject-build --installer=uv --sdist --verbose
@@ -205,38 +210,54 @@ jobs:
         include:
           # 🐧 manylinux x86_64
           - os: ubuntu-24.04
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp310
             platform_id: manylinux_x86_64
           - os: ubuntu-24.04
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp311
             platform_id: manylinux_x86_64
           - os: ubuntu-24.04
-            python: "3.12"
+            host_python: "3.12"
             python_id: cp312
             platform_id: manylinux_x86_64
           - os: ubuntu-24.04
-            python: "3.13"
+            host_python: "3.12"
             python_id: cp313
+            platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            host_python: "3.12"
+            python_id: cp314
+            platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            host_python: "3.12"
+            python_id: cp314t
             platform_id: manylinux_x86_64
 
           # 🐧 manylinux aarch64
           - os: ubuntu-24.04-arm
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp310
             platform_id: manylinux_aarch64
           - os: ubuntu-24.04-arm
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp311
             platform_id: manylinux_aarch64
           - os: ubuntu-24.04-arm
-            python: "3.12"
+            host_python: "3.12"
             python_id: cp312
             platform_id: manylinux_aarch64
           - os: ubuntu-24.04-arm
-            python: "3.13"
+            host_python: "3.12"
             python_id: cp313
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            host_python: "3.12"
+            python_id: cp314
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            host_python: "3.12"
+            python_id: cp314t
             platform_id: manylinux_aarch64
 
           # 🐧 manylinux2014 PyPy x86_64
@@ -268,6 +289,14 @@ jobs:
             python: "3.13"
             python_id: cp313
             platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.14"
+            python_id: cp314
+            platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.14"
+            python_id: cp314t
+            platform_id: musllinux_x86_64
 
           # 🦀 musllinux ARM
           - os: ubuntu-24.04-arm
@@ -286,59 +315,91 @@ jobs:
             python: "3.13"
             python_id: cp313
             platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.14"
+            python_id: cp314
+            platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.14"
+            python_id: cp314t
+            platform_id: musllinux_aarch64
 
           # 🍎 macOS x86_64
           - os: macos-13
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp310
             platform_id: macosx_x86_64
           - os: macos-13
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp311
             platform_id: macosx_x86_64
           - os: macos-13
-            python: "3.12"
+            host_python: "3.12"
             python_id: cp312
             platform_id: macosx_x86_64
           - os: macos-13
-            python: "3.13"
+            host_python: "3.12"
             python_id: cp313
+            platform_id: macosx_x86_64
+          - os: macos-13
+            host_python: "3.12"
+            python_id: cp314
+            platform_id: macosx_x86_64
+          - os: macos-13
+            host_python: "3.12"
+            python_id: cp314t
             platform_id: macosx_x86_64
 
           # 🍎 macOS arm64 (Apple silicon)
           - os: macos-15
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp310
             platform_id: macosx_arm64
           - os: macos-15
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp311
             platform_id: macosx_arm64
           - os: macos-15
-            python: "3.12"
+            host_python: "3.12"
             python_id: cp312
             platform_id: macosx_arm64
           - os: macos-15
-            python: "3.13"
+            host_python: "3.12"
             python_id: cp313
+            platform_id: macosx_arm64
+          - os: macos-15
+            host_python: "3.12"
+            python_id: cp314
+            platform_id: macosx_arm64
+          - os: macos-15
+            host_python: "3.12"
+            python_id: cp314t
             platform_id: macosx_arm64
 
           # 🪟 Windows x86_64
           - os: windows-2025
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp310
             platform_id: win_amd64
           - os: windows-2025
-            python: "3.11"
+            host_python: "3.12"
             python_id: cp311
             platform_id: win_amd64
           - os: windows-2025
-            python: "3.12"
+            host_python: "3.12"
             python_id: cp312
             platform_id: win_amd64
           - os: windows-2025
-            python: "3.13"
+            host_python: "3.12"
             python_id: cp313
+            platform_id: win_amd64
+          - os: windows-2025
+            host_python: "3.12"
+            python_id: cp314
+            platform_id: win_amd64
+          - os: windows-2025
+            host_python: "3.12"
+            python_id: cp314t
             platform_id: win_amd64
 
     steps:
@@ -352,8 +413,33 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Remove project venv
+        run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
+
+      - name: Install host Python
+        shell: bash
+        run: |
+          PY_VERSION="${{ matrix.host_python }}"
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="${{ matrix.python }}"
+          fi
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="3.12"
+          fi
+          uv python install "$PY_VERSION"
+
       - name: Install build dependencies
-        run: uv sync --group build --no-install-project
+        shell: bash
+        run: |
+          PY_VERSION="${{ matrix.host_python }}"
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="${{ matrix.python }}"
+          fi
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="3.12"
+          fi
+          uv venv --python "$PY_VERSION" .venv
+          uv pip install --python .venv --group build --quiet
 
       - name: Build and test wheels
         env:
@@ -361,8 +447,16 @@ jobs:
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: "1"
+        shell: bash
         run: |
-          uv run --no-sync cibuildwheel --output-dir wheelhouse
+          PY_VERSION="${{ matrix.host_python }}"
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="${{ matrix.python }}"
+          fi
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="3.12"
+          fi
+          uv run --python "$PY_VERSION" --no-sync cibuildwheel --output-dir wheelhouse
 
       - name: Save build artifacts
         uses: actions/cache/save@v4
