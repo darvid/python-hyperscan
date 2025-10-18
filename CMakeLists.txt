@@ -228,6 +228,13 @@ if(HS_BUILD_REQUIRED)
 
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+  # Ensure downstream projects opt into modern policy behavior with new CMake
+  set(_cmake_policy_version "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
+  set(HS_CMAKE_CACHE_ARGS
+    -DCMAKE_POLICY_VERSION:STRING=${_cmake_policy_version}
+    -DCMAKE_POLICY_VERSION_MINIMUM:STRING=3.5
+  )
+
   # Hyperscan/Vectorscan platform-specific build configuration
   if(WIN32)
     # Ensure consistent MSVC runtime flags
@@ -479,6 +486,7 @@ if(HS_BUILD_REQUIRED)
     INSTALL_COMMAND ""
     CMAKE_GENERATOR ${HS_GENERATOR}
     CMAKE_ARGS ${HS_CMAKE_ARGS} -Wno-dev
+    CMAKE_CACHE_ARGS ${HS_CMAKE_CACHE_ARGS}
     BUILD_BYPRODUCTS ${HS_BUILD_BYPRODUCTS}
     BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release --parallel 4 ${HS_TARGETS}
   )
