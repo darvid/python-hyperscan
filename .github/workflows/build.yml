@@ -53,9 +53,16 @@ jobs:
         # 4. The event is specifically on the 'darvid/python-hyperscan'
         #    repository AND the commit message contains '[build]'.
         if: >
-          (github.event_name != 'push' || github.repository == 'darvid/python-hyperscan') &&
-          ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) || (github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request'))) ||
-          (github.repository == 'darvid/python-hyperscan' && contains(github.event.head_commit.message, '[build]'))
+          github.event_name == 'pull_request' ||
+          github.event_name == 'workflow_dispatch' ||
+          github.event_name == 'workflow_call' ||
+          (
+            github.event_name == 'push' &&
+            (
+              github.repository == 'darvid/python-hyperscan' ||
+              contains(github.event.head_commit.message, '[build]')
+            )
+          )
         run: |
           echo "valid_event=true" >> "$GITHUB_OUTPUT"
 

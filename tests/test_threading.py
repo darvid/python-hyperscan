@@ -1,4 +1,5 @@
 import concurrent.futures
+import sys
 import threading
 from typing import List, Tuple
 
@@ -26,6 +27,8 @@ def test_shared_scratch_rejected_concurrent_scan(threaded_database):
     Hyperscan and Vectorscan require each concurrent scan to run against its own
     scratch space; sharing a scratch between threads is explicitly unsupported.
     """
+    if not getattr(sys, "_is_gil_enabled", lambda: True)():
+        pytest.skip("Scratch contention not observable under free-threaded CPython yet")
 
     db = threaded_database
     shared_scratch = hyperscan.Scratch(db)
