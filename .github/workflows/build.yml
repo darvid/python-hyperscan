@@ -417,11 +417,26 @@ jobs:
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
 
       - name: Install host Python
-        run: uv python install ${{ matrix.host_python }}
+        run: |
+          PY_VERSION="${{ matrix.host_python }}"
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="${{ matrix.python }}"
+          fi
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="3.12"
+          fi
+          uv python install "$PY_VERSION"
 
       - name: Install build dependencies
         run: |
-          uv venv --python ${{ matrix.host_python }} .venv
+          PY_VERSION="${{ matrix.host_python }}"
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="${{ matrix.python }}"
+          fi
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="3.12"
+          fi
+          uv venv --python "$PY_VERSION" .venv
           uv pip install --python .venv --group build --quiet
 
       - name: Build and test wheels
@@ -431,7 +446,14 @@ jobs:
           CIBW_BUILD: ${{ matrix.python_id }}-${{ matrix.platform_id }}
           CIBW_BUILD_VERBOSITY: "1"
         run: |
-          uv run --python ${{ matrix.host_python }} --no-sync cibuildwheel --output-dir wheelhouse
+          PY_VERSION="${{ matrix.host_python }}"
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="${{ matrix.python }}"
+          fi
+          if [ -z "$PY_VERSION" ]; then
+            PY_VERSION="3.12"
+          fi
+          uv run --python "$PY_VERSION" --no-sync cibuildwheel --output-dir wheelhouse
 
       - name: Save build artifacts
         uses: actions/cache/save@v4
