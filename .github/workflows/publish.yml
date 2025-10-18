@@ -11,7 +11,7 @@ jobs:
   build:
     name: Build source distribution and wheels
     uses: ./.github/workflows/build.yml
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request') && github.repository == 'darvid/python-hyperscan'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.repository == 'darvid/python-hyperscan' && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request/patch'))
     permissions:
       contents: read
       actions: write
@@ -45,7 +45,36 @@ jobs:
 
       - name: Check if release is needed
         id: release_check
+        env:
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          RELEASE_PR_BRANCH: ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          if [[ "${REPOSITORY}" != "darvid/python-hyperscan" ]]; then
+            echo "Repository ${REPOSITORY} is not eligible for release automation"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "${PR_MERGED}" != "true" ]]; then
+            echo "Pull request not merged, skipping release"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -n "${RELEASE_PR_BRANCH}" ]]; then
+            case "${PR_HEAD_REF}" in
+              "${RELEASE_PR_BRANCH}"*)
+                ;;
+              *)
+                echo "Head ref ${PR_HEAD_REF} does not match expected release branch prefix ${RELEASE_PR_BRANCH}"
+                echo "should_release=false" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+            esac
+          fi
+
           # Check if HEAD already has a release version tag (prevents redundant releases)
           if git describe --exact-match --tags HEAD --match "v*" 2>/dev/null; then
             EXISTING_TAG=$(git describe --exact-match --tags HEAD --match "v*" 2>/dev/null)
@@ -69,13 +98,76 @@ jobs:
             fi
           fi
 
+      - name: Install git-cliff
+        if: steps.release_check.outputs.should_release == 'true'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Collect release metadata
+        if: steps.release_check.outputs.should_release == 'true'
+        id: release_meta
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 - <<'PY'
+            import pathlib
+            try:
+                import tomllib
+            except ModuleNotFoundError:
+                import tomli as tomllib
+            with pathlib.Path("pyproject.toml").open("rb") as fh:
+                data = tomllib.load(fh)
+            print(data["project"]["version"])
+          PY
+          )
+          CURRENT_RELEASE=$(git rev-list HEAD --grep '^Release ' --max-count=1 || true)
+          if [[ -z "${CURRENT_RELEASE}" ]]; then
+            echo "Unable to locate the current release commit (matching '^Release ')" >&2
+            exit 1
+          fi
+          PREVIOUS_RELEASE=$(git rev-list HEAD --grep '^Release ' --max-count=1 --skip=1 || true)
+          if [[ -z "${PREVIOUS_RELEASE}" ]]; then
+            ROOT=$(git rev-list --max-parents=0 HEAD | tail -n 1)
+            RANGE="${ROOT}..${CURRENT_RELEASE}"
+          else
+            RANGE="${PREVIOUS_RELEASE}..${CURRENT_RELEASE}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "range=${RANGE}" >> "$GITHUB_OUTPUT"
+          echo "Current release commit: ${CURRENT_RELEASE}"
+          echo "Previous release commit: ${PREVIOUS_RELEASE:-${RANGE%%..*}}"
+
+      - name: Generate release notes
+        if: steps.release_check.outputs.should_release == 'true'
+        env:
+          RANGE: ${{ steps.release_meta.outputs.range }}
+          RELEASE_VERSION: ${{ steps.release_meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${RANGE}" ]]; then
+            echo "Commit range for release notes is empty" >&2
+            exit 1
+          fi
+          git cliff "${RANGE}" --config cliff.toml --tag "v${RELEASE_VERSION}" --output release-notes.md
+          if ! grep -q '^- ' release-notes.md; then
+            : > release-notes.md
+            echo "No user-facing changes detected; publishing empty release notes."
+          fi
+          echo "Release notes preview:"
+          cat release-notes.md
+
       - name: Publish to GitHub Releases
         if: steps.release_check.outputs.should_release == 'true'
-        uses: python-semantic-release/publish-action@v9.21.1
+        uses: softprops/action-gh-release@v2
         with:
-          inputs: ./dist
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: latest
+          tag_name: v${{ steps.release_meta.outputs.version }}
+          name: v${{ steps.release_meta.outputs.version }}
+          body_path: release-notes.md
+          files: |
+            dist/*
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to PyPI
         if: steps.release_check.outputs.should_release == 'true'

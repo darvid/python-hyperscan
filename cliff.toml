@@ -1,0 +1,56 @@
+[git]
+conventional_commits = true
+filter_commits = true
+tag_pattern = "^v\\d+\\.\\d+\\.\\d+"
+merge_commit = false
+skip_commit = [
+  "^Release",
+  "^Merge pull request",
+  "^0\\.\\d+\\.\\d+",
+]
+commit_parsers = [
+  { message = "^feat", group = "Features" },
+  { message = "^fix", group = "Fixes" },
+  { message = "^perf", group = "Performance" },
+  { message = "^refactor", group = "Refactors" },
+  { message = "^build", skip = true },
+  { message = "^ci", skip = true },
+  { message = "^docs?", group = "Docs" },
+  { message = "^test", group = "Tests" },
+  { message = "^revert", group = "Reverts" },
+  { message = "^chore", skip = true },
+  { message = "^style", skip = true },
+  { message = ".*", group = "Other", default = true },
+]
+
+[changelog]
+header = ""
+footer = ""
+trim = true
+body = """
+{% if version -%}
+## {{ version }} — {{ timestamp | date(format="%Y-%m-%d") }}
+{%- else -%}
+## Unreleased
+{%- endif %}
+{%- for group, group_commits in commits | group_by(attribute="group") -%}
+{%- if group_commits | length > 0 %}
+### {{ group }}
+{%- for commit in group_commits -%}
+{%- if commit.parsed %}
+{%- set scope = commit.parsed.scope | default(value="") -%}
+{%- set description = commit.parsed.description | trim -%}
+{%- else %}
+{%- set scope = "" -%}
+{%- set description = commit.message | trim -%}
+{%- endif %}
+{%- if scope != "" -%}
+{%- set scope = scope | replace(from="_", to=" ") | title -%}
+{%- endif %}
+- {{ description | replace(from="\n", to=" ") | trim }}{% if scope != "" %} ({{ scope }}){% endif %}{% if commit.breaking %} **BREAKING**{% endif %}{% if commit.pull_request %} (#{{ commit.pull_request }}){% endif %}
+{%- endfor %}
+
+{%- endif %}
+{%- endfor %}
+{{ "\n" }}
+"""
