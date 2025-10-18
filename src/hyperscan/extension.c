@@ -3,11 +3,11 @@
 #include <bytesobject.h>
 #include <ch.h>
 #include <hs.h>
+#include <pythread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <structmember.h>
-#include <pythread.h>
 
 #ifdef Py_GIL_DISABLED
 typedef struct {
@@ -86,65 +86,65 @@ static void hs_global_lock_fini(void)
 
 #ifdef Py_GIL_DISABLED
 #define HS_LOCK_DECLARE() int __hs_lock_acquired = 0
-#define HS_LOCK_ACQUIRE_OR_RETURN_NULL()                                        \
-  do {                                                                          \
-    if (hs_global_lock_acquire() < 0) {                                         \
-      return NULL;                                                              \
-    }                                                                           \
-    __hs_lock_acquired = 1;                                                     \
+#define HS_LOCK_ACQUIRE_OR_RETURN_NULL() \
+  do {                                   \
+    if (hs_global_lock_acquire() < 0) {  \
+      return NULL;                       \
+    }                                    \
+    __hs_lock_acquired = 1;              \
   } while (0)
-#define HS_LOCK_ACQUIRE_OR_RETURN_NEG1()                                        \
-  do {                                                                          \
-    if (hs_global_lock_acquire() < 0) {                                         \
-      return -1;                                                                \
-    }                                                                           \
-    __hs_lock_acquired = 1;                                                     \
+#define HS_LOCK_ACQUIRE_OR_RETURN_NEG1() \
+  do {                                   \
+    if (hs_global_lock_acquire() < 0) {  \
+      return -1;                         \
+    }                                    \
+    __hs_lock_acquired = 1;              \
   } while (0)
-#define HS_LOCK_RELEASE_IF_HELD()                                               \
-  do {                                                                          \
-    if (__hs_lock_acquired) {                                                   \
-      hs_global_lock_release();                                                 \
-      __hs_lock_acquired = 0;                                                   \
-    }                                                                           \
+#define HS_LOCK_RELEASE_IF_HELD() \
+  do {                            \
+    if (__hs_lock_acquired) {     \
+      hs_global_lock_release();   \
+      __hs_lock_acquired = 0;     \
+    }                             \
   } while (0)
 #else
 #define HS_LOCK_DECLARE() int __hs_lock_acquired = 0
-#define HS_LOCK_ACQUIRE_OR_RETURN_NULL()                                        \
-  do {                                                                          \
+#define HS_LOCK_ACQUIRE_OR_RETURN_NULL() \
+  do {                                   \
   } while (0)
-#define HS_LOCK_ACQUIRE_OR_RETURN_NEG1()                                        \
-  do {                                                                          \
+#define HS_LOCK_ACQUIRE_OR_RETURN_NEG1() \
+  do {                                   \
   } while (0)
-#define HS_LOCK_RELEASE_IF_HELD()                                               \
-  do {                                                                          \
-    (void)__hs_lock_acquired;                                                   \
+#define HS_LOCK_RELEASE_IF_HELD() \
+  do {                            \
+    (void)__hs_lock_acquired;     \
   } while (0)
 #endif
 
 #ifdef Py_GIL_DISABLED
-#define HS_LOCK_RETURN(obj)                                                     \
-  do {                                                                          \
-    if (__hs_lock_acquired) {                                                   \
-      hs_global_lock_release();                                                 \
-      __hs_lock_acquired = 0;                                                   \
-    }                                                                           \
-    return (obj);                                                               \
+#define HS_LOCK_RETURN(obj)     \
+  do {                          \
+    if (__hs_lock_acquired) {   \
+      hs_global_lock_release(); \
+      __hs_lock_acquired = 0;   \
+    }                           \
+    return (obj);               \
   } while (0)
-#define HS_LOCK_RETURN_NULL()                                                   \
-  do {                                                                          \
-    if (__hs_lock_acquired) {                                                   \
-      hs_global_lock_release();                                                 \
-      __hs_lock_acquired = 0;                                                   \
-    }                                                                           \
-    return NULL;                                                                \
+#define HS_LOCK_RETURN_NULL()   \
+  do {                          \
+    if (__hs_lock_acquired) {   \
+      hs_global_lock_release(); \
+      __hs_lock_acquired = 0;   \
+    }                           \
+    return NULL;                \
   } while (0)
-#define HS_LOCK_RETURN_INT(val)                                                 \
-  do {                                                                          \
-    if (__hs_lock_acquired) {                                                   \
-      hs_global_lock_release();                                                 \
-      __hs_lock_acquired = 0;                                                   \
-    }                                                                           \
-    return (val);                                                               \
+#define HS_LOCK_RETURN_INT(val) \
+  do {                          \
+    if (__hs_lock_acquired) {   \
+      hs_global_lock_release(); \
+      __hs_lock_acquired = 0;   \
+    }                           \
+    return (val);               \
   } while (0)
 #else
 #define HS_LOCK_RETURN(obj) return (obj)
@@ -441,9 +441,9 @@ static PyObject *Database_compile(
       Py_DECREF(oexpr);
       oexpr = temp_bytes;
     } else {
-    PyErr_SetString(PyExc_TypeError, "expressions must be bytes or str");
-    break;
-  }
+      PyErr_SetString(PyExc_TypeError, "expressions must be bytes or str");
+      break;
+    }
 
     if (PyErr_Occurred())
       break;
