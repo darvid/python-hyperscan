@@ -106,6 +106,7 @@ cmake/                  # CMake configuration
 
 ### Release Process
 - **Semantic release** with emoji commits
+- **git-cliff** generates changelog entries and GitHub release notes
 - **GitHub Actions** for build/test/publish
 - **Binary wheels** for multiple platforms
 - Version sync between pyproject.toml and _version.py
