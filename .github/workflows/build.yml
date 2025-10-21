@@ -148,21 +148,23 @@ jobs:
             fi
           fi
 
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            RESULT=1
-            echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
+          RESULT=1
+          echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
 
-            if [[ "$RESULT" -eq 0 ]]; then
-              echo "should_build=true" >> "$GITHUB_OUTPUT"
-              echo "Running build because relevant files were changed"
+          if [[ "$RESULT" -eq 0 ]]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              echo "Running build because PR touches relevant files"
             else
-              echo "should_build=false" >> "$GITHUB_OUTPUT"
-              echo "Skipping build because no relevant files were changed and commit doesn't have [build] tag"
+              echo "Running build because relevant files were changed"
             fi
           else
-            # For pull requests, always build (after checking for [build] tag above)
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "Running build for pull request"
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              echo "Skipping build because PR does not change build-relevant files and lacks [build] tag"
+            else
+              echo "Skipping build because no relevant files were changed and commit doesn't have [build] tag"
+            fi
           fi
 
   sdist:
