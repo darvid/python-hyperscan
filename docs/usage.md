@@ -52,14 +52,17 @@ print(db.info().decode())
 
 ## Match Event Handling
 
-Match handler callbacks will be invoked with exactly the same parameters
-as their analog from the Hyperscan C API:
+Match handler callbacks will be invoked with parameters mirroring the
+Hyperscan C API.
+
+The match offset argument is exposed as ``from_`` in Python to avoid the
+reserved keyword ``from``:
 
 ```python
 # Type annotated Hyperscan match handler signature
 def on_match(
     id: int,
-    from: int,
+    from_: int,
     to: int,
     flags: int,
     context: Optional[Any] = None

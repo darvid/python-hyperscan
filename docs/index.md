@@ -22,6 +22,7 @@ $ cd vectorscan
 $ # PCRE1 (8.xx series) is required for Chimera support
 $ wget -qO- https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.tar.gz/download | tar xvz
 $ git checkout v5.4.0
+$ cd build
 $ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr \
     -DBUILD_STATIC_AND_SHARED=ON \
     -DFAT_RUNTIME=ON \
