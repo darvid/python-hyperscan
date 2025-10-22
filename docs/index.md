@@ -1,56 +1,82 @@
 # Hyperscan <small>for Python</small>
 
-``python-hyperscan`` is a CPython extension for [Vectorscan][1], an
-open source fork of [Hyperscan][2], Intel's open source
-([prior to version 5.4][3]), high-performance multiple regex matching
-library.
+``python-hyperscan`` is a CPython extension that statically links
+[Vectorscan][1] (Linux/macOS) or [Hyperscan][2] (Windows) together with
+PCRE and Boost to provide high-performance multi-pattern regex
+matching—with Chimera support—out of the box.
 
 ## Quickstart
 
-### Building Vectorscan
-
-See the [official documentation][4] for detailed installation
-instructions and dependencies.
-
-The following should work for most use cases, once the prerequisite
-dependencies have been installed:
-
-```shell
-$ git clone https://github.com/VectorCamp/vectorscan
-$ mkdir -p vectorscan/build
-$ cd vectorscan
-$ # PCRE1 (8.xx series) is required for Chimera support
-$ wget -qO- https://sourceforge.net/projects/pcre/files/pcre/8.45/pcre-8.45.tar.gz/download | tar xvz
-$ git checkout v5.4.0
-$ cd build
-$ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr \
-    -DBUILD_STATIC_AND_SHARED=ON \
-    -DFAT_RUNTIME=ON \
-    -DPCRE_SOURCE=../pcre-8.45 \
-    ../
-$ # Compile with all available cores:
-$ # make -j $(( $(nproc) + 1 ))
-$ make
-$ sudo make install
-```
-
-**Note:** if you are building v5.4.0 and encounter undefined reference
-errors when linking, see [intel/hyperscan#292][6] (and more specifically,
-[this comment][7]) for the fix. Per the maintainers, this will be fixed
-in the next Hyperscan release.
-
-### Installing python-hyperscan
-
-Installing via [pip][5] is recommended:
+### Install from PyPI
 
 ```shell
 pip install hyperscan
 ```
 
+- Binary wheels are published for CPython 3.9–3.14 across Linux
+  (manylinux2014/manylinux_2_28 and musllinux on x86_64 & aarch64),
+  macOS 11+ universal2, and Windows AMD64.
+- Each wheel bundles the scanning engine (Vectorscan 5.4.12 on Unix,
+  Intel Hyperscan 5.4.2 on Windows), PCRE 8.45 with UTF-8 + Unicode
+  property support, Ragel, and Boost 1.87.0—no system packages
+  required.
+- Chimera runtimes ship in every build; enable them at runtime with
+  ``hyperscan.Database(chimera=True)``.
+
+### Verify the install
+
+```shell
+python - <<'PY'
+import hyperscan
+print(hyperscan.Database().info())
+PY
+```
+
+Expect output similar to ``Version: 5.4.12 Features: ...`` confirming
+the bundled engine.
+
+## When to build from source
+
+The published wheels cover most use cases. Build locally only when you
+need to patch the extension, experiment with upstream Vectorscan or
+Hyperscan, or produce architecture-native binaries.
+
+### Prerequisites
+
+- Python 3.9–3.14
+- [CMake 3.31+][3] (required by ``scikit-build-core``)
+- A C/C++ toolchain (GCC/Clang on POSIX, Visual Studio 2022 on
+  Windows)
+- Ragel 6.9+; if it is not on ``PATH`` the build system can fetch and
+  build it automatically.
+
+### Standard workflow
+
+```shell
+git clone https://github.com/darvid/python-hyperscan.git
+cd python-hyperscan
+python -m venv .venv
+source .venv/bin/activate  # .\.venv\Scripts\activate on Windows
+pip install --upgrade pip build[uv]
+pip install .
+```
+
+``pip install .`` invokes ``scikit-build-core`` to compile the extension
+and vendor the scanning engine automatically. To build a wheel instead
+of an in-place install, run ``python -m build`` or ``uvx --from build
+pyproject-build --installer=uv --wheel``.
+
+### Customizing the engine
+
+- Set ``CMAKE_ARGS="-DUSE_CPU_NATIVE=ON"`` (and other standard
+  Vectorscan options) when invoking ``pip``/``build`` to produce
+  processor-specific binaries.
+- Provide pre-built libraries by exporting ``HS_BUILD_LIB_ROOT`` (the
+  directory containing ``libhs``, ``libhs_runtime``, ``libchimera`` and
+  ``libpcre``) and ``HS_SRC_ROOT`` (the matching Vectorscan/Hyperscan
+  source tree). When both variables are set, the build reuses the
+  supplied artifacts instead of fetching and compiling the engine.
+
 [1]: https://www.vectorcamp.gr/vectorscan/
 [2]: https://www.hyperscan.io/
-[3]: https://github.com/VectorCamp/vectorscan?tab=readme-ov-file#hyperscan-license-change-after-54
-[4]: https://github.com/VectorCamp/vectorscan
-[5]: https://pypi.org/project/pip/
-[6]: https://poetry.eustace.io/
-[7]: https://github.com/intel/hyperscan/issues/292
+[3]: https://scikit.build/

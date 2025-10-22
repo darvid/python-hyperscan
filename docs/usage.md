@@ -5,7 +5,9 @@
 ``python-hyperscan`` currently exposes *most* of the C API, with the
 following caveats or exceptions:
 
-* No [Chimera][1] support yet.
+* **Chimera** is supported by instantiating
+  ``hyperscan.Database(chimera=True)``; see the [Chimera
+  documentation][1] for the feature matrix.
 * No [stream compression][2] support.
 * No [custom allocator][3] support.
 * ``hs_expression_info``, ``hs_expression_ext_info``,
@@ -18,7 +20,9 @@ following caveats or exceptions:
     how the Hyperscan compiler C API works, including supported pattern
     constructs and matching modes.
 
-``python-hyperscan`` requires Hyperscan ``5.2.0`` and above.
+The packaged wheels vendor Vectorscan 5.4.12 (Linux/macOS) or Hyperscan
+5.4.2 (Windows). When targeting a system-provided engine, ensure it is
+Hyperscan/Vectorscan ``5.4`` or newer.
 
 Please [create an issue][5] to request prioritization of certain C API
 features, report inconsistencies between the C API and this Python
@@ -47,7 +51,7 @@ db.compile(
     expressions=expressions, ids=ids, elements=len(patterns), flags=flags
 )
 print(db.info().decode())
-# Version: 5.1.1 Features: AVX2 Mode: BLOCK
+# Version: 5.4.12 Features: AVX2 Mode: BLOCK
 ```
 
 ## Match Event Handling
@@ -174,6 +178,18 @@ with open('hs.db', 'wb') as f:
 # Deserializing (loading from bytes):
 db = hyperscan.loadb(serialized)
 ```
+
+## Chimera Mode
+
+```python
+chimera_db = hyperscan.Database(chimera=True)
+chimera_db.compile(expressions=[br'(foo)+', br'b(ar|az)'])
+chimera_db.scan(b'foobaz', match_event_handler=on_match)
+```
+
+Chimera mixes PCRE literals with Hyperscan's multi-pattern engine. When
+using it, reuse a ``Scratch`` object per thread to avoid reallocations
+caused by the larger databases.
 
 [1]: http://intel.github.io/hyperscan/dev-reference/chimera.html
 [2]: http://intel.github.io/hyperscan/dev-reference/runtime.html#stream-compression
