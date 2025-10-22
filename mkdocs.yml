@@ -2,6 +2,8 @@ site_name: Hyperscan for Python
 nav:
   - Overview: index.md
   - Usage: usage.md
+  - Contributing:
+      - Release Workflow: releases.md
 theme: 'material'
 markdown_extensions:
   - admonition
