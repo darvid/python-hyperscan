@@ -208,3 +208,8 @@ build = [
   "delocate>=0.12.0 ; sys_platform == 'darwin'",
   "delvewheel>=1.10.0 ; sys_platform == 'win32'",
 ]
+docs = [
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+  "pymdown-extensions>=10.9",
+]
