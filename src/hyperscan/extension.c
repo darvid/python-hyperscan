@@ -717,12 +717,12 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
     char **data;
     PyObject *fast_seq;
     Py_ssize_t num_buffers;
-    Py_ssize_t *lengths;
+    uint32_t *lengths;
 
     fast_seq = PySequence_Fast(odata, "expected a sequence of buffers");
     num_buffers = PySequence_Fast_GET_SIZE(fast_seq);
     data = PyMem_RawMalloc(num_buffers * sizeof(char *));
-    lengths = PyMem_RawMalloc(num_buffers * sizeof(Py_ssize_t));
+    lengths = PyMem_RawMalloc(num_buffers * sizeof(uint32_t));
 
     for (uint32_t i = 0; i < num_buffers; i++) {
       PyObject *o = PySequence_Fast_GET_ITEM(fast_seq, i);
@@ -735,7 +735,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
       Py_buffer view;
       if (PyObject_GetBuffer(o, &view, PyBUF_SIMPLE) != -1) {
         data[i] = (char *)view.buf;
-        lengths[i] = view.len;
+        lengths[i] = (uint32_t)view.len;
       } else {
         PyErr_SetString(PyExc_BufferError, "failed to get buffer");
         break;
@@ -761,7 +761,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
     hs_err = hs_scan_vector(
       self->hs_db,
       (const char *const *)data,
-      (const uint32_t *)lengths,
+      lengths,
       num_buffers,
       flags,
       oscratch == Py_None ? ((Scratch *)self->scratch)->hs_scratch
