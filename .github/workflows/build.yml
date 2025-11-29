@@ -101,15 +101,21 @@ jobs:
               exit 0
             fi
 
-            # Also check all commits in the PR for [build]
+            # Set up PR refs and fetch base branch to ensure we have the commits
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            COMMIT_MSGS=$(git fetch origin "$BASE_SHA" "$HEAD_SHA" && git log --format=%B "${BASE_SHA}..${HEAD_SHA}" || echo "")
+            git fetch origin "${{ github.event.pull_request.base.ref }}" --quiet || true
+
+            # Check all commits in the PR for [build]
+            COMMIT_MSGS=$(git log --format=%B "${BASE_SHA}..${HEAD_SHA}" 2>/dev/null || echo "")
             if echo "$COMMIT_MSGS" | grep -q "\[build\]"; then
               echo "should_build=true" >> "$GITHUB_OUTPUT"
               echo "Running build because a commit in the PR contains [build]"
               exit 0
             fi
+
+            # Check which files changed in the PR
+            CHANGED_FILES=$(git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" 2>/dev/null || echo "")
           else
             # For pushes, check if the head commit message contains [build]
             if [[ "${{ contains(github.event.head_commit.message, '[build]') }}" == "true" ]]; then
@@ -117,14 +123,7 @@ jobs:
               echo "Running build because commit message contains [build]"
               exit 0
             fi
-          fi
 
-          # For PRs, compare the PR base with the head
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            BASE_SHA="${{ github.event.pull_request.base.sha }}"
-            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-            CHANGED_FILES=$(git fetch origin "$BASE_SHA" "$HEAD_SHA" && git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" || echo "")
-          else
             # For pushes, use the before/after SHAs or fallback to comparing with parent
             BEFORE_SHA="${{ github.event.before }}"
             AFTER_SHA="${{ github.event.after }}"

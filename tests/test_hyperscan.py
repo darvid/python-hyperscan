@@ -120,19 +120,28 @@ def test_stream_scan(database_stream, mocker):
 
 
 def test_vectored_scan(database_vector, mocker):
+    """Test vectored scanning across multiple buffers.
+
+    Regression test for issue #202: vectored mode was missing matches
+    due to Py_ssize_t to uint32_t type aliasing bug on 64-bit systems.
+    """
     callback = mocker.Mock(return_value=None)
 
     buffers = [
-        bytearray(b"xxxfooxxx"),
-        bytearray(b"xxfoxbarx"),
-        bytearray(b"barxxxxxx"),
+        bytearray(b"xxxfooxxx"),  # 9 bytes, offsets 0-8
+        bytearray(b"xxfoxbarx"),  # 9 bytes, offsets 9-17
+        bytearray(b"barxxxxxx"),  # 9 bytes, offsets 18-26
     ]
     database_vector.scan(buffers, match_event_handler=callback)
     callback.assert_has_calls(
         [
-            mocker.call(0, 0, 5, 0, None),
-            mocker.call(0, 0, 6, 0, None),
-            mocker.call(2, 9, 12, 0, None),
+            # Pattern 0 (fo+): matches in buffer 0 and buffer 1
+            mocker.call(0, 0, 5, 0, None),   # 'fo' at positions 3-4
+            mocker.call(0, 0, 6, 0, None),   # 'foo' at positions 3-5
+            mocker.call(0, 0, 13, 0, None),  # 'fo' in buffer 1 at pos 11-12
+            # Pattern 2 (BAR): matches in buffer 1 and buffer 2
+            mocker.call(2, 14, 17, 0, None),  # 'bar' in buffer 1
+            mocker.call(2, 18, 21, 0, None),  # 'bar' in buffer 2
         ],
         any_order=True,
     )
