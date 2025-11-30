@@ -160,33 +160,6 @@ version_toml = ["pyproject.toml:project.version"]
 match = '(main|create-pull-request/patch|release/v?[\\d\\.\\-]+)'
 prerelease = false
 
-[tool.semantic_release.commit_parser_options]
-major_tags = [":boom:"]
-minor_tags = [
-  ":sparkles:",
-  ":children_`ing:",
-  ":lipstick:",
-  ":iphone:",
-  ":egg:",
-  ":chart_with_upwards_trend:",
-]
-patch_tags = [
-  ":ambulance:",
-  ":lock:",
-  ":bug:",
-  ":zap:",
-  ":goal_net:",
-  ":alien:",
-  ":wheelchair:",
-  ":speech_balloon:",
-  ":mag:",
-  ":apple:",
-  ":penguin:",
-  ":checkered_flag:",
-  ":robot:",
-  ":green_apple:",
-]
-
 [tool.semantic_release.publish]
 dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 
