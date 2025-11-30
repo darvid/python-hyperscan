@@ -59,6 +59,10 @@ jobs:
               git tag -d "${TAG_NAME}"
               git push origin ":refs/tags/${TAG_NAME}" || true
 
+              # Configure git identity for creating annotated tags
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+
               # Create new tag at HEAD
               git tag -a "${TAG_NAME}" -m "${TAG_NAME}"
               git push --force origin "${TAG_NAME}"
