@@ -151,7 +151,7 @@ repair-wheel-command = "delvewheel repair -v --wheel-dir={dest_dir} {wheel}"
 "cmake.define.CMAKE_SHARED_LINKER_FLAGS" = "ucrt.lib;vcruntime.lib;/nodefaultlib:libucrt.lib;/nodefaultlib:libvcruntime.lib"
 
 [tool.semantic_release]
-commit_parser = "emoji"
+commit_parser = "angular"
 tag_format = "v{version}"
 version_variables = ["src/hyperscan/_version.py:__version__"]
 version_toml = ["pyproject.toml:project.version"]
