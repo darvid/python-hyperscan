@@ -1,6 +1,12 @@
 
 ## v0.7.29 — 2025-11-30
 ### Fixes
+- force push when moving release tags (#239)
+
+
+
+## v0.7.29 — 2025-11-30
+### Fixes
 - resolve type aliasing bug causing missed matches (#202) (#234)
 - retag merge commits so tags appear in main history (#235)
 - use angular parser for conventional commits (#236)
