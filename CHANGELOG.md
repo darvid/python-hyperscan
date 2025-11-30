@@ -1,3 +1,17 @@
+
+## v0.7.29 — 2025-11-30
+### Fixes
+- resolve type aliasing bug causing missed matches (#202) (#234)
+- retag merge commits so tags appear in main history (#235)
+- use angular parser for conventional commits (#236)
+- remove emoji parser config for angular parser (#237)
+
+## v0.7.28 — 2025-10-22
+### Docs
+- fix quickstart build step and handler signature (#230)
+- refresh build guidance (#231)
+
+
 # Changelog
 
 ## v0.7.23 — 2025-08-07
