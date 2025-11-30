@@ -34,6 +34,43 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Move release tag to merge commit
+        run: |
+          set -euo pipefail
+
+          # Get current version from pyproject.toml
+          CURRENT_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          TAG_NAME="v${CURRENT_VERSION}"
+
+          echo "Looking for tag: ${TAG_NAME}"
+
+          # Check if tag exists
+          if git rev-parse "${TAG_NAME}" >/dev/null 2>&1; then
+            CURRENT_TAG_COMMIT=$(git rev-parse "${TAG_NAME}^{commit}")
+            HEAD_COMMIT=$(git rev-parse HEAD)
+
+            echo "Tag ${TAG_NAME} currently points to: ${CURRENT_TAG_COMMIT}"
+            echo "HEAD (merge commit) is at: ${HEAD_COMMIT}"
+
+            if [[ "${CURRENT_TAG_COMMIT}" != "${HEAD_COMMIT}" ]]; then
+              echo "Moving tag ${TAG_NAME} to HEAD (merge commit)"
+
+              # Delete old tag locally and remotely
+              git tag -d "${TAG_NAME}"
+              git push origin ":refs/tags/${TAG_NAME}" || true
+
+              # Create new tag at HEAD
+              git tag -a "${TAG_NAME}" -m "${TAG_NAME}"
+              git push origin "${TAG_NAME}"
+
+              echo "Tag ${TAG_NAME} successfully moved to merge commit ${HEAD_COMMIT}"
+            else
+              echo "Tag ${TAG_NAME} already points to HEAD, no retagging needed"
+            fi
+          else
+            echo "Warning: Tag ${TAG_NAME} not found, skipping retag step"
+          fi
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
