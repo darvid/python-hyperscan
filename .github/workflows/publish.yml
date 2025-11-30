@@ -61,7 +61,7 @@ jobs:
 
               # Create new tag at HEAD
               git tag -a "${TAG_NAME}" -m "${TAG_NAME}"
-              git push origin "${TAG_NAME}"
+              git push --force origin "${TAG_NAME}"
 
               echo "Tag ${TAG_NAME} successfully moved to merge commit ${HEAD_COMMIT}"
             else
