@@ -168,17 +168,7 @@ jobs:
         id: release_meta
         run: |
           set -euo pipefail
-          VERSION=$(python3 - <<'PY'
-            import pathlib
-            try:
-                import tomllib
-            except ModuleNotFoundError:
-                import tomli as tomllib
-            with pathlib.Path("pyproject.toml").open("rb") as fh:
-                data = tomllib.load(fh)
-            print(data["project"]["version"])
-          PY
-          )
+          VERSION=$(python3 -c "import pathlib; import tomllib; print(tomllib.load(pathlib.Path('pyproject.toml').open('rb'))['project']['version'])")
           CURRENT_RELEASE=$(git rev-list HEAD --grep '^Release ' --max-count=1 || true)
           if [[ -z "${CURRENT_RELEASE}" ]]; then
             echo "Unable to locate the current release commit (matching '^Release ')" >&2
