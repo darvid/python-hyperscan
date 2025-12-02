@@ -148,7 +148,7 @@ jobs:
           fi
 
           RESULT=1
-          echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || RESULT=$?
+          echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/)' || RESULT=$?
 
           if [[ "$RESULT" -eq 0 ]]; then
             echo "should_build=true" >> "$GITHUB_OUTPUT"

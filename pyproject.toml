@@ -58,7 +58,6 @@ version = ">=3.31"
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
 test-command = "pytest --pyargs {package}/tests -vvv"
-# test-command = "bash {project}/build_tools/wheels/test_wheels.sh {project}"
 test-requires = ["pytest>=7.0", "pytest-mock"]
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
