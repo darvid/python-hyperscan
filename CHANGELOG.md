@@ -1,4 +1,12 @@
 
+## v0.7.30 — 2025-12-02
+### Fixes
+- correct python heredoc indentation (#242)
+
+## v0.7.29 — 2025-12-02
+
+
+
 ## v0.7.29 — 2025-11-30
 ### Fixes
 - force push when moving release tags (#239)
