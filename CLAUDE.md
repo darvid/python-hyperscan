@@ -105,11 +105,42 @@ cmake/                  # CMake configuration
 - Platform-specific CI testing (excludes emulated archs)
 
 ### Release Process
-- **Semantic release** with emoji commits
+- **Semantic release** with conventional commits
 - **git-cliff** generates changelog entries and GitHub release notes
 - **GitHub Actions** for build/test/publish
 - **Binary wheels** for multiple platforms
 - Version sync between pyproject.toml and _version.py
+
+## Conventional Commits & Version Bumps
+
+**CRITICAL: The commit TYPE controls version bumps, NOT the scope.**
+
+Semantic-release uses the angular parser which determines version bumps
+based on commit type prefix:
+
+### Types that trigger version bumps:
+- `feat:` → **minor** bump (new feature)
+- `fix:` → **patch** bump (bug fix)
+- `perf:` → **patch** bump (performance improvement)
+
+### Types that do NOT trigger version bumps:
+- `ci:` → no bump (CI/CD changes)
+- `build:` → no bump (build system changes)
+- `chore:` → no bump (maintenance)
+- `docs:` → no bump (documentation)
+- `style:` → no bump (formatting)
+- `refactor:` → no bump (code restructuring)
+- `test:` → no bump (test changes)
+
+### Common Mistake to Avoid:
+```
+❌ fix(ci): update workflow    → triggers patch bump (type is "fix")
+✅ ci(publish): update workflow → no bump (type is "ci")
+```
+
+The scope in parentheses is for categorization/changelog only - it does
+NOT affect whether a version bump occurs. Always use the correct TYPE
+for CI/build/chore work to avoid accidental releases.
 
 ## Unicode Support (Issue #207)
 
