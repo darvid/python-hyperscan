@@ -34,7 +34,78 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check if release is needed
+        id: release_check
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          RELEASE_PR_BRANCH: ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [[ "${REPOSITORY}" != "darvid/python-hyperscan" ]]; then
+            echo "Repository ${REPOSITORY} is not eligible for release automation"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # For workflow_dispatch, skip PR checks - just verify PyPI status
+          if [[ "${EVENT_NAME}" != "workflow_dispatch" ]]; then
+            if [[ "${PR_MERGED}" != "true" ]]; then
+              echo "Pull request not merged, skipping release"
+              echo "should_release=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [[ -n "${RELEASE_PR_BRANCH}" ]]; then
+              case "${PR_HEAD_REF}" in
+                "${RELEASE_PR_BRANCH}"*)
+                  ;;
+                *)
+                  echo "Head ref ${PR_HEAD_REF} does not match expected release branch prefix ${RELEASE_PR_BRANCH}"
+                  echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  exit 0
+                  ;;
+              esac
+            fi
+          else
+            echo "workflow_dispatch triggered - skipping PR checks"
+          fi
+
+          # Get the version we're about to release
+          CURRENT_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          TAG_NAME="v${CURRENT_VERSION}"
+
+          # Check if this exact version has already been published to PyPI
+          # This is the real check - if PyPI has it, we don't need to publish again
+          if curl -s --head "https://pypi.org/pypi/hyperscan/${CURRENT_VERSION}/json" | head -n 1 | grep -q "200"; then
+            echo "Version ${CURRENT_VERSION} already published to PyPI, skipping release"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if there are commits since last release (excluding the current release commit pattern)
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
+          if [[ -n "$LATEST_TAG" && "$LATEST_TAG" == "$TAG_NAME" ]]; then
+            # Tag exists but PyPI doesn't have it - this is the case where we need to publish
+            echo "Tag ${TAG_NAME} exists but not yet on PyPI, proceeding with release"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$LATEST_TAG" ]]; then
+            COMMITS_COUNT=$(git rev-list "${LATEST_TAG}"..HEAD --count 2>/dev/null || echo "1")
+            if [[ "$COMMITS_COUNT" -eq 0 ]]; then
+              echo "No commits since last release ${LATEST_TAG}, no new content to release"
+              echo "should_release=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "Found ${COMMITS_COUNT} commits since ${LATEST_TAG}, proceeding with release"
+              echo "should_release=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "No previous release found, proceeding with initial release"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Move release tag to merge commit
+        if: steps.release_check.outputs.should_release == 'true'
         run: |
           set -euo pipefail
 
@@ -76,68 +147,15 @@ jobs:
           fi
 
       - name: Download artifacts
+        if: steps.release_check.outputs.should_release == 'true'
         uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
 
       - name: List artifacts
+        if: steps.release_check.outputs.should_release == 'true'
         run: ls -R dist/
-
-      - name: Check if release is needed
-        id: release_check
-        env:
-          PR_MERGED: ${{ github.event.pull_request.merged }}
-          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          RELEASE_PR_BRANCH: ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          if [[ "${REPOSITORY}" != "darvid/python-hyperscan" ]]; then
-            echo "Repository ${REPOSITORY} is not eligible for release automation"
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [[ "${PR_MERGED}" != "true" ]]; then
-            echo "Pull request not merged, skipping release"
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [[ -n "${RELEASE_PR_BRANCH}" ]]; then
-            case "${PR_HEAD_REF}" in
-              "${RELEASE_PR_BRANCH}"*)
-                ;;
-              *)
-                echo "Head ref ${PR_HEAD_REF} does not match expected release branch prefix ${RELEASE_PR_BRANCH}"
-                echo "should_release=false" >> "$GITHUB_OUTPUT"
-                exit 0
-                ;;
-            esac
-          fi
-
-          # Check if HEAD already has a release version tag (prevents redundant releases)
-          if git describe --exact-match --tags HEAD --match "v*" 2>/dev/null; then
-            EXISTING_TAG=$(git describe --exact-match --tags HEAD --match "v*" 2>/dev/null)
-            echo "HEAD already tagged with release version ${EXISTING_TAG}, no release needed"
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-          else
-            # Check if there are commits since last release
-            LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
-            if [[ -n "$LATEST_TAG" ]]; then
-              COMMITS_COUNT=$(git rev-list "${LATEST_TAG}"..HEAD --count 2>/dev/null || echo "1")
-              if [[ "$COMMITS_COUNT" -eq 0 ]]; then
-                echo "No commits since last release ${LATEST_TAG}, no new content to release"
-                echo "should_release=false" >> "$GITHUB_OUTPUT"
-              else
-                echo "Found ${COMMITS_COUNT} commits since ${LATEST_TAG}, proceeding with release"
-                echo "should_release=true" >> "$GITHUB_OUTPUT"
-              fi
-            else
-              echo "No previous release found, proceeding with initial release"
-              echo "should_release=true" >> "$GITHUB_OUTPUT"
-            fi
-          fi
 
       - name: Install git-cliff
         if: steps.release_check.outputs.should_release == 'true'
