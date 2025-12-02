@@ -38,7 +38,7 @@ jobs:
           echo "${CHANGED_FILES}"
 
           CHANGES=0
-          echo "${CHANGED_FILES}" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/|build_tools/)' || CHANGES=$?
+          echo "${CHANGED_FILES}" | grep -c -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/)' || CHANGES=$?
 
           if [[ "$CHANGES" -gt 0 ]]; then
             # The last commit already triggered a build, no need to force

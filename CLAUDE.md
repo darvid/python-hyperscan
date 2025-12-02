@@ -74,7 +74,6 @@ src/hyperscan/
 
 tests/                  # pytest test suite
 examples/               # Usage examples & benchmarks
-build_tools/            # Cross-platform build scripts
 cmake/                  # CMake configuration
 ```
 
