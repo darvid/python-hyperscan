@@ -10,6 +10,11 @@ skip_commit = [
 ]
 commit_parsers = [
   { message = "^feat", group = "Features" },
+  # Skip CI-scoped commits regardless of type (fix(ci), chore(ci), etc.)
+  { message = "^\\w+\\(ci\\)", skip = true },
+  { message = "^\\w+\\(publish\\)", skip = true },
+  { message = "^\\w+\\(release\\)", skip = true },
+  { message = "^\\w+\\(build\\)", skip = true },
   { message = "^fix", group = "Fixes" },
   { message = "^perf", group = "Performance" },
   { message = "^refactor", group = "Refactors" },
