@@ -513,7 +513,14 @@ endif()
 if(WIN32)
   target_compile_options(${HS_EXT_NAME} PRIVATE ${HS_CMAKE_COMMON_FLAGS})
 else()
-  target_compile_options(${HS_EXT_NAME} PRIVATE -fPIC -D_GLIBCXX_USE_CXX11_ABI=1)
+  # Hide all symbols by default to prevent conflicts with other C++ extensions
+  # (e.g., numpy, scipy, sklearn) that may use the same C++ runtime symbols
+  target_compile_options(${HS_EXT_NAME} PRIVATE
+    -fPIC
+    -D_GLIBCXX_USE_CXX11_ABI=1
+    -fvisibility=hidden
+    -fvisibility-inlines-hidden
+  )
   target_link_options(${HS_EXT_NAME} PRIVATE -O0)
 endif()
 
@@ -523,6 +530,7 @@ if("$ENV{AUDITWHEEL_PLAT}" MATCHES "musllinux")
   target_link_options(${HS_EXT_NAME} PRIVATE
     -Wl,-s
     -Wl,--gc-sections
+    -Wl,--exclude-libs,ALL
     -static-libgcc
     -Wl,--whole-archive
     -l:libstdc++.a
@@ -541,12 +549,16 @@ elseif(NOT WIN32)
       -Wl,--no-as-needed
       -Wl,--copy-dt-needed-entries
       -Wl,--no-allow-shlib-undefined
+      -Wl,--exclude-libs,ALL
     )
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
     target_link_libraries(${HS_EXT_NAME} PRIVATE -Wl,--push-state -Wl,-Bstatic -lstdc++ -Wl,--pop-state)
   else()
-    # Other Linux platforms
-    target_link_options(${HS_EXT_NAME} PRIVATE -Wl,--no-as-needed)
+    # Other Linux platforms (local dev, CI without auditwheel)
+    target_link_options(${HS_EXT_NAME} PRIVATE
+      -Wl,--no-as-needed
+      -Wl,--exclude-libs,ALL
+    )
     target_link_libraries(${HS_EXT_NAME} PRIVATE ${HS_LIBS})
     target_link_libraries(${HS_EXT_NAME} PRIVATE stdc++)
   endif()
