@@ -101,10 +101,11 @@ jobs:
               exit 0
             fi
 
-            # Set up PR refs and fetch base branch to ensure we have the commits
+            # Set up PR refs - fetch BOTH base and head to ensure commits are available
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
             git fetch origin "${{ github.event.pull_request.base.ref }}" --quiet || true
+            git fetch origin "pull/${{ github.event.pull_request.number }}/head:pr-head" --quiet || true
 
             # Check all commits in the PR for [build]
             COMMIT_MSGS=$(git log --format=%B "${BASE_SHA}..${HEAD_SHA}" 2>/dev/null || echo "")
@@ -116,6 +117,10 @@ jobs:
 
             # Check which files changed in the PR
             CHANGED_FILES=$(git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" 2>/dev/null || echo "")
+
+            # Debug: show what we found
+            echo "Changed files in PR:"
+            echo "$CHANGED_FILES"
           else
             # For pushes, check if the head commit message contains [build]
             if [[ "${{ contains(github.event.head_commit.message, '[build]') }}" == "true" ]]; then
@@ -147,7 +152,7 @@ jobs:
             fi
           fi
 
-          RESULT=1
+          RESULT=0
           echo "$CHANGED_FILES" | grep -q -E '^(src/hyperscan/|README.md|CMakeLists.txt|pyproject.toml|MANIFEST.in|cmake/)' || RESULT=$?
 
           if [[ "$RESULT" -eq 0 ]]; then
