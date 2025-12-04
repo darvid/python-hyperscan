@@ -1,4 +1,12 @@
 
+## v0.7.30 — 2025-12-04
+### Docs
+- add conventional commits guidelines for semantic-release (#245)
+
+## v0.7.29 — 2025-12-02
+
+
+
 ## v0.7.29 — 2025-12-02
 ### Fixes
 - resolve type aliasing bug causing missed matches in vectored scanning (#234)
