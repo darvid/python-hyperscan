@@ -774,15 +774,18 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
     Py_XDECREF(fast_seq);
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   } else {
-    if (!PyBytes_CheckExact(odata)) {
+    if (!PyObject_CheckBuffer(odata)) {
       PyErr_SetString(PyExc_TypeError, "a bytes-like object is required");
       HS_LOCK_RETURN_NULL();
     }
 
-    char *data = PyBytes_AsString(odata);
-    if (data == NULL)
+    Py_buffer view;
+    if (PyObject_GetBuffer(odata, &view, PyBUF_SIMPLE) == -1) {
       HS_LOCK_RETURN_NULL();
-    Py_ssize_t length = PyBytes_Size(odata);
+    }
+
+    char *data = (char *)view.buf;
+    Py_ssize_t length = view.len;
 
     if (self->chimera) {
       ch_error_t ch_err;
@@ -798,6 +801,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
         NULL,
         ocallback == Py_None ? NULL : (void *)&cctx);
       Py_END_ALLOW_THREADS;
+      PyBuffer_Release(&view);
       if (PyErr_Occurred()) {
         HS_LOCK_RETURN_NULL();
       }
@@ -815,6 +819,7 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
         ocallback == Py_None ? NULL : hs_match_handler,
         ocallback == Py_None ? NULL : (void *)&cctx);
       Py_END_ALLOW_THREADS;
+      PyBuffer_Release(&view);
       if (PyErr_Occurred()) {
         HS_LOCK_RETURN_NULL();
       }
@@ -1119,9 +1124,8 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
   HS_LOCK_DECLARE();
   HS_LOCK_ACQUIRE_OR_RETURN_NULL();
 
-  char *data;
-  Py_ssize_t length;
-  uint32_t flags;
+  Py_buffer view;
+  uint32_t flags = 0;
   PyObject *ocallback = Py_None, *octx = Py_None, *oscratch = Py_None;
 
   static char *kwlist[] = {
@@ -1129,15 +1133,15 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
   if (!PyArg_ParseTupleAndKeywords(
         args,
         kwds,
-        "s#|IOOO",
+        "y*|IOOO",
         kwlist,
-        &data,
-        &length,
+        &view,
         &flags,
         &oscratch,
         &ocallback,
-        &octx))
+        &octx)) {
     HS_LOCK_RETURN_NULL();
+  }
 
   if (PyObject_Not(ocallback))
     ocallback = self->cctx->callback;
@@ -1153,6 +1157,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
     if (!PyObject_IsInstance(oscratch, (PyObject *)&ScratchType)) {
       PyErr_SetString(
         PyExc_TypeError, "scratch must be a hyperscan.Scratch instance");
+      PyBuffer_Release(&view);
       HS_LOCK_RETURN_NULL();
     }
     scratch = (Scratch *)oscratch;
@@ -1161,6 +1166,7 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
   py_scan_callback_ctx cctx = {ocallback, octx};
 
   if (db->chimera) {
+    PyBuffer_Release(&view);
     PyErr_SetString(PyExc_RuntimeError, "chimera does not support streams");
     HS_LOCK_RETURN_NULL();
   } else {
@@ -1168,13 +1174,14 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
     Py_BEGIN_ALLOW_THREADS;
     hs_err = hs_scan_stream(
       self->identifier,
-      data,
-      length,
+      (char *)view.buf,
+      view.len,
       flags,
       scratch->hs_scratch,
       ocallback == Py_None ? NULL : hs_match_handler,
       ocallback == Py_None ? NULL : (void *)&cctx);
     Py_END_ALLOW_THREADS;
+    PyBuffer_Release(&view);
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 
