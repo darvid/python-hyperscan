@@ -44,9 +44,7 @@ def test_shared_scratch_rejected_concurrent_scan(threaded_database):
         callback_ready.set()
         # The first thread to enter the scan should block here until contention
         # is detected by the other thread.
-        assert release_event.wait(
-            timeout=5
-        ), "expected scratch contention not observed"
+        assert release_event.wait(timeout=5), "expected scratch contention not observed"
         return 0
 
     def worker(slot: int):
@@ -66,9 +64,9 @@ def test_shared_scratch_rejected_concurrent_scan(threaded_database):
     for thread in threads:
         thread.start()
 
-    assert callback_ready.wait(
-        timeout=5
-    ), "scan callback did not run; scratch contention test invalid"
+    assert callback_ready.wait(timeout=5), (
+        "scan callback did not run; scratch contention test invalid"
+    )
 
     for thread in threads:
         thread.join()
