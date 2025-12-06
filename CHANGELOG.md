@@ -1,4 +1,10 @@
 
+## v0.8.0 — 2025-12-06
+### Features
+- add buffer protocol support for zero-copy scanning (#251)
+
+
+
 ## v0.7.30 — 2025-12-04
 ### Docs
 - add conventional commits guidelines for semantic-release (#245)
