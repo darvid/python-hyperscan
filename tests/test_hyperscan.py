@@ -85,7 +85,7 @@ def test_chimera_scan(database_chimera, mocker):
 
 
 def test_chimera_scan_memoryview(database_chimera, mocker):
-    """Test chimera scanning with memoryview (buffer protocol support, issue #250)."""
+    """Test chimera scanning with memoryview (buffer protocol support)."""
     callback = mocker.Mock(return_value=None)
 
     database_chimera.scan(memoryview(b"foobar"), match_event_handler=callback)
@@ -115,7 +115,7 @@ def test_block_scan(database_block, mocker):
 
 
 def test_block_scan_memoryview(database_block, mocker):
-    """Test scanning with memoryview (buffer protocol support, issue #250)."""
+    """Test scanning with memoryview (buffer protocol support)."""
     callback = mocker.Mock(return_value=None)
 
     database_block.scan(memoryview(b"foobar"), match_event_handler=callback)
@@ -131,7 +131,7 @@ def test_block_scan_memoryview(database_block, mocker):
 
 
 def test_block_scan_bytearray(database_block, mocker):
-    """Test scanning with bytearray (buffer protocol support, issue #250)."""
+    """Test scanning with bytearray (buffer protocol support)."""
     callback = mocker.Mock(return_value=None)
 
     database_block.scan(bytearray(b"foobar"), match_event_handler=callback)
@@ -167,7 +167,7 @@ def test_stream_scan(database_stream, mocker):
 
 
 def test_stream_scan_memoryview(database_stream, mocker):
-    """Test stream scanning with memoryview (buffer protocol support, issue #250)."""
+    """Test stream scanning with memoryview (buffer protocol support)."""
     callback = mocker.Mock(return_value=None)
 
     with database_stream.stream(match_event_handler=callback) as stream:
@@ -185,7 +185,7 @@ def test_stream_scan_memoryview(database_stream, mocker):
 
 
 def test_stream_scan_bytearray(database_stream, mocker):
-    """Test stream scanning with bytearray (buffer protocol support, issue #250)."""
+    """Test stream scanning with bytearray (buffer protocol support)."""
     callback = mocker.Mock(return_value=None)
 
     with database_stream.stream(match_event_handler=callback) as stream:
