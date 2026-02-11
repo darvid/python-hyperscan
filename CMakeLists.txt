@@ -495,21 +495,13 @@ if(HS_BUILD_REQUIRED)
   # archdetect.cmake, but GCC <11 (e.g. manylinux2014 devtoolset) does
   # not recognize this value. Patch it to use "nehalem" which provides
   # the same SSE4.2 baseline and is supported by all GCC versions.
+  # Uses perl instead of sed to avoid BSD/GNU sed -i syntax differences.
   if(USE_VECTORSCAN AND NOT HS_USE_SIMDE_BACKEND)
-    if(APPLE)
-      # BSD sed requires -i '' for in-place editing
-      set(HS_PATCH_COMMAND
-        sed -i "" "s/x86-64-v2/nehalem/g"
-          ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
-          ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
-      )
-    else()
-      set(HS_PATCH_COMMAND
-        sed -i "s/x86-64-v2/nehalem/g"
-          ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
-          ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
-      )
-    endif()
+    set(HS_PATCH_COMMAND
+      perl -pi -e "s/x86-64-v2/nehalem/g"
+        ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
+        ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
+    )
   else()
     set(HS_PATCH_COMMAND "")
   endif()
