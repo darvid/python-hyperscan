@@ -268,11 +268,19 @@ if(HS_BUILD_REQUIRED)
     # which is critical for performance. Enabling SIMDE_BACKEND on x86-64
     # disables all higher ISA code paths and caps performance at SSE2
     # level (~10-15x slower). See: https://github.com/darvid/python-hyperscan/issues/253
+    #
+    # For macOS cross-compilation (e.g. building x86_64 on ARM runner),
+    # CMAKE_OSX_ARCHITECTURES reflects the TARGET arch and takes priority
+    # over CMAKE_SYSTEM_PROCESSOR (which reflects the HOST).
     set(HS_USE_SIMDE_BACKEND OFF)
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64|arm64)")
+    set(_HS_TARGET_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+    if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+      set(_HS_TARGET_ARCH "${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+    if(_HS_TARGET_ARCH MATCHES "(arm|aarch64|arm64)")
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
       set(HS_USE_SIMDE_BACKEND ON)
-    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86|X86|amd64|AMD64|x86_64|i[3-6]86)")
+    elseif(_HS_TARGET_ARCH MATCHES "(x86|X86|amd64|AMD64|x86_64|i[3-6]86)")
       set(HS_CMAKE_COMMON_FLAGS "-march=x86-64 -fPIC")
     else()
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
@@ -450,6 +458,11 @@ if(HS_BUILD_REQUIRED)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_CXX_FLAGS}")
 
+  # Forward CMAKE_OSX_ARCHITECTURES to ExternalProject for cross-compilation
+  if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+    list(APPEND HS_CMAKE_ARGS -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES})
+  endif()
+
   if(USE_VECTORSCAN)
     list(
       APPEND HS_CMAKE_ARGS
@@ -483,11 +496,20 @@ if(HS_BUILD_REQUIRED)
   # not recognize this value. Patch it to use "nehalem" which provides
   # the same SSE4.2 baseline and is supported by all GCC versions.
   if(USE_VECTORSCAN AND NOT HS_USE_SIMDE_BACKEND)
-    set(HS_PATCH_COMMAND
-      sed -i "s/x86-64-v2/nehalem/g"
-        ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
-        ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
-    )
+    if(APPLE)
+      # BSD sed requires -i '' for in-place editing
+      set(HS_PATCH_COMMAND
+        sed -i "" "s/x86-64-v2/nehalem/g"
+          ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
+          ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
+      )
+    else()
+      set(HS_PATCH_COMMAND
+        sed -i "s/x86-64-v2/nehalem/g"
+          ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
+          ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
+      )
+    endif()
   else()
     set(HS_PATCH_COMMAND "")
   endif()
