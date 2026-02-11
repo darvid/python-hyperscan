@@ -188,6 +188,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.9.x"
 
       - name: Remove project venv
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
@@ -425,6 +426,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.9.x"
 
       - name: Remove project venv
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
