@@ -261,16 +261,22 @@ if(HS_BUILD_REQUIRED)
   else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
     
-    # Architecture-specific compiler flags
+    # Architecture-specific compiler flags and SIMDE_BACKEND selection.
+    # SIMDE_BACKEND is only enabled for non-x86 architectures (ARM, etc.)
+    # where vectorscan has no native SIMD support. On x86-64, the native
+    # backend provides runtime CPU feature detection (SSE4.2/AVX2/AVX512)
+    # which is critical for performance. Enabling SIMDE_BACKEND on x86-64
+    # disables all higher ISA code paths and caps performance at SSE2
+    # level (~10-15x slower). See: https://github.com/darvid/python-hyperscan/issues/253
+    set(HS_USE_SIMDE_BACKEND OFF)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64|arm64)")
-      # ARM architecture - use conservative flags with SIMDE_BACKEND
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
+      set(HS_USE_SIMDE_BACKEND ON)
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86|X86|amd64|AMD64|x86_64|i[3-6]86)")
-      # x86/x86_64 architecture - use compatible x86-64 baseline
       set(HS_CMAKE_COMMON_FLAGS "-march=x86-64 -fPIC")
     else()
-      # Other architectures - rely on SIMDE_BACKEND for portability
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
+      set(HS_USE_SIMDE_BACKEND ON)
     endif()
     
     
@@ -447,7 +453,7 @@ if(HS_BUILD_REQUIRED)
   if(USE_VECTORSCAN)
     list(
       APPEND HS_CMAKE_ARGS
-      -DSIMDE_BACKEND=ON
+      -DSIMDE_BACKEND=${HS_USE_SIMDE_BACKEND}
       -DRAGEL=${RAGEL_EXECUTABLE}
       -DPCRE_BUILD_SOURCE=ON
       -DBUILD_STATIC_LIBS=ON
