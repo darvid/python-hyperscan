@@ -1,4 +1,8 @@
 
+## v0.8.1 — 2026-02-11
+
+
+
 ## v0.8.0 — 2025-12-06
 ### Features
 - add buffer protocol support for zero-copy scanning (#251)
