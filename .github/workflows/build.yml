@@ -188,6 +188,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.9.x"
 
       - name: Remove project venv
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
@@ -337,28 +338,28 @@ jobs:
             python_id: cp314t
             platform_id: musllinux_aarch64
 
-          # 🍎 macOS x86_64
-          - os: macos-13
+          # 🍎 macOS x86_64 (cross-compiled on ARM runner via Rosetta 2)
+          - os: macos-15
             host_python: "3.12"
             python_id: cp310
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15
             host_python: "3.12"
             python_id: cp311
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15
             host_python: "3.12"
             python_id: cp312
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15
             host_python: "3.12"
             python_id: cp313
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15
             host_python: "3.12"
             python_id: cp314
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15
             host_python: "3.12"
             python_id: cp314t
             platform_id: macosx_x86_64
@@ -425,6 +426,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.9.x"
 
       - name: Remove project venv
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"

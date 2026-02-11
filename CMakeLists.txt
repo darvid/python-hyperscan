@@ -261,16 +261,30 @@ if(HS_BUILD_REQUIRED)
   else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
     
-    # Architecture-specific compiler flags
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64|arm64)")
-      # ARM architecture - use conservative flags with SIMDE_BACKEND
+    # Architecture-specific compiler flags and SIMDE_BACKEND selection.
+    # SIMDE_BACKEND is only enabled for non-x86 architectures (ARM, etc.)
+    # where vectorscan has no native SIMD support. On x86-64, the native
+    # backend provides runtime CPU feature detection (SSE4.2/AVX2/AVX512)
+    # which is critical for performance. Enabling SIMDE_BACKEND on x86-64
+    # disables all higher ISA code paths and caps performance at SSE2
+    # level (~10-15x slower). See: https://github.com/darvid/python-hyperscan/issues/253
+    #
+    # For macOS cross-compilation (e.g. building x86_64 on ARM runner),
+    # CMAKE_OSX_ARCHITECTURES reflects the TARGET arch and takes priority
+    # over CMAKE_SYSTEM_PROCESSOR (which reflects the HOST).
+    set(HS_USE_SIMDE_BACKEND OFF)
+    set(_HS_TARGET_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+    if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+      set(_HS_TARGET_ARCH "${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+    if(_HS_TARGET_ARCH MATCHES "(arm|aarch64|arm64)")
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
-    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86|X86|amd64|AMD64|x86_64|i[3-6]86)")
-      # x86/x86_64 architecture - use compatible x86-64 baseline
+      set(HS_USE_SIMDE_BACKEND ON)
+    elseif(_HS_TARGET_ARCH MATCHES "(x86|X86|amd64|AMD64|x86_64|i[3-6]86)")
       set(HS_CMAKE_COMMON_FLAGS "-march=x86-64 -fPIC")
     else()
-      # Other architectures - rely on SIMDE_BACKEND for portability
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
+      set(HS_USE_SIMDE_BACKEND ON)
     endif()
     
     
@@ -444,10 +458,15 @@ if(HS_BUILD_REQUIRED)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_CXX_FLAGS}")
 
+  # Forward CMAKE_OSX_ARCHITECTURES to ExternalProject for cross-compilation
+  if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+    list(APPEND HS_CMAKE_ARGS -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES})
+  endif()
+
   if(USE_VECTORSCAN)
     list(
       APPEND HS_CMAKE_ARGS
-      -DSIMDE_BACKEND=ON
+      -DSIMDE_BACKEND=${HS_USE_SIMDE_BACKEND}
       -DRAGEL=${RAGEL_EXECUTABLE}
       -DPCRE_BUILD_SOURCE=ON
       -DBUILD_STATIC_LIBS=ON
@@ -472,6 +491,21 @@ if(HS_BUILD_REQUIRED)
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   endif()
 
+  # Vectorscan 5.4.12 uses -march=x86-64-v2 in cflags-x86.cmake and
+  # archdetect.cmake, but GCC <11 (e.g. manylinux2014 devtoolset) does
+  # not recognize this value. Patch it to use "nehalem" which provides
+  # the same SSE4.2 baseline and is supported by all GCC versions.
+  # Uses perl instead of sed to avoid BSD/GNU sed -i syntax differences.
+  if(USE_VECTORSCAN AND NOT HS_USE_SIMDE_BACKEND)
+    set(HS_PATCH_COMMAND
+      perl -pi -e "s/x86-64-v2/nehalem/g"
+        ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
+        ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
+    )
+  else()
+    set(HS_PATCH_COMMAND "")
+  endif()
+
   ExternalProject_Add(
     libhs
     GIT_REPOSITORY ${HYPERSCAN_REPO}
@@ -483,6 +517,7 @@ if(HS_BUILD_REQUIRED)
     SOURCE_DIR ${hyperscan_SOURCE_DIR}
     BINARY_DIR ${hyperscan_BINARY_DIR}
     STAMP_DIR ${hyperscan_STAMP_DIR}
+    PATCH_COMMAND ${HS_PATCH_COMMAND}
     INSTALL_COMMAND ""
     CMAKE_GENERATOR ${HS_GENERATOR}
     CMAKE_ARGS ${HS_CMAKE_ARGS} -Wno-dev
