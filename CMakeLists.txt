@@ -478,6 +478,20 @@ if(HS_BUILD_REQUIRED)
     set(HS_TARGETS --target hs --target hs_runtime --target chimera --target pcre)
   endif()
 
+  # Vectorscan 5.4.12 uses -march=x86-64-v2 in cflags-x86.cmake and
+  # archdetect.cmake, but GCC <11 (e.g. manylinux2014 devtoolset) does
+  # not recognize this value. Patch it to use "nehalem" which provides
+  # the same SSE4.2 baseline and is supported by all GCC versions.
+  if(USE_VECTORSCAN AND NOT HS_USE_SIMDE_BACKEND)
+    set(HS_PATCH_COMMAND
+      sed -i "s/x86-64-v2/nehalem/g"
+        ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
+        ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
+    )
+  else()
+    set(HS_PATCH_COMMAND "")
+  endif()
+
   ExternalProject_Add(
     libhs
     GIT_REPOSITORY ${HYPERSCAN_REPO}
@@ -489,6 +503,7 @@ if(HS_BUILD_REQUIRED)
     SOURCE_DIR ${hyperscan_SOURCE_DIR}
     BINARY_DIR ${hyperscan_BINARY_DIR}
     STAMP_DIR ${hyperscan_STAMP_DIR}
+    PATCH_COMMAND ${HS_PATCH_COMMAND}
     INSTALL_COMMAND ""
     CMAKE_GENERATOR ${HS_GENERATOR}
     CMAKE_ARGS ${HS_CMAKE_ARGS} -Wno-dev
