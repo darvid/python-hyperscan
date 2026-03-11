@@ -238,7 +238,7 @@ static int hs_match_handler(
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
   PyObject *rv = PyObject_CallFunction(
-    cctx->callback, "IIIIO", id, from, to, flags, cctx->ctx);
+    cctx->callback, "IKKIO", id, from, to, flags, cctx->ctx);
   int halt = 1;
   if (rv == NULL) {
     cctx->success = 0;
@@ -273,7 +273,7 @@ static int ch_match_handler(
   }
   PyObject *rv = PyObject_CallFunction(
     cctx->callback,
-    "IIIIOO",
+    "IKKIOO",
     id,
     from,
     to,
