@@ -56,7 +56,7 @@ See the [documentation][6] for more detailed build instructions.
 [4]: http://intel.github.io/hyperscan/dev-reference/compilation.html
 [5]: https://github.com/darvid/python-hyperscan/issues
 [6]: https://python-hyperscan.readthedocs.io
-[7]: https://www.vectorcamp.gr/vectorscan/
+[7]: https://vectorcamp.gr/project/vectorscan/
 [8]: https://www.hyperscan.io/
 [9]: https://github.com/VectorCamp/vectorscan?tab=readme-ov-file#hyperscan-license-change-after-54
 [10]: https://github.com/darvid/manylinux-hyperscan/
