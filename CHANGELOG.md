@@ -1,4 +1,12 @@
 
+## v0.8.2 — 2026-03-16
+### Docs
+- replace old VectorCamp hyperlink (#258)
+### Fixes
+- correct match offset truncation for buffers larger than 4GB (#257)
+
+
+
 ## v0.8.1 — 2026-02-11
 
 
