@@ -185,3 +185,8 @@ docs = [
   "mkdocs-material>=9.5",
   "pymdown-extensions>=10.9",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow",
+]

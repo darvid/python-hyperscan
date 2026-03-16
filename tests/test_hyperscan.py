@@ -506,3 +506,31 @@ def test_unicode_expressions():
 
         test_db.scan(b"test", match_event_handler=on_test_match)
         assert len(test_matches) > 0, "Basic pattern matching should work"
+
+
+@pytest.mark.slow
+def test_vectored_scan_large_offset(database_vector, mocker):
+    callback = mocker.Mock(return_value=None)
+    buffers = [
+        b"x"*(2**32-1),
+        b"fo"
+    ]
+    database_vector.scan(buffers, match_event_handler=callback)
+    callback.assert_has_calls(
+        [
+            mocker.call(0,0,2**32+1,0,None),
+        ],
+    )
+
+
+@pytest.mark.slow
+def test_stream_scan_large_offset(database_stream, mocker):
+    callback = mocker.Mock(return_value=None)
+    with database_stream.stream(match_event_handler=callback) as stream:
+        stream.scan(b"x"*(2**32-1))
+        stream.scan(b"fo")
+    callback.assert_has_calls(
+        [
+            mocker.call(0,0,2**32+1,0,None)
+        ],
+    )
