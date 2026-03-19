@@ -1,17 +1,22 @@
 name: Publish
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [closed]
   workflow_dispatch:
 
 jobs:
   build:
     name: Build source distribution and wheels
     uses: ./.github/workflows/build.yml
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.repository == 'darvid/python-hyperscan' && startsWith(github.event.pull_request.head.ref, vars.RELEASE_PR_BRANCH || 'create-pull-request/patch'))
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'push' &&
+        github.repository == 'darvid/python-hyperscan' &&
+        startsWith(github.event.head_commit.message, 'Release ')
+      )
     permissions:
       contents: read
       actions: write
@@ -38,9 +43,6 @@ jobs:
         id: release_check
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_MERGED: ${{ github.event.pull_request.merged }}
-          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          RELEASE_PR_BRANCH: ${{ vars.RELEASE_PR_BRANCH || 'create-pull-request/patch' }}
           REPOSITORY: ${{ github.repository }}
         run: |
           if [[ "${REPOSITORY}" != "darvid/python-hyperscan" ]]; then
@@ -49,27 +51,17 @@ jobs:
             exit 0
           fi
 
-          # For workflow_dispatch, skip PR checks - just verify PyPI status
-          if [[ "${EVENT_NAME}" != "workflow_dispatch" ]]; then
-            if [[ "${PR_MERGED}" != "true" ]]; then
-              echo "Pull request not merged, skipping release"
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "workflow_dispatch triggered - skipping commit message check"
+          else
+            # For push events, the build job already gates on 'Release ' prefix,
+            # but double-check here for safety
+            HEAD_MSG=$(git log -1 --format=%s)
+            if ! [[ "${HEAD_MSG}" =~ ^Release\  ]]; then
+              echo "HEAD commit '${HEAD_MSG}' is not a release commit, skipping"
               echo "should_release=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-
-            if [[ -n "${RELEASE_PR_BRANCH}" ]]; then
-              case "${PR_HEAD_REF}" in
-                "${RELEASE_PR_BRANCH}"*)
-                  ;;
-                *)
-                  echo "Head ref ${PR_HEAD_REF} does not match expected release branch prefix ${RELEASE_PR_BRANCH}"
-                  echo "should_release=false" >> "$GITHUB_OUTPUT"
-                  exit 0
-                  ;;
-              esac
-            fi
-          else
-            echo "workflow_dispatch triggered - skipping PR checks"
           fi
 
           # Get the version we're about to release
