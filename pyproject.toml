@@ -21,6 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Programming Language :: Python :: Implementation :: CPython",
   "Environment :: Console",
   "Intended Audience :: Developers",
@@ -46,7 +47,7 @@ build-dir = "build/{wheel_tag}"
 sdist.cmake = false
 build.targets = ["hs_python_extension"]
 build.verbose = true
-logging.level = "DEBUG"
+logging.level = "INFO"
 wheel.expand-macos-universal-tags = true
 wheel.packages = ["src/hyperscan", "hyperscan._hyperscan"]
 install.components = ["hyperscan"]
@@ -57,11 +58,12 @@ version = ">=3.31"
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
-test-command = "pytest --pyargs {package}/tests -vvv"
+test-sources = ["tests", "pyproject.toml"]
+test-command = "python -m pytest tests -vvv"
 test-requires = ["pytest>=7.0", "pytest-mock"]
 # Will avoid testing on emulated architectures and macOS Apple silicon
 test-skip = "*-*linux_{ppc64le,s390x} *-macosx_arm64"
-enable = ["pypy", "pypy-eol", "cpython-freethreading"]
+enable = ["pypy", "pypy-eol"]
 
 [tool.cibuildwheel.linux]
 before-all = ["yum -y update", """yum -y install \
@@ -165,7 +167,7 @@ dist_glob_patterns = ["dist/*", "wheelhouse/*"]
 [dependency-groups]
 release = ["python-semantic-release>=9.16.0"]
 dev = [
-  "cibuildwheel>=3.2.1 ; python_version >= '3.11'",
+  "cibuildwheel>=4.2.0 ; python_version >= '3.11'",
   "cmake>=3.31 ; python_version >= '3.11'",
   "isort>=5.13.2",
   "pytest>=7.0",
@@ -175,7 +177,7 @@ dev = [
 test = ["pytest>=8.3.4", "pytest-mock>=3.14.0"]
 build = [
   "auditwheel>=6.2.0",
-  "cibuildwheel>=3.2.1 ; python_version >= '3.11'",
+  "cibuildwheel>=4.2.0 ; python_version >= '3.11'",
   "cmake>=3.31 ; python_version >= '3.11'",
   "delocate>=0.12.0 ; sys_platform == 'darwin'",
   "delvewheel>=1.10.0 ; sys_platform == 'win32'",
