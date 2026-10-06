@@ -1,4 +1,12 @@
 
+## v0.9.0 — 2026-10-06
+### Features
+- add Python 3.15 wheel support (#261)
+
+## v0.8.2 — 2026-03-19
+
+
+
 ## v0.8.2 — 2026-03-16
 ### Docs
 - replace old VectorCamp hyperlink (#258)
