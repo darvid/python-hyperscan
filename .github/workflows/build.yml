@@ -188,7 +188,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          version: "0.9.x"
+          version: "0.11.x"
 
       - name: Remove project venv
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
@@ -247,6 +247,14 @@ jobs:
             host_python: "3.12"
             python_id: cp314t
             platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            host_python: "3.12"
+            python_id: cp315
+            platform_id: manylinux_x86_64
+          - os: ubuntu-24.04
+            host_python: "3.12"
+            python_id: cp315t
+            platform_id: manylinux_x86_64
 
           # 🐧 manylinux aarch64
           - os: ubuntu-24.04-arm
@@ -272,6 +280,14 @@ jobs:
           - os: ubuntu-24.04-arm
             host_python: "3.12"
             python_id: cp314t
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            host_python: "3.12"
+            python_id: cp315
+            platform_id: manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            host_python: "3.12"
+            python_id: cp315t
             platform_id: manylinux_aarch64
 
           # 🐧 manylinux2014 PyPy x86_64
@@ -311,6 +327,14 @@ jobs:
             python: "3.14"
             python_id: cp314t
             platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.15"
+            python_id: cp315
+            platform_id: musllinux_x86_64
+          - os: ubuntu-24.04
+            python: "3.15"
+            python_id: cp315t
+            platform_id: musllinux_x86_64
 
           # 🦀 musllinux ARM
           - os: ubuntu-24.04-arm
@@ -336,6 +360,14 @@ jobs:
           - os: ubuntu-24.04-arm
             python: "3.14"
             python_id: cp314t
+            platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.15"
+            python_id: cp315
+            platform_id: musllinux_aarch64
+          - os: ubuntu-24.04-arm
+            python: "3.15"
+            python_id: cp315t
             platform_id: musllinux_aarch64
 
           # 🍎 macOS x86_64 (cross-compiled on ARM runner via Rosetta 2)
@@ -363,6 +395,14 @@ jobs:
             host_python: "3.12"
             python_id: cp314t
             platform_id: macosx_x86_64
+          - os: macos-15
+            host_python: "3.12"
+            python_id: cp315
+            platform_id: macosx_x86_64
+          - os: macos-15
+            host_python: "3.12"
+            python_id: cp315t
+            platform_id: macosx_x86_64
 
           # 🍎 macOS arm64 (Apple silicon)
           - os: macos-15
@@ -388,6 +428,14 @@ jobs:
           - os: macos-15
             host_python: "3.12"
             python_id: cp314t
+            platform_id: macosx_arm64
+          - os: macos-15
+            host_python: "3.12"
+            python_id: cp315
+            platform_id: macosx_arm64
+          - os: macos-15
+            host_python: "3.12"
+            python_id: cp315t
             platform_id: macosx_arm64
 
           # 🪟 Windows x86_64
@@ -415,6 +463,14 @@ jobs:
             host_python: "3.12"
             python_id: cp314t
             platform_id: win_amd64
+          - os: windows-2025
+            host_python: "3.12"
+            python_id: cp315
+            platform_id: win_amd64
+          - os: windows-2025
+            host_python: "3.12"
+            python_id: cp315t
+            platform_id: win_amd64
 
     steps:
       - uses: actions/checkout@v4
@@ -426,7 +482,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          version: "0.9.x"
+          version: "0.11.x"
 
       - name: Remove project venv
         run: python -c "import pathlib, shutil; p = pathlib.Path('.venv'); shutil.rmtree(p) if p.exists() else None"
