@@ -9,6 +9,14 @@
 #include <stdlib.h>
 #include <structmember.h>
 
+#if PY_VERSION_HEX < 0x030A0000
+static inline PyObject *Py_NewRef(PyObject *obj)
+{
+  Py_INCREF(obj);
+  return obj;
+}
+#endif
+
 #ifdef Py_GIL_DISABLED
 typedef struct {
   PyThread_type_lock lock;
