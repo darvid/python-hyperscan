@@ -352,7 +352,7 @@ static PyObject *Database_compile(
 
   PyObject *oexpressions;
   PyObject *oflags = Py_None;
-  PyObject *oflag = Py_None;
+  PyObject *oflag = NULL;
   PyObject *oids = Py_None;
   PyObject *oext = Py_None;
   uint32_t literal = 0;
@@ -392,9 +392,10 @@ static PyObject *Database_compile(
 
   PyObject *oexpr = NULL;
   PyObject *oid = NULL;
-  const char **expressions;
-  uint32_t *flags;
-  uint32_t *ids;
+  PyObject *expression_objects = NULL;
+  const char **expressions = NULL;
+  uint32_t *flags = NULL;
+  uint32_t *ids = NULL;
   size_t *lens;
   uint32_t globalflag;
 
@@ -416,6 +417,10 @@ static PyObject *Database_compile(
   if (ids == NULL)
     goto memory_error;
 
+  expression_objects = PyList_New(elements);
+  if (expression_objects == NULL)
+    goto python_error;
+
   globalflag = (oflags == Py_None ? 0 : PyLong_AsUnsignedLong(oflags));
 
   PyErr_Clear();
@@ -426,6 +431,8 @@ static PyObject *Database_compile(
     uint32_t expr_id;
 
     oexpr = PySequence_ITEM(oexpressions, i);
+    if (oexpr == NULL)
+      break;
 
     // Handle both bytes and unicode strings
     if (PyBytes_Check(oexpr)) {
@@ -450,6 +457,8 @@ static PyObject *Database_compile(
 
     if (PyObject_IsTrue(oids)) {
       oid = PySequence_ITEM(oids, i);
+      if (oid == NULL)
+        break;
       expr_id = PyLong_AsUnsignedLong(oid);
       if (PyErr_Occurred())
         break;
@@ -472,13 +481,15 @@ static PyObject *Database_compile(
     ids[i] = expr_id;
     flags[i] = expr_flags;
 
-    Py_XDECREF(oexpr);
+    // Keep the backing bytes alive until the native compiler returns.
+    PyList_SET_ITEM(expression_objects, i, oexpr);
+    oexpr = NULL;
+    Py_CLEAR(oid);
+    Py_CLEAR(oflag);
   }
 
-  if (oflag != Py_None)
-    Py_XDECREF(oflag);
-  if (oid != Py_None)
-    Py_XDECREF(oid);
+  Py_CLEAR(oflag);
+  Py_CLEAR(oid);
 
   if (PyErr_Occurred()) {
     goto python_error;
@@ -518,6 +529,7 @@ static PyObject *Database_compile(
     free(expressions);
     free(flags);
     free(ids);
+    Py_CLEAR(expression_objects);
 
     if (hs_err != HS_SUCCESS) {
       PyErr_Format(
@@ -547,6 +559,7 @@ static PyObject *Database_compile(
       free(expressions);
       free(flags);
       free(ids);
+      Py_CLEAR(expression_objects);
       HANDLE_CHIMERA_ERR(ch_err, NULL);
     } else {
       if (oext != Py_None) {
@@ -592,6 +605,7 @@ static PyObject *Database_compile(
       free(expressions);
       free(flags);
       free(ids);
+      Py_CLEAR(expression_objects);
       if (hs_err != HS_SUCCESS) {
         PyErr_SetString(HyperscanError, hs_compile_err->message);
         hs_free_compile_error(hs_compile_err);
@@ -632,9 +646,12 @@ static PyObject *Database_compile(
 
 memory_error:
   PyErr_NoMemory();
-  HS_LOCK_RETURN_NULL();
 
 python_error:
+  Py_XDECREF(oexpr);
+  Py_XDECREF(oflag);
+  Py_XDECREF(oid);
+  Py_XDECREF(expression_objects);
   free(expressions);
   free(flags);
   free(ids);
