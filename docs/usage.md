@@ -35,6 +35,11 @@ The only required parameter to ``hyperscan.Database`` is
 rest of the parameters, including **ids**, **elements**, and **flags**
 are optional.
 
+Expression IDs and flag values must be integers in the unsigned 32-bit range
+(`0` through `2**32 - 1`). Values outside this range raise `OverflowError`
+instead of being truncated. Flags can be supplied as a single integer or a
+sequence of integers; the native engine also checks supported flag combinations.
+
 ```python
 import hyperscan
 

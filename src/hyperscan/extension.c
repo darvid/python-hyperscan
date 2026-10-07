@@ -344,6 +344,20 @@ static int Database_init(Database *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
+static int parse_uint32(PyObject *value, uint32_t *result)
+{
+  unsigned long number = PyLong_AsUnsignedLong(value);
+  if (PyErr_Occurred())
+    return -1;
+  if (number > UINT32_MAX) {
+    PyErr_SetString(
+      PyExc_OverflowError, "value exceeds an unsigned 32-bit integer");
+    return -1;
+  }
+  *result = (uint32_t)number;
+  return 0;
+}
+
 static PyObject *Database_compile(
   Database *self, PyObject *args, PyObject *kwds)
 {
@@ -416,9 +430,11 @@ static PyObject *Database_compile(
   if (ids == NULL)
     goto memory_error;
 
-  globalflag = (oflags == Py_None ? 0 : PyLong_AsUnsignedLong(oflags));
-
-  PyErr_Clear();
+  globalflag = 0;
+  if (
+    oflags != Py_None && !PySequence_Check(oflags) &&
+    parse_uint32(oflags, &globalflag) < 0)
+    goto python_error;
 
   for (uint64_t i = 0; i < elements; i++) {
     const char *expression;
@@ -450,8 +466,7 @@ static PyObject *Database_compile(
 
     if (PyObject_IsTrue(oids)) {
       oid = PySequence_ITEM(oids, i);
-      expr_id = PyLong_AsUnsignedLong(oid);
-      if (PyErr_Occurred())
+      if (parse_uint32(oid, &expr_id) < 0)
         break;
     } else {
       expr_id = i;
@@ -461,8 +476,7 @@ static PyObject *Database_compile(
       oflag = PySequence_ITEM(oflags, i);
       if (PyErr_Occurred())
         break;
-      expr_flags = PyLong_AsUnsignedLong(oflag);
-      if (PyErr_Occurred())
+      if (parse_uint32(oflag, &expr_flags) < 0)
         break;
     } else {
       expr_flags = globalflag;
