@@ -132,6 +132,10 @@ with db.stream(match_event_handler=on_match, context=2345) as stream:
 
 ### Vectored Mode
 
+Each buffer is held for the duration of the scan, including match callbacks.
+Resizing a `bytearray` or releasing a `memoryview` being scanned raises
+`BufferError` until the scan returns. Buffers must be contiguous.
+
 ```python
 db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
 buffers = [
