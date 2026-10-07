@@ -130,6 +130,16 @@ with db.stream(match_event_handler=on_match, context=2345) as stream:
     stream.scan(b'qux', match_event_handler=on_qux_match)
 ```
 
+A stream keeps its database, callback, context, and optional scratch object alive
+until the stream itself is released. Entering the context opens the native stream;
+scanning before entry or after closure raises `RuntimeError`. Closing is
+idempotent, so explicitly closing inside a `with` block is supported. The same
+stream object can be entered again after closure, but cannot be entered or
+reinitialized while already open.
+
+Use explicit closure or a context manager to deliver end-of-data matches.
+Releasing an unclosed stream frees its native state without invoking callbacks.
+
 ### Vectored Mode
 
 ```python
