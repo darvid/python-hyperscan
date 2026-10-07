@@ -386,7 +386,8 @@ def test_database_deserialize_scan(db_fixture_name, request, mocker):
     original_db: hyperscan.Database = request.getfixturevalue(db_fixture_name)
     serialized_db = hyperscan.dumpb(original_db)
     db = hyperscan.loadb(serialized_db, original_db.mode)
-    db.scratch = hyperscan.Scratch(db)
+    assert isinstance(db.scratch, hyperscan.Scratch)
+    assert db.scratch.database is db
     if db_fixture_name == "database_stream":
         with db.stream(match_event_handler=callback) as stream:
             stream.scan(b"foobar")
@@ -395,6 +396,46 @@ def test_database_deserialize_scan(db_fixture_name, request, mocker):
         if db_fixture_name == "database_vector":
             buf = [buf]
         db.scan(buf, match_event_handler=callback)
+    callback.assert_called()
+
+
+@pytest.mark.parametrize(
+    "db_fixture_name",
+    ["database_stream", "database_block", "database_vector"],
+)
+@pytest.mark.parametrize("alloc_scratch", [False, True])
+def test_database_deserialize_scratch(db_fixture_name, alloc_scratch, request, mocker):
+    original_db = request.getfixturevalue(db_fixture_name)
+    db = hyperscan.loadb(
+        hyperscan.dumpb(original_db), original_db.mode, alloc_scratch=alloc_scratch
+    )
+    if alloc_scratch:
+        assert isinstance(db.scratch, hyperscan.Scratch)
+    else:
+        assert db.scratch is None
+        db.scratch = hyperscan.Scratch(db)
+
+    callback = mocker.Mock(return_value=None)
+    if db_fixture_name == "database_stream":
+        with db.stream(match_event_handler=callback) as stream:
+            stream.scan(b"foobar")
+    else:
+        data = [b"foo", b"bar"] if db_fixture_name == "database_vector" else b"foobar"
+        db.scan(data, match_event_handler=callback)
+    callback.assert_called()
+
+
+@pytest.mark.parametrize(
+    "data, error",
+    [
+        (None, TypeError),
+        (b"", hyperscan.InvalidError),
+        (b"not a database", hyperscan.InvalidError),
+    ],
+)
+def test_database_deserialize_invalid(data, error):
+    with pytest.raises(error):
+        hyperscan.loadb(data, hyperscan.HS_MODE_BLOCK)
 
 
 def test_database_exception_in_callback(database_block, mocker):

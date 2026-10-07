@@ -176,8 +176,15 @@ with open('hs.db', 'wb') as f:
     f.write(serialized)
 
 # Deserializing (loading from bytes):
-db = hyperscan.loadb(serialized)
+db = hyperscan.loadb(serialized, mode=hyperscan.HS_MODE_BLOCK)
+db.scan(b'foobar', match_event_handler=callback)
 ```
+
+Use the same scanning mode as the serialized database. By default, `loadb`
+allocates scratch space, so the restored database can scan immediately.
+Pass `alloc_scratch=False` to manage scratch allocation yourself; assign
+`db.scratch = hyperscan.Scratch(db)` or pass an appropriate scratch object
+when scanning.
 
 ## Chimera Mode
 
