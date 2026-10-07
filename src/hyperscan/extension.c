@@ -1344,20 +1344,19 @@ static PyObject *Scratch_clone(Scratch *self)
   HS_LOCK_ACQUIRE_OR_RETURN_NULL();
 
   PyObject *odest = PyObject_CallFunction((PyObject *)&ScratchType, NULL);
+  if (odest == NULL)
+    HS_LOCK_RETURN_NULL();
   Scratch *dest = (Scratch *)odest;
-  bool chimera;
-  if (self->database == Py_None) {
-    // XXX: Assume chimera mode is false if no db
-    chimera = false;
-  } else {
-    chimera = ((Database *)self->database)->chimera;
-  }
 
-  if (chimera) {
+  if (self->ch_scratch != NULL) {
     ch_error_t ch_err = ch_clone_scratch(self->ch_scratch, &dest->ch_scratch);
+    if (ch_err != CH_SUCCESS)
+      Py_DECREF(odest);
     HANDLE_CHIMERA_ERR(ch_err, NULL);
   } else {
     hs_error_t hs_err = hs_clone_scratch(self->hs_scratch, &dest->hs_scratch);
+    if (hs_err != HS_SUCCESS)
+      Py_DECREF(odest);
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 
