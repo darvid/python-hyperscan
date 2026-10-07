@@ -80,8 +80,13 @@ any Python object passed to a ``scan`` method.
 
 The return value determines whether or not Hyperscan should halt
 scanning. If the match handler returns anything other than ``None``
-that is *truthy*, scanning will be halted and any subsequent calls to
-``Database.scan`` or ``Stream.scan`` will throw a ``hyperscan.error``.
+that is *truthy*, the scan raises ``hyperscan.ScanTerminated``. A terminated
+stream also raises this exception on subsequent ``Stream.scan`` calls;
+block and vectored databases can be scanned again.
+
+Exceptions raised by a callback, including errors when evaluating its
+return value's truthiness, propagate from ``Database.scan`` or ``Stream.scan``
+without being replaced by ``ScanTerminated``.
 
 ## Pattern Scanning
 

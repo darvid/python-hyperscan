@@ -244,7 +244,9 @@ static int hs_match_handler(
     cctx->success = 0;
   } else {
     halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
-    cctx->success = 1;
+    cctx->success = halt >= 0;
+    if (halt < 0)
+      halt = 1;
   }
   Py_XDECREF(rv);
   PyGILState_Release(gstate);
@@ -285,7 +287,9 @@ static int ch_match_handler(
     cctx->success = 0;
   } else {
     halt = rv == Py_None ? 0 : PyObject_IsTrue(rv);
-    cctx->success = 1;
+    cctx->success = halt >= 0;
+    if (halt < 0)
+      halt = 1;
   }
   Py_XDECREF(rv);
   Py_XDECREF(ocaptured);
@@ -772,6 +776,8 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
     PyMem_RawFree(data);
     PyMem_RawFree(lengths);
     Py_XDECREF(fast_seq);
+    if (PyErr_Occurred())
+      HS_LOCK_RETURN_NULL();
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   } else {
     if (!PyObject_CheckBuffer(odata)) {
@@ -1182,6 +1188,8 @@ static PyObject *Stream_scan(Stream *self, PyObject *args, PyObject *kwds)
       ocallback == Py_None ? NULL : (void *)&cctx);
     Py_END_ALLOW_THREADS;
     PyBuffer_Release(&view);
+    if (PyErr_Occurred())
+      HS_LOCK_RETURN_NULL();
     HANDLE_HYPERSCAN_ERR(hs_err, NULL);
   }
 

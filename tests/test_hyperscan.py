@@ -397,11 +397,41 @@ def test_database_deserialize_scan(db_fixture_name, request, mocker):
         db.scan(buf, match_event_handler=callback)
 
 
-def test_database_exception_in_callback(database_block, mocker):
-    callback = mocker.Mock(side_effect=RuntimeError("oops"))
+@pytest.mark.parametrize(
+    "db_fixture_name",
+    ["database_block", "database_vector", "database_stream", "database_chimera"],
+)
+@pytest.mark.parametrize("failure", ["raise", "bool", "halt"])
+def test_database_exception_in_callback(db_fixture_name, failure, request, mocker):
+    database = request.getfixturevalue(db_fixture_name)
+    error = RuntimeError("oops")
 
-    with pytest.raises(RuntimeError, match=r"^oops$"):
-        database_block.scan(b"foobar", match_event_handler=callback)
+    class InvalidTruth:
+        def __bool__(self):
+            raise error
+
+    if failure == "raise":
+        callback = mocker.Mock(side_effect=error)
+    else:
+        callback = mocker.Mock(
+            return_value=True if failure == "halt" else InvalidTruth()
+        )
+    expected = hyperscan.ScanTerminated if failure == "halt" else RuntimeError
+
+    with pytest.raises(expected) as caught:
+        if db_fixture_name == "database_stream":
+            with database.stream(match_event_handler=callback) as stream:
+                stream.scan(b"foobar")
+        else:
+            data = (
+                [b"foo", b"bar"] if db_fixture_name == "database_vector" else b"foobar"
+            )
+            database.scan(data, match_event_handler=callback)
+    if failure != "halt":
+        assert caught.value is error
+    callback.assert_called_once()
+    if db_fixture_name != "database_stream":
+        database.scan(data, match_event_handler=lambda *args: None)
 
 
 def test_literal_expressions(mocker):
