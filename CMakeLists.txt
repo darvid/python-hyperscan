@@ -286,8 +286,13 @@ if(HS_BUILD_REQUIRED)
       set(HS_CMAKE_COMMON_FLAGS "-fPIC")
       set(HS_USE_SIMDE_BACKEND ON)
     endif()
-    
-    
+
+    # Vectorscan's Ragel-generated parser compares regex bytes in the
+    # 0x80..0xff range when HS_FLAG_UTF8 is enabled. On targets where plain
+    # char is signed (notably x86/x86_64), those bytes can be misclassified as
+    # invalid UTF-8 unless downstream C/C++ code uses unsigned char semantics.
+    set(HS_CMAKE_COMMON_FLAGS "${HS_CMAKE_COMMON_FLAGS} -funsigned-char")
+
     set(HS_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HS_CMAKE_COMMON_FLAGS}")
     set(HS_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HS_CMAKE_COMMON_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
     
@@ -495,16 +500,20 @@ if(HS_BUILD_REQUIRED)
   # archdetect.cmake, but GCC <11 (e.g. manylinux2014 devtoolset) does
   # not recognize this value. Patch it to use "nehalem" which provides
   # the same SSE4.2 baseline and is supported by all GCC versions.
-  # Uses perl instead of sed to avoid BSD/GNU sed -i syntax differences.
+  #
+  # Its Ragel-generated parser also compares input bytes against UTF-8 ranges.
+  # Force an unsigned key expression so x86/x86_64 builds don't reject valid
+  # multibyte UTF-8 patterns under HS_FLAG_UTF8.
+  set(HS_PATCH_X86_64_V2 OFF)
   if(USE_VECTORSCAN AND NOT HS_USE_SIMDE_BACKEND)
-    set(HS_PATCH_COMMAND
-      perl -pi -e "s/x86-64-v2/nehalem/g"
-        ${hyperscan_SOURCE_DIR}/cmake/cflags-x86.cmake
-        ${hyperscan_SOURCE_DIR}/cmake/archdetect.cmake
-    )
-  else()
-    set(HS_PATCH_COMMAND "")
+    set(HS_PATCH_X86_64_V2 ON)
   endif()
+  set(HS_PATCH_COMMAND
+    ${CMAKE_COMMAND}
+      -DVECTORSCAN_SOURCE_DIR=${hyperscan_SOURCE_DIR}
+      -DVECTORSCAN_PATCH_X86_64_V2=${HS_PATCH_X86_64_V2}
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/patch_vectorscan.cmake
+  )
 
   ExternalProject_Add(
     libhs
