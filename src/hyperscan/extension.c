@@ -460,7 +460,7 @@ static PyObject *Database_compile(
 
   PyObject *oexpressions;
   PyObject *oflags = Py_None;
-  PyObject *oflag = Py_None;
+  PyObject *oflag = NULL;
   PyObject *oids = Py_None;
   PyObject *oext = Py_None;
   uint32_t literal = 0;
@@ -568,6 +568,8 @@ static PyObject *Database_compile(
 
     if (PyObject_IsTrue(oids)) {
       oid = PySequence_ITEM(oids, i);
+      if (oid == NULL)
+        break;
       expr_id = PyLong_AsUnsignedLong(oid);
       if (PyErr_Occurred())
         break;
@@ -602,12 +604,13 @@ static PyObject *Database_compile(
     expressions[i] = expression;
     ids[i] = expr_id;
     flags[i] = expr_flags;
+
+    Py_CLEAR(oid);
+    Py_CLEAR(oflag);
   }
 
-  if (oflag != Py_None)
-    Py_XDECREF(oflag);
-  if (oid != Py_None)
-    Py_XDECREF(oid);
+  Py_CLEAR(oflag);
+  Py_CLEAR(oid);
 
   if (PyErr_Occurred()) {
     goto python_error;
