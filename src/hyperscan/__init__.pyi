@@ -82,12 +82,14 @@ def dumpb(database: "Database") -> bytes:
 
     """
 
-def loadb(buf: ByteString, mode: int) -> "Database":
+def loadb(buf: ByteString, mode: int, alloc_scratch: bool = True) -> "Database":
     """Deserializes a Hyperscan database.
 
     Args:
         buf (bytes): A serialized Hyperscan database.
         mode (int): The expected mode of the database.
+        alloc_scratch (bool, optional): Allocate scratch space for scanning.
+            Defaults to True. If False, supply scratch space before scanning.
 
     Returns:
         :class:`Database`: The deserialized database instance.

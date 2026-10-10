@@ -1599,24 +1599,40 @@ static PyObject *loadb(PyObject *self, PyObject *args, PyObject *kwds)
 
   char *buf;
   PyObject *obuf = Py_None;
-  PyObject *odb;
-  odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
-  Database *db = (Database *)odb;
+  unsigned int mode;
+  int alloc_scratch = 1;
 
-  static char *kwlist[] = {"buf", "mode", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "OI", kwlist, &obuf, &db->mode))
+  static char *kwlist[] = {"buf", "mode", "alloc_scratch", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+        args, kwds, "OI|p", kwlist, &obuf, &mode, &alloc_scratch))
     HS_LOCK_RETURN_NULL();
   if (!PyBytes_Check(obuf)) {
     PyErr_SetString(PyExc_TypeError, "buf must be a bytestring");
     HS_LOCK_RETURN_NULL();
   }
 
+  PyObject *odb = PyObject_CallFunctionObjArgs((PyObject *)&DatabaseType, NULL);
+  if (odb == NULL)
+    HS_LOCK_RETURN_NULL();
+  Database *db = (Database *)odb;
+  db->mode = mode;
+
   Py_ssize_t length = PyBytes_Size(obuf);
   buf = PyBytes_AsString(obuf);
   hs_error_t err = hs_deserialize_database(buf, length, &db->hs_db);
-  HANDLE_HYPERSCAN_ERR(err, NULL);
-  if (PyErr_Occurred())
-    HS_LOCK_RETURN_NULL();
+  if (err != HS_SUCCESS) {
+    Py_DECREF(odb);
+    HANDLE_HYPERSCAN_ERR(err, NULL);
+  }
+  if (alloc_scratch) {
+    PyObject *scratch =
+      PyObject_CallFunction((PyObject *)&ScratchType, "O", odb);
+    if (scratch == NULL) {
+      Py_DECREF(odb);
+      HS_LOCK_RETURN_NULL();
+    }
+    db->scratch = scratch;
+  }
   HS_LOCK_RETURN(odb);
 }
 
@@ -1633,11 +1649,14 @@ static PyMethodDef HyperscanMethods[] = {
   {"loadb",
    (PyCFunction)loadb,
    METH_VARARGS | METH_KEYWORDS,
-   "loadb(buf, mode)\n"
+   "loadb(buf, mode, alloc_scratch=True)\n"
    "    Deserializes a Hyperscan database.\n\n"
    "    Args:\n"
-   "        buf (:obj:`bytearray`): A serialized Hyperscan database.\n"
-   "        mode (int): The expected mode of the database.\n\n"
+   "        buf (bytes): A serialized Hyperscan database.\n"
+   "        mode (int): The expected mode of the database.\n"
+   "        alloc_scratch (bool, optional): Allocate scratch space for\n"
+   "            scanning. Defaults to True. If False, supply scratch\n"
+   "            space before scanning.\n\n"
    "    Returns:\n"
    "        :class:`Database`: The deserialized database instance.\n\n"},
   {NULL}};
