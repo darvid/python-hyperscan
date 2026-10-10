@@ -426,15 +426,9 @@ def test_unicode_expressions():
     valid UTF-8 patterns. This was caused by PCRE being built without UTF-8 support
     in v0.7.9+ when the build system switched from setup.py to CMake.
 
-    Note on HS_FLAG_UTF8:
-    We avoid using HS_FLAG_UTF8 by default due to known Hyperscan/Vectorscan
-    limitations and bugs:
-    - intel/hyperscan#57: UTF-8 match failures with \\Q...\\E patterns
-    - intel/hyperscan#133: Parser bug with Ragel v7 incorrectly rejecting valid UTF-8
-    - intel/hyperscan#163: Performance issues with UTF-8 + case-insensitive flags
-
-    Unicode patterns work correctly without HS_FLAG_UTF8 when PCRE has proper
-    UTF-8 support, which is what our CMake fixes provide.
+    The HS_FLAG_UTF8 cases cover issue #274, where x86/x86_64 wheels compiled
+    Vectorscan with signed-char semantics and rejected valid multibyte UTF-8
+    literals such as é and €.
     """
     complex_patterns = [
         r"<span\s+.*>السلام عليكم\s<\/span>",
@@ -454,10 +448,13 @@ def test_unicode_expressions():
     db_bytes.compile(expressions=bytes_patterns)
 
     db_utf8 = hyperscan.Database()
-    try:
-        db_utf8.compile(expressions=simple_patterns, flags=hyperscan.HS_FLAG_UTF8)
-    except Exception as e:
-        pytest.skip(f"HS_FLAG_UTF8 validation failed (known limitation): {e}")
+    db_utf8.compile(expressions=simple_patterns, flags=hyperscan.HS_FLAG_UTF8)
+
+    db_utf8_latin = hyperscan.Database()
+    db_utf8_latin.compile(
+        expressions=["é".encode("utf-8"), "€".encode("utf-8")],
+        flags=hyperscan.HS_FLAG_UTF8,
+    )
 
     test_text = '<span class="greeting">السلام عليكم </span>'
 

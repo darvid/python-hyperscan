@@ -1,4 +1,10 @@
 
+## v0.9.1 — 2026-10-08
+### Fixes
+- compile UTF-8 parser with unsigned chars (#275)
+
+
+
 ## v0.9.0 — 2026-10-06
 ### Features
 - add Python 3.15 wheel support (#261)
