@@ -1,3 +1,6 @@
+import sys
+import tracemalloc
+
 import pytest
 
 import hyperscan
@@ -353,6 +356,35 @@ def test_database_info(database_block):
     info_string = database_block.info()
     for field in (b"Version", b"Features", b"Mode"):
         assert field + b": " in info_string
+
+
+@pytest.mark.skipif(
+    sys.implementation.name != "cpython", reason="requires CPython allocation tracing"
+)
+@pytest.mark.parametrize(
+    "db_fixture_name",
+    ["database_block", "database_stream", "database_vector", "database_chimera"],
+)
+def test_database_info_does_not_retain_results(db_fixture_name, request):
+    database = request.getfixturevalue(db_fixture_name)
+    database.info()
+    already_tracing = tracemalloc.is_tracing()
+    if not already_tracing:
+        tracemalloc.start()
+    try:
+        trace_filter = [tracemalloc.Filter(True, __file__)]
+        before = tracemalloc.take_snapshot().filter_traces(trace_filter)
+        for _ in range(1000):
+            database.info()
+        after = tracemalloc.take_snapshot().filter_traces(trace_filter)
+        retained = sum(
+            max(change.size_diff, 0) for change in after.compare_to(before, "lineno")
+        )
+        # Allow tracing/loop bookkeeping; 1000 leaked results retain at least 70 KiB.
+        assert retained < 4096
+    finally:
+        if not already_tracing:
+            tracemalloc.stop()
 
 
 @pytest.mark.parametrize(

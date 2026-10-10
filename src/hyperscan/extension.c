@@ -790,7 +790,6 @@ static PyObject *Database_info(Database *self, PyObject *args)
   }
 
   PyObject *oinfo = PyBytes_FromString(info);
-  Py_INCREF(oinfo);
   free(info);
   HS_LOCK_RETURN(oinfo);
 }
