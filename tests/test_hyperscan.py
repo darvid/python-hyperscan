@@ -1,3 +1,7 @@
+import subprocess
+import sys
+from contextlib import nullcontext
+
 import pytest
 
 import hyperscan
@@ -202,7 +206,8 @@ def test_stream_scan_bytearray(database_stream, mocker):
     )
 
 
-def test_vectored_scan(database_vector, mocker):
+@pytest.mark.parametrize("container", [list, tuple, iter])
+def test_vectored_scan(database_vector, mocker, container):
     """Test vectored scanning across multiple buffers.
 
     Regression test for issue #202: vectored mode was missing matches
@@ -215,7 +220,7 @@ def test_vectored_scan(database_vector, mocker):
         bytearray(b"xxfoxbarx"),  # 9 bytes, offsets 9-17
         bytearray(b"barxxxxxx"),  # 9 bytes, offsets 18-26
     ]
-    database_vector.scan(buffers, match_event_handler=callback)
+    database_vector.scan(container(buffers), match_event_handler=callback)
     callback.assert_has_calls(
         [
             # Pattern 0 (fo+): matches in buffer 0 and buffer 1
@@ -228,6 +233,90 @@ def test_vectored_scan(database_vector, mocker):
         ],
         any_order=True,
     )
+
+
+@pytest.mark.parametrize("mode", [hyperscan.HS_MODE_BLOCK, hyperscan.HS_MODE_VECTORED])
+@pytest.mark.parametrize("use_memoryview", [False, True])
+@pytest.mark.parametrize("halt", [False, True])
+def test_scan_holds_buffer_exports(mode, use_memoryview, halt):
+    db = hyperscan.Database(mode=mode)
+    db.compile(expressions=[b"foo"], ids=[1])
+    data = bytearray(b"foo")
+    buffer = memoryview(data) if use_memoryview else data
+    blocked = []
+
+    def callback(*args):
+        try:
+            if use_memoryview:
+                buffer.release()
+            else:
+                data.extend(b"bar")
+        except BufferError:
+            blocked.append(True)
+        else:
+            blocked.append(False)
+            return True
+        return halt
+
+    context = pytest.raises(hyperscan.ScanTerminated) if halt else nullcontext()
+    with context:
+        db.scan(
+            [buffer] if mode == hyperscan.HS_MODE_VECTORED else buffer,
+            match_event_handler=callback,
+        )
+    assert blocked == [True]
+    if use_memoryview:
+        buffer.release()
+    data.extend(b"bar")
+    assert data == b"foobar"
+
+
+@pytest.mark.parametrize("use_memoryview", [False, True])
+@pytest.mark.parametrize("bad_buffer", [None, object(), memoryview(b"foo")[::2]])
+def test_vectored_scan_releases_partial_exports(
+    database_vector, use_memoryview, bad_buffer
+):
+    data = bytearray(b"foo")
+    buffer = memoryview(data) if use_memoryview else data
+    error = BufferError if isinstance(bad_buffer, memoryview) else TypeError
+    with pytest.raises(error):
+        database_vector.scan([buffer, bad_buffer])
+    if use_memoryview:
+        buffer.release()
+    data.extend(b"bar")
+    assert data == b"foobar"
+
+
+@pytest.mark.parametrize(
+    "expression, error, message",
+    [
+        ("None", "TypeError", "expected a sequence of buffers"),
+        ("123", "TypeError", "expected a sequence of buffers"),
+        ("broken()", "RuntimeError", "iterator failed"),
+    ],
+)
+def test_vectored_scan_sequence_errors(expression, error, message):
+    script = f"""
+import hyperscan
+
+def broken():
+    yield b"foo"
+    raise RuntimeError("iterator failed")
+
+db = hyperscan.Database(mode=hyperscan.HS_MODE_VECTORED)
+db.compile(expressions=[b"foo"], ids=[1])
+try:
+    db.scan({expression})
+except {error} as exc:
+    assert str(exc) == {message!r}
+else:
+    raise AssertionError("scan should reject the input")
+db.scan([b"foo"])
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True, timeout=30
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_ext_multi_min_offset(mocker):

@@ -851,42 +851,49 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
     char **data;
     PyObject *fast_seq;
     Py_ssize_t num_buffers;
+    Py_ssize_t acquired = 0;
+    Py_buffer *views;
     uint32_t *lengths;
-
-    fast_seq = PySequence_Fast(odata, "expected a sequence of buffers");
-    num_buffers = PySequence_Fast_GET_SIZE(fast_seq);
-    data = PyMem_RawMalloc(num_buffers * sizeof(char *));
-    lengths = PyMem_RawMalloc(num_buffers * sizeof(uint32_t));
-
-    for (uint32_t i = 0; i < num_buffers; i++) {
-      PyObject *o = PySequence_Fast_GET_ITEM(fast_seq, i);
-      if (!PyObject_CheckBuffer(o)) {
-        PyErr_SetString(
-          PyExc_TypeError, "obj doesn't support buffer interface");
-        break;
-      }
-
-      Py_buffer view;
-      if (PyObject_GetBuffer(o, &view, PyBUF_SIMPLE) != -1) {
-        data[i] = (char *)view.buf;
-        lengths[i] = (uint32_t)view.len;
-      } else {
-        PyErr_SetString(PyExc_BufferError, "failed to get buffer");
-        break;
-      }
-      PyBuffer_Release(&view);
-    }
-
-    if (PyErr_Occurred()) {
-      PyMem_RawFree(data);
-      PyMem_RawFree(lengths);
-      Py_XDECREF(fast_seq);
-      HS_LOCK_RETURN_NULL();
-    }
 
     if (self->chimera) {
       PyErr_SetString(
         PyExc_RuntimeError, "chimera does not support vectored scanning");
+      HS_LOCK_RETURN_NULL();
+    }
+
+    fast_seq = PySequence_Fast(odata, "expected a sequence of buffers");
+    if (fast_seq == NULL)
+      HS_LOCK_RETURN_NULL();
+    num_buffers = PySequence_Fast_GET_SIZE(fast_seq);
+    data = PyMem_RawMalloc(num_buffers * sizeof(char *));
+    lengths = PyMem_RawMalloc(num_buffers * sizeof(uint32_t));
+    views = PyMem_RawCalloc(num_buffers, sizeof(Py_buffer));
+
+    if (data == NULL || lengths == NULL || views == NULL) {
+      PyErr_NoMemory();
+    } else {
+      for (Py_ssize_t i = 0; i < num_buffers; i++) {
+        PyObject *o = PySequence_Fast_GET_ITEM(fast_seq, i);
+        if (!PyObject_CheckBuffer(o)) {
+          PyErr_SetString(
+            PyExc_TypeError, "obj doesn't support buffer interface");
+          break;
+        }
+
+        if (PyObject_GetBuffer(o, &views[i], PyBUF_SIMPLE) == -1)
+          break;
+        acquired++;
+        data[i] = (char *)views[i].buf;
+        lengths[i] = (uint32_t)views[i].len;
+      }
+    }
+
+    if (PyErr_Occurred()) {
+      for (Py_ssize_t i = 0; i < acquired; i++) PyBuffer_Release(&views[i]);
+      PyMem_RawFree(views);
+      PyMem_RawFree(data);
+      PyMem_RawFree(lengths);
+      Py_XDECREF(fast_seq);
       HS_LOCK_RETURN_NULL();
     }
 
@@ -903,6 +910,8 @@ static PyObject *Database_scan(Database *self, PyObject *args, PyObject *kwds)
       ocallback == Py_None ? NULL : hs_match_handler,
       ocallback == Py_None ? NULL : (void *)&cctx);
     Py_END_ALLOW_THREADS;
+    for (Py_ssize_t i = 0; i < acquired; i++) PyBuffer_Release(&views[i]);
+    PyMem_RawFree(views);
     PyMem_RawFree(data);
     PyMem_RawFree(lengths);
     Py_XDECREF(fast_seq);
